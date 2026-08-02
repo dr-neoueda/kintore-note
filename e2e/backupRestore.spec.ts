@@ -39,16 +39,17 @@ function buildBackupWithoutSettings(): string {
 }
 
 async function importBackup(page: Page, json: string): Promise<void> {
-  page.on('dialog', (dialog) => void dialog.accept())
-
   await page.goto('/settings')
   await expect(page.getByRole('heading', { name: '設定' })).toBeVisible()
 
+  // 確認ダイアログを待ってから次へ進む。先に遷移すると取り込みが実行されない
+  const importDialog = page.waitForEvent('dialog').then((dialog) => dialog.accept())
   await page.locator('input[type="file"]').setInputFiles({
     name: 'backup.json',
     mimeType: 'application/json',
     buffer: Buffer.from(json, 'utf-8'),
   })
+  await importDialog
 }
 
 test.describe('バックアップの復元', () => {

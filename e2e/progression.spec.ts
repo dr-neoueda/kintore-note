@@ -76,16 +76,17 @@ async function restorePastSession(
   repsPerSet: readonly number[],
   weightKg: number,
 ): Promise<void> {
-  page.on('dialog', (dialog) => void dialog.accept())
-
   await page.goto('/settings')
   await expect(page.getByRole('heading', { name: '設定' })).toBeVisible()
 
+  // 確認ダイアログを待ってから次へ進む。先に遷移すると取り込みが実行されない
+  const importDialog = page.waitForEvent('dialog').then((dialog) => dialog.accept())
   await page.locator('input[type="file"]').setInputFiles({
     name: 'backup.json',
     mimeType: 'application/json',
     buffer: Buffer.from(buildBackup(repsPerSet, weightKg), 'utf-8'),
   })
+  await importDialog
 
   // 取り込みの完了は、消えてしまうトーストではなく保存された種目そのもので確認する
   await page.goto('/exercises/1')

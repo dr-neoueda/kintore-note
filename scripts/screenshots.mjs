@@ -160,12 +160,17 @@ const backup = {
   },
 }
 
-page.on('dialog', (dialog) => void dialog.accept())
+// 確認ダイアログを待ってから次へ進む。
+// 先に遷移してしまうとダイアログが解決できず、取り込みが行われないまま進んでしまう。
+const importDialog = page.waitForEvent('dialog').then((dialog) => dialog.accept())
 await page.locator('input[type="file"]').setInputFiles({
   name: 'backup.json',
   mimeType: 'application/json',
   buffer: Buffer.from(JSON.stringify(backup), 'utf-8'),
 })
+await importDialog
+await page.getByText('バックアップを読み込みました').waitFor({ timeout: 30_000 })
+
 await page.goto(`${BASE_URL}/exercises/1`)
 await page.getByRole('heading', { name: 'インクラインダンベルプレス' }).waitFor()
 await shot('11-exercise-detail')
