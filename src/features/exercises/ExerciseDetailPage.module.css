@@ -151,3 +151,9 @@
   font-size: 13px;
   font-weight: 700;
 }
+
+/* フォーム確認は主要な動線のため、カードと同じ幅で1つのボタンにする。 */
+.referenceButton {
+  text-decoration: none;
+  color: var(--text);
+}

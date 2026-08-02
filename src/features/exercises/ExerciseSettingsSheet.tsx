@@ -6,12 +6,15 @@ import { defaultTargetForArchitecture } from '@/domain/muscle'
 import { normalizeProgressionTarget } from '@/domain/progression'
 import type { MuscleArchitecture, ProgressionTarget } from '@/domain/types'
 import { MUSCLE_ARCHITECTURE_LABELS } from '@/domain/types'
+import { ValidationError } from '@/domain/validation'
 import styles from './ExerciseSettingsSheet.module.css'
 
 export interface ExerciseSettingsValues {
   readonly muscleArchitecture: MuscleArchitecture
   readonly target: ProgressionTarget
   readonly restSec: number
+  /** フォーム参照先。入力中の文字列をそのまま持ち、保存時に検証する。 */
+  readonly referenceUrl: string
 }
 
 interface ExerciseSettingsSheetProps {
@@ -41,10 +44,12 @@ export function ExerciseSettingsSheet({
   onSubmit,
 }: ExerciseSettingsSheetProps) {
   const [values, setValues] = useState<ExerciseSettingsValues>(initialValues)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isOpen) return
     setValues(initialValues)
+    setErrorMessage(null)
   }, [isOpen, initialValues])
 
   const selectArchitecture = (muscleArchitecture: MuscleArchitecture) => {
@@ -99,8 +104,15 @@ export function ExerciseSettingsSheet({
   }
 
   const handleSubmit = async () => {
-    await onSubmit({ ...values, target: normalizeProgressionTarget(values.target) })
-    onClose()
+    setErrorMessage(null)
+    try {
+      await onSubmit({ ...values, target: normalizeProgressionTarget(values.target) })
+      onClose()
+    } catch (cause) {
+      setErrorMessage(
+        cause instanceof ValidationError ? cause.message : '保存できませんでした',
+      )
+    }
   }
 
   return (
@@ -189,6 +201,30 @@ export function ExerciseSettingsSheet({
             多関節・大筋群では2分以上とる方が、総挙上量を保てるぶん筋肥大に有利とされています。
           </p>
         </div>
+
+        <div>
+          <label className={styles.fieldLabel} htmlFor="exercise-reference">
+            フォームの参考リンク
+          </label>
+          <input
+            id="exercise-reference"
+            type="url"
+            inputMode="url"
+            autoCapitalize="off"
+            autoCorrect="off"
+            placeholder="https://www.youtube.com/watch?v=..."
+            value={values.referenceUrl}
+            onChange={(event) =>
+              setValues((current) => ({ ...current, referenceUrl: event.target.value }))
+            }
+          />
+          <p className={styles.note}>
+            空欄のままなら、種目名での YouTube 検索を開きます。
+            決まった動画や解説ページがあれば URL を貼り付けてください。
+          </p>
+        </div>
+
+        {errorMessage !== null && <p className="error-text">{errorMessage}</p>}
       </div>
     </Sheet>
   )

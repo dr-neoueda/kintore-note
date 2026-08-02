@@ -107,6 +107,14 @@ export const CheckIcon = (props: IconProps) => (
   </Icon>
 )
 
+export const ExternalLinkIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+    <path d="M15 3h6v6" />
+    <path d="M10 14L21 3" />
+  </Icon>
+)
+
 export const WarningIcon = (props: IconProps) => (
   <Icon {...props}>
     <path d="M12 3l9 16H3l9-16zM12 10v4M12 17h.01" />

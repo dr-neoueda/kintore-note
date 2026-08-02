@@ -12,6 +12,7 @@ const exercise = (id: ExerciseId, dumbbellCount: 1 | 2): Exercise => ({
   muscleArchitecture: 'pennate',
   target: PENNATE_TARGET,
   restSec: 150,
+  referenceUrl: null,
   isArchived: false,
   createdAt: '2026-08-02T00:00:00.000Z',
 })

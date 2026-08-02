@@ -5,6 +5,7 @@ import {
   resolveArchitecture,
 } from '@/domain/muscle'
 import { normalizeProgressionTarget } from '@/domain/progression'
+import { normalizeReferenceUrl } from '@/domain/reference'
 import type {
   DumbbellCount,
   EquipmentType,
@@ -27,6 +28,8 @@ export interface NewExercise {
   readonly target?: ProgressionTarget
   /** 省略した場合は部位ごとの既定値を使う。 */
   readonly restSec?: number
+  /** フォーム確認用の参照先。省略時は未設定（種目名での検索）。 */
+  readonly referenceUrl?: string | null
 }
 
 export type ExercisePatch = Partial<NewExercise>
@@ -36,6 +39,8 @@ export interface ExerciseSettingsPatch {
   readonly muscleArchitecture?: MuscleArchitecture
   readonly target?: ProgressionTarget
   readonly restSec?: number
+  /** 入力されたままの文字列。保存時に検証して正規化する。 */
+  readonly referenceUrl?: string | null
 }
 
 /** 種目を作成する。名前は重複できない。 */
@@ -57,6 +62,8 @@ export async function createExercise(
       input.target ?? defaultTargetForArchitecture(muscleArchitecture),
     ),
     restSec: input.restSec ?? defaultRestSecForMuscleGroup(input.muscleGroup),
+    referenceUrl:
+      input.referenceUrl == null ? null : normalizeReferenceUrl(input.referenceUrl),
     isArchived: false,
     createdAt: nowIso,
   })
@@ -98,6 +105,12 @@ export async function updateExerciseSettings(
     ...(patch.restSec === undefined
       ? {}
       : { restSec: Math.max(0, Math.round(patch.restSec)) }),
+    ...(patch.referenceUrl === undefined
+      ? {}
+      : {
+          referenceUrl:
+            patch.referenceUrl === null ? null : normalizeReferenceUrl(patch.referenceUrl),
+        }),
   }
 
   await db.exercises.update(id, changes)

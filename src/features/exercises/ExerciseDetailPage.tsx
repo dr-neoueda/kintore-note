@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useParams } from 'react-router-dom'
 import { PageHeader } from '@/components/PageHeader'
 import { ProgressionHint } from '@/components/ProgressionHint'
+import { ExternalLinkIcon } from '@/components/icons'
 import { updateExerciseSettings } from '@/data/repositories/exerciseRepository'
 import { getSettings } from '@/data/repositories/settingsRepository'
 import { formatShortDateLabel } from '@/domain/date'
@@ -11,6 +12,7 @@ import { buildExerciseSessions } from '@/domain/exerciseSessions'
 import { buildExerciseProgress } from '@/domain/progress'
 import { suggestNextSession } from '@/domain/progression'
 import { describeProgression } from '@/domain/progressionText'
+import { resolveReferenceLink } from '@/domain/reference'
 import { formatSetSummary } from '@/domain/setFormat'
 import { MUSCLE_ARCHITECTURE_LABELS } from '@/domain/types'
 import { formatWeightKg } from '@/domain/weight'
@@ -71,6 +73,7 @@ export function ExerciseDetailPage() {
 
   const isBodyweight = exercise.equipment === 'bodyweight'
   const bestWeightKg = sessions.reduce((max, session) => Math.max(max, session.topWeightKg), 0)
+  const referenceLink = resolveReferenceLink(exercise)
 
   const message =
     suggestion === null
@@ -117,6 +120,16 @@ export function ExerciseDetailPage() {
           )}
         </section>
 
+        <a
+          className={`btn btn-block ${styles.referenceButton}`}
+          href={referenceLink.url}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <ExternalLinkIcon size={18} />
+          {referenceLink.isCustom ? 'フォームを確認' : 'YouTubeでフォームを検索'}
+        </a>
+
         <section className={styles.card}>
           <div className={styles.targetRow}>
             <h2 className={styles.cardTitle}>この種目の設定</h2>
@@ -146,6 +159,12 @@ export function ExerciseDetailPage() {
             <div className={styles.settingRow}>
               <dt className={styles.settingLabel}>セット間の休憩</dt>
               <dd className={styles.settingValue}>{formatDuration(exercise.restSec)}</dd>
+            </div>
+            <div className={styles.settingRow}>
+              <dt className={styles.settingLabel}>参考リンク</dt>
+              <dd className={styles.settingValue}>
+                {referenceLink.isCustom ? '保存済み' : '未設定（検索）'}
+              </dd>
             </div>
           </dl>
         </section>
@@ -188,6 +207,7 @@ export function ExerciseDetailPage() {
           muscleArchitecture: exercise.muscleArchitecture,
           target: exercise.target,
           restSec: exercise.restSec,
+          referenceUrl: exercise.referenceUrl ?? '',
         }}
         onClose={() => setIsSettingsOpen(false)}
         onSubmit={handleSaveSettings}

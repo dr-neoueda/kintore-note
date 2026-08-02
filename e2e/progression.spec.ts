@@ -169,7 +169,8 @@ test.describe('種目カルテ', () => {
     await openExerciseOnHome(page)
 
     // Act
-    await page.getByRole('link', { name: new RegExp(`^${EXERCISE_NAME}`) }).click()
+    // フォーム確認リンクも種目名を含むため、種目名そのものと一致するリンクを選ぶ
+    await page.getByRole('link', { name: EXERCISE_NAME, exact: true }).click()
 
     // Assert
     await expect(page.getByRole('heading', { name: EXERCISE_NAME })).toBeVisible()

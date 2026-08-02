@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ProgressionHint } from '@/components/ProgressionHint'
-import { ChevronRightIcon, CloseIcon, PlusIcon } from '@/components/icons'
+import { ChevronRightIcon, CloseIcon, ExternalLinkIcon, PlusIcon } from '@/components/icons'
+import { resolveReferenceLink } from '@/domain/reference'
 import { formatSetSummary } from '@/domain/setFormat'
 import type { ProgressionMessage } from '@/domain/progressionText'
 import type { Exercise, WorkoutSet } from '@/domain/types'
@@ -37,6 +38,7 @@ export function ExerciseSection({
 }: ExerciseSectionProps) {
   const isBodyweight = exercise.equipment === 'bodyweight'
   const previousSummary = formatSetSummary(previousSets)
+  const referenceLink = resolveReferenceLink(exercise)
 
   return (
     <section className={styles.section}>
@@ -45,6 +47,15 @@ export function ExerciseSection({
           {exercise.name}
           <ChevronRightIcon size={16} />
         </Link>
+        <a
+          className={styles.reference}
+          href={referenceLink.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${exercise.name}のフォームを確認`}
+        >
+          <ExternalLinkIcon size={18} />
+        </a>
         {onRemove !== undefined && (
           <button
             type="button"

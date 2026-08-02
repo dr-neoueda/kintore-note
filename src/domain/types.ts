@@ -73,6 +73,8 @@ export interface Exercise {
   readonly target: ProgressionTarget
   /** この種目のセット間休憩の目安（秒）。 */
   readonly restSec: number
+  /** フォーム確認用の参照先。未設定なら種目名での YouTube 検索を使う。 */
+  readonly referenceUrl: string | null
   readonly isArchived: boolean
   readonly createdAt: string
 }

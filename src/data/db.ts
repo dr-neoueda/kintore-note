@@ -25,6 +25,7 @@ interface UpgradingExercise {
   muscleArchitecture?: MuscleArchitecture
   target?: ProgressionTarget
   restSec?: number
+  referenceUrl?: string | null
 }
 
 /** v2 で一律に入れていた目標。利用者が変えていなければ v3 で筋構造別の値に置き換える。 */
@@ -93,6 +94,16 @@ export class KintoreDatabase extends Dexie {
           }
 
           exercise.restSec ??= defaultRestSecForMuscleGroup(exercise.muscleGroup)
+        })
+    })
+
+    // v4: フォーム確認用の参照 URL を追加。未設定なら種目名での検索にフォールバックする。
+    this.version(4).upgrade(async (transaction) => {
+      await transaction
+        .table('exercises')
+        .toCollection()
+        .modify((exercise: UpgradingExercise) => {
+          exercise.referenceUrl ??= null
         })
     })
   }

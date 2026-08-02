@@ -29,6 +29,21 @@
   opacity: 0.6;
 }
 
+/* トレーニング中にすぐフォームを見返せるようにする。 */
+.reference {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--text-dim);
+}
+
+.reference:active {
+  opacity: 0.6;
+}
+
 .remove {
   flex: none;
   display: inline-flex;

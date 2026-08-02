@@ -72,6 +72,7 @@ export async function ensureSeeded(
         muscleArchitecture,
         target: defaultTargetForArchitecture(muscleArchitecture),
         restSec: defaultRestSecForMuscleGroup(exercise.muscleGroup),
+        referenceUrl: null,
         isArchived: false,
         createdAt: nowIso,
       }
