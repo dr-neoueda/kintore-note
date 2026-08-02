@@ -10,6 +10,9 @@
   /*
    * 白黒のみで構成する。色で意味を伝えられないぶん、
    * 太さ・枠線・余白でコントラストを付ける。
+   *
+   * 配色は iOS の外観設定（ライト／ダーク）に連動する。
+   * 変数名は「役割」で付けているため、下のダーク用ブロックで値だけを差し替える。
    */
   --bg: #ffffff;
   --surface: #ffffff;
@@ -29,6 +32,11 @@
   --danger: #111113;
   --success: #111113;
   --warning: #111113;
+
+  /* 画面に固定表示する帯（ヘッダー・タブバー・休憩タイマー）の半透明の地色。 */
+  --overlay-bg: rgba(255, 255, 255, 0.93);
+  /* モーダルの背面を暗くする膜。 */
+  --overlay-scrim: rgba(0, 0, 0, 0.55);
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -51,7 +59,37 @@
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 
-  color-scheme: light;
+  color-scheme: light dark;
+}
+
+/*
+ * iOS の設定が「ダーク」のときの配色。
+ * 白黒であることは変えず、明暗だけを反転させる。
+ * 有機ELの iPhone では地色を純黒にすると輪郭が締まる。
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --surface: #0e0e10;
+    --surface-raised: #1c1c1f;
+    --border: #2e2e32;
+    --border-strong: #f2f2f4;
+
+    --text: #f2f2f4;
+    --text-dim: #a1a1a8;
+    --text-faint: #8a8a91;
+
+    --accent: #f2f2f4;
+    --accent-pressed: #ffffff;
+    --accent-text: #111113;
+
+    --danger: #f2f2f4;
+    --success: #f2f2f4;
+    --warning: #f2f2f4;
+
+    --overlay-bg: rgba(10, 10, 12, 0.93);
+    --overlay-scrim: rgba(0, 0, 0, 0.7);
+  }
 }
 
 * {

@@ -7,7 +7,9 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <meta name="theme-color" content="#ffffff" />
+    <!-- iOS の外観設定に合わせてブラウザ／ステータスバー周りの地色を切り替える -->
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
     <meta name="description" content="自宅の可変式ダンベルとインクラインベンチでの筋トレを記録するアプリ" />
 
     <!-- ホーム画面に追加したときにブラウザ UI を隠す（iOS 向け） -->

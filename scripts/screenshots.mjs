@@ -1,6 +1,8 @@
 /**
  * 画面の見た目を iPhone 13 mini のサイズで書き出す。
+ *
  * 実行: node scripts/screenshots.mjs [出力ディレクトリ]
+ * 外観: COLOR_SCHEME=dark node scripts/screenshots.mjs out-dark
  */
 import { mkdir } from 'node:fs/promises'
 import path from 'node:path'
@@ -12,7 +14,11 @@ const OUT_DIR = process.argv[2] ?? 'screenshots'
 await mkdir(OUT_DIR, { recursive: true })
 
 const browser = await chromium.launch()
-const context = await browser.newContext({ ...devices['iPhone 13 Mini'], isMobile: false })
+const context = await browser.newContext({
+  ...devices['iPhone 13 Mini'],
+  isMobile: false,
+  colorScheme: process.env.COLOR_SCHEME === 'dark' ? 'dark' : 'light',
+})
 const page = await context.newPage()
 
 const shot = async (name) => {

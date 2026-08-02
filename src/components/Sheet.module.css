@@ -2,7 +2,7 @@
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--overlay-scrim);
   display: flex;
   align-items: flex-end;
   animation: fade 0.15s ease;
