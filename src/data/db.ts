@@ -53,8 +53,9 @@ export class KintoreDatabase extends Dexie {
   declare templates: Table<WorkoutTemplate, number>
   declare settings: Table<AppSettings, number>
 
-  constructor() {
-    super(DATABASE_NAME)
+  /** データベース名を差し替えられるようにしているのは、移行のテストのため。 */
+  constructor(databaseName: string = DATABASE_NAME) {
+    super(databaseName)
 
     this.version(1).stores({
       exercises: '++id, &name, muscleGroup',

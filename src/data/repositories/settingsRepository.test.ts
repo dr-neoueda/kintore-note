@@ -1,4 +1,5 @@
 import { describe, test, expect, beforeEach } from 'vitest'
+import { db } from '@/data/db'
 import { resetDatabase } from '@/test/dbTestUtils'
 import { DEFAULT_REST_SEC_BY_MUSCLE_GROUP } from '@/domain/muscle'
 import { DEFAULT_DUMBBELL_STEPS_KG } from '@/domain/weight'
@@ -90,5 +91,18 @@ describe('markBackedUp', () => {
 
     // Assert
     expect(after.lastBackupAt).toBe(at)
+  })
+})
+
+describe('liveQuery からの読み出し', () => {
+  test('設定が未保存でも、読み取り専用トランザクションの中で取得できる', async () => {
+    // Arrange: liveQuery は読み取り専用トランザクションで querier を実行するため、
+    // 読み出し中に書き込むと ReadOnlyError で画面全体がクラッシュする
+
+    // Act
+    const settings = await db.transaction('r', db.settings, () => getSettings())
+
+    // Assert
+    expect(settings.dumbbellStepsKg).toEqual(DEFAULT_DUMBBELL_STEPS_KG)
   })
 })

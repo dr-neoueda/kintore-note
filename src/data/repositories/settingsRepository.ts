@@ -40,10 +40,27 @@ function normalizeDumbbellSteps(steps: readonly number[]): number[] {
   return [...new Set(valid)].sort((a, b) => a - b)
 }
 
-/** 設定を取得する。未保存なら既定値を作成して返す。 */
+/** 既定の設定を作る。復元時にレコードが無い場合の補完にも使う。 */
+export function buildDefaultSettings(): AppSettings {
+  return createDefaultSettings()
+}
+
+/**
+ * 設定を読み出す。
+ *
+ * **書き込みを行わない。** liveQuery は querier を読み取り専用トランザクションで
+ * 実行するため、ここで書き込むと ReadOnlyError になり画面全体がクラッシュする。
+ * 未保存の場合は既定値をその場で返すだけにして、保存は ensureSettings に任せる。
+ * 項目を追加したあとの古いレコードでも、欠けを既定値で補う。
+ */
 export async function getSettings(): Promise<AppSettings> {
   const existing = await db.settings.get(SETTINGS_ID)
-  // 項目を追加したあとの古いレコードでも欠けを既定値で補えるようにする
+  return existing ? { ...createDefaultSettings(), ...existing } : createDefaultSettings()
+}
+
+/** 起動時に呼び、設定レコードが無ければ既定値を保存する。 */
+export async function ensureSettings(): Promise<AppSettings> {
+  const existing = await db.settings.get(SETTINGS_ID)
   if (existing) return { ...createDefaultSettings(), ...existing }
 
   const defaults = createDefaultSettings()

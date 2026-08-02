@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ensureSeeded } from '@/data/seed'
-import { getSettings } from '@/data/repositories/settingsRepository'
+import { ensureSettings } from '@/data/repositories/settingsRepository'
 
 export interface BootstrapState {
   readonly isReady: boolean
@@ -19,7 +19,7 @@ export function useBootstrap(): BootstrapState {
 
     const run = async () => {
       try {
-        await getSettings()
+        await ensureSettings()
         await ensureSeeded()
         if (!isCancelled) setState({ isReady: true, error: null })
       } catch (cause) {

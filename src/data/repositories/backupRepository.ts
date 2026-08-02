@@ -1,4 +1,5 @@
 import { db } from '../db'
+import { buildDefaultSettings } from './settingsRepository'
 import type { BackupData } from '@/domain/backup'
 import { SETTINGS_ID } from '@/domain/types'
 
@@ -40,9 +41,12 @@ export async function replaceAllData(data: BackupData): Promise<void> {
       await db.workouts.bulkAdd([...data.workouts])
       await db.sets.bulkAdd([...data.sets])
       await db.templates.bulkAdd([...data.templates])
-      if (data.settings !== null) {
-        await db.settings.put({ ...data.settings, id: SETTINGS_ID })
-      }
+      // 設定を持たないバックアップでも、レコードが無い状態にはしない
+      await db.settings.put(
+        data.settings === null
+          ? buildDefaultSettings()
+          : { ...buildDefaultSettings(), ...data.settings, id: SETTINGS_ID },
+      )
     },
   )
 }
