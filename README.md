@@ -1,32 +1,104 @@
-# React + TypeScript + Vite
+# 筋トレノート
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+自宅のインクラインベンチと可変式ダンベルで行う筋トレを記録する PWA（Web アプリ）。
 
-Currently, two official plugins are available:
+iPhone のホーム画面に追加して、ネイティブアプリのように使う。
+データは端末内にのみ保存され、サーバーへは送信しない。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 特徴
 
-## React Compiler
+- **所有しているダンベルの段階だけを選べる** — ＋ / − ボタンが実際に設定できる15段階の間を移動する
+- **前回の記録が常に見える** — 種目ごとに前回の重量×回数を表示し、入力の初期値にも引き継ぐ
+- **休憩時間を自動計測** — 直前のセットからの経過時間を表示（画面を消しても復帰時に正しい時間になる）
+- **片手／両手を区別したボリューム計算** — ワンハンドロウとプレスを同じ扱いにしない
+- **メニュー登録** — 「胸の日」などを登録して一括で呼び出す
+- **バックアップの書き出しと復元** — JSON ファイルとして保存できる
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 技術構成
 
-## Expanding the Oxlint configuration
+| 領域 | 採用 |
+|---|---|
+| ビルド | Vite 8 + TypeScript 6 |
+| UI | React 19 |
+| データ保存 | Dexie（IndexedDB） |
+| グラフ | Recharts |
+| ルーティング | React Router |
+| PWA | vite-plugin-pwa（Workbox） |
+| テスト | Vitest（単体）／ Playwright（E2E） |
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## 開発
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev          # 開発サーバー（http://localhost:5173）
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+| コマンド | 内容 |
+|---|---|
+| `npm run dev` | 開発サーバーを起動（同一 Wi-Fi の iPhone からもアクセス可） |
+| `npm run test` | 単体テストを監視モードで実行 |
+| `npm run test:run` | 単体テストを1回実行 |
+| `npm run coverage` | カバレッジ付きで実行（しきい値 80%） |
+| `npm run e2e` | Playwright で E2E テストを実行 |
+| `npm run typecheck` | 型チェック |
+| `npm run lint` | 静的解析 |
+| `npm run build` | 本番ビルド（`dist/`） |
+| `npm run icons` | PWA アイコンを再生成 |
+
+## iPhone にインストールする
+
+### 方法1: 開発中に、同じ Wi-Fi から試す
+
+1. Mac で `npm run dev` を実行する
+2. 表示される `Network: http://192.168.x.x:5173/` を iPhone の Safari で開く
+3. 共有ボタン → 「ホーム画面に追加」
+
+この方法は Mac が起動していないと開けない。日常利用には方法2を使う。
+
+### 方法2: 無料ホスティングに公開して、どこでも使えるようにする（推奨）
+
+PWA は HTTPS でないとオフライン動作しないため、公開先が必要になる。
+**記録したデータは iPhone の中だけに保存され、公開先のサーバーには送られない。**
+
+1. `npm run build` で `dist/` を生成する
+2. [Cloudflare Pages](https://pages.cloudflare.com/) の無料プランに `dist/` をデプロイする
+   - `public/_redirects` により、SPA のパス直打ちにも対応済み
+3. 発行された HTTPS の URL を iPhone の Safari で開く
+4. 共有ボタン → **「ホーム画面に追加」**
+5. ホーム画面のアイコンから起動する（Safari の UI が消え、アプリのように全画面で動く）
+
+一度ホーム画面に追加すれば、機内モードでも起動できる。
+
+## バックアップについて（重要）
+
+記録は **iPhone の中だけ** に保存されている。
+端末のストレージが逼迫した場合など、ブラウザがデータを削除する可能性がゼロではない。
+
+**設定 → バックアップを書き出す** を定期的に実行し、
+「ファイル」アプリや iCloud Drive に保存しておくことを推奨する。
+最後の書き出しから14日経過すると、設定画面に警告が出る。
+
+復元は **設定 → バックアップから復元する** から行う（現在のデータは全て置き換わる）。
+
+## ディレクトリ構成
+
+```
+src/
+  domain/       純粋なロジックと型（永続化を知らない）
+  data/         Dexie スキーマとリポジトリ
+  features/     画面（today / history / charts / templates / settings）
+  components/   共通 UI 部品
+  hooks/        共通のデータ購読・状態
+e2e/            Playwright の E2E テスト
+docs/           要件とデータモデルの設計
+scripts/        アイコン生成・スクリーンショット取得
+```
+
+詳しくは [docs/requirements.md](docs/requirements.md) と
+[docs/data-model.md](docs/data-model.md) を参照。
+
+## 制約
+
+- **画面を消している間に休憩終了を音や通知で知らせることはできない。** iOS の Web アプリ全般の制約。
+  復帰時には正しい経過時間が表示される
+- iCloud 同期・HealthKit 連携・Apple Watch 対応は対象外

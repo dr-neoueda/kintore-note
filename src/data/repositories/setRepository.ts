@@ -91,3 +91,8 @@ export async function findPreviousSessionSets(
     .filter((set) => set.workoutId === mostRecent.workoutId)
     .sort((a, b) => a.order - b.order)
 }
+
+/** 全セットを返す。履歴やグラフの集計に使う。 */
+export async function listAllSets(): Promise<WorkoutSet[]> {
+  return db.sets.toArray()
+}

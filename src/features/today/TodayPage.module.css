@@ -1,0 +1,107 @@
+.content {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/*
+ * 休憩タイマーは画面下部に固定表示されるため、
+ * 何もしないと最後のボタンが隠れてタップできなくなる。
+ * バーの高さぶんだけ余白を足して重なりを避ける。
+ */
+.contentWithRestTimer {
+  padding-bottom: calc(var(--space-4) + var(--resttimer-height));
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+}
+
+.volume {
+  flex: 1;
+  min-width: 0;
+}
+
+.volumeValue {
+  font-size: 24px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.volumeUnit {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-left: 2px;
+}
+
+.volumeLabel {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.counts {
+  flex: none;
+  text-align: right;
+  font-size: 12px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.noteButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  text-align: left;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.noteButton:active {
+  opacity: 0.6;
+}
+
+.noteValue {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.templates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.templateChip {
+  min-height: var(--tap-min);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.templateChip:active {
+  opacity: 0.6;
+}
+
+.sectionLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-faint);
+  letter-spacing: 0.04em;
+}

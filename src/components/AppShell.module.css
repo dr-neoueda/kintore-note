@@ -1,0 +1,11 @@
+.shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+  /* タブバーと重ならないよう下部に余白を確保する */
+  padding-bottom: calc(var(--tabbar-height) + var(--safe-bottom) + var(--space-5));
+}

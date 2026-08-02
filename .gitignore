@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# テスト・カバレッジの生成物
+coverage
+test-results
+playwright-report
+screenshots
+
+# vite-plugin-pwa の開発用出力
+dev-dist

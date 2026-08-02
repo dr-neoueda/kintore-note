@@ -1,0 +1,2 @@
+# SPA のため、どのパスへ直接アクセスされても index.html を返す（Cloudflare Pages / Netlify 用）
+/*    /index.html   200

@@ -1,0 +1,16 @@
+.splash {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  text-align: center;
+  color: var(--text-dim);
+}
+
+.errorTitle {
+  color: var(--danger);
+  font-weight: 700;
+}

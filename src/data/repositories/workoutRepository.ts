@@ -58,3 +58,8 @@ export async function deleteWorkout(id: WorkoutId): Promise<void> {
     await db.workouts.delete(id)
   })
 }
+
+/** 記録済みのワークアウト件数。バックアップ警告の要否判定などに使う。 */
+export async function countWorkouts(): Promise<number> {
+  return db.workouts.count()
+}

@@ -1,0 +1,114 @@
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.remove {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--text-faint);
+}
+
+.previous {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: var(--space-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.setList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+}
+
+.setRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 40px;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+
+.setRow:active {
+  opacity: 0.6;
+}
+
+.setIndex {
+  flex: none;
+  width: 20px;
+  font-size: 12px;
+  color: var(--text-faint);
+  font-weight: 700;
+}
+
+.setMain {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.setBadge {
+  flex: none;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--border);
+  color: var(--text-dim);
+}
+
+.rpeBadge {
+  background: transparent;
+  border: 1px solid var(--border);
+}
+
+.warmupBadge {
+  background: transparent;
+  border: 1px solid var(--warning);
+  color: var(--warning);
+}
+
+.addButton {
+  width: 100%;
+  min-height: var(--tap-min);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border);
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+}
+
+.addButton:active {
+  opacity: 0.6;
+}

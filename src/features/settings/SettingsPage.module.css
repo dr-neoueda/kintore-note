@@ -1,0 +1,107 @@
+.content {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sectionTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-faint);
+  letter-spacing: 0.04em;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+.stepPreview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.stepChip {
+  font-size: 11px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.warning {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: rgba(245, 165, 36, 0.12);
+  border: 1px solid var(--warning);
+  color: var(--warning);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.warningIcon {
+  flex: none;
+  display: flex;
+  margin-top: 2px;
+}
+
+.status {
+  font-size: 13px;
+}
+
+.statusSuccess {
+  color: var(--success);
+}
+
+.statusError {
+  color: var(--danger);
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.link:active {
+  opacity: 0.6;
+}
+
+.linkChevron {
+  margin-left: auto;
+  color: var(--text-faint);
+  display: flex;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.version {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-faint);
+}
