@@ -32,11 +32,23 @@
   opacity: 0.6;
 }
 
-.itemName {
+.itemMain {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.itemName {
   font-size: 15px;
   font-weight: 600;
+}
+
+/* 追加する前に前回の重量を思い出せるようにする。 */
+.itemLast {
+  font-size: 11px;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
 }
 
 .itemMeta {

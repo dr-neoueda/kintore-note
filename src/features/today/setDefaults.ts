@@ -1,3 +1,4 @@
+import type { ProgressionSuggestion } from '@/domain/progression'
 import type { WorkoutSet } from '@/domain/types'
 
 export interface SetFormValues {
@@ -7,39 +8,39 @@ export interface SetFormValues {
   readonly isWarmup: boolean
 }
 
-/** 過去の記録が無いときの既定回数。 */
-export const DEFAULT_REPS = 10
-
 interface BuildInitialSetValuesParams {
   /** 編集対象のセット。新規追加なら null。 */
   readonly existingSet: WorkoutSet | null
   /** 今日のセッションで、その種目に既に記録済みのセット（並び順）。 */
   readonly setsInSession: readonly WorkoutSet[]
-  /** 前回その種目を行ったセッションのセット（並び順）。 */
-  readonly previousSets: readonly WorkoutSet[]
-  readonly dumbbellStepsKg: readonly number[]
+  /** 前回の実績から導いた今回の提案。 */
+  readonly suggestion: ProgressionSuggestion
+}
+
+/** 保存済みのセットをフォームの値に変換する。編集時に使う。 */
+export function toSetFormValues(set: WorkoutSet): SetFormValues {
+  return {
+    weightKg: set.weightKg,
+    reps: set.reps,
+    rpe: set.rpe,
+    isWarmup: set.isWarmup,
+  }
 }
 
 /**
  * セット入力の初期値を決める。
  *
  * 「毎回同じ数字を入力し直す」手間を無くすことが目的で、
- * 直前のセット → 前回セッション → 既定値、の順に引き継ぐ。
+ * 直前のセット → 今回の提案（ダブルプログレッション）、の順に引き継ぐ。
  * RPE とウォームアップ指定はセットごとに変わるため引き継がない。
  */
 export function buildInitialSetValues({
   existingSet,
   setsInSession,
-  previousSets,
-  dumbbellStepsKg,
+  suggestion,
 }: BuildInitialSetValuesParams): SetFormValues {
   if (existingSet !== null) {
-    return {
-      weightKg: existingSet.weightKg,
-      reps: existingSet.reps,
-      rpe: existingSet.rpe,
-      isWarmup: existingSet.isWarmup,
-    }
+    return toSetFormValues(existingSet)
   }
 
   const lastInSession = setsInSession[setsInSession.length - 1]
@@ -52,21 +53,9 @@ export function buildInitialSetValues({
     }
   }
 
-  // ウォームアップから始まる記録が多いため、本セットを優先して引き継ぐ
-  const referenceSet =
-    previousSets.find((set) => !set.isWarmup) ?? previousSets[0]
-  if (referenceSet !== undefined) {
-    return {
-      weightKg: referenceSet.weightKg,
-      reps: referenceSet.reps,
-      rpe: null,
-      isWarmup: false,
-    }
-  }
-
   return {
-    weightKg: dumbbellStepsKg[0] ?? 0,
-    reps: DEFAULT_REPS,
+    weightKg: suggestion.weightKg,
+    reps: suggestion.repsHint,
     rpe: null,
     isWarmup: false,
   }

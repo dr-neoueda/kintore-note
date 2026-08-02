@@ -1,8 +1,7 @@
 import { describe, test, expect } from 'vitest'
+import type { ProgressionSuggestion } from '@/domain/progression'
 import type { WorkoutSet } from '@/domain/types'
-import { buildInitialSetValues, DEFAULT_REPS } from './setDefaults'
-
-const STEPS = [2.5, 5.5, 11.5, 24.0]
+import { buildInitialSetValues } from './setDefaults'
 
 const set = (overrides: Partial<WorkoutSet> = {}): WorkoutSet => ({
   id: 1,
@@ -18,6 +17,16 @@ const set = (overrides: Partial<WorkoutSet> = {}): WorkoutSet => ({
   ...overrides,
 })
 
+const suggestion = (overrides: Partial<ProgressionSuggestion> = {}): ProgressionSuggestion => ({
+  action: 'hold',
+  weightKg: 11.5,
+  repsHint: 10,
+  previousWeightKg: 11.5,
+  hasReachedTarget: false,
+  isAtHeaviestStep: false,
+  ...overrides,
+})
+
 describe('buildInitialSetValues', () => {
   test('編集時は既存セットの値をそのまま返す', () => {
     // Arrange
@@ -27,8 +36,7 @@ describe('buildInitialSetValues', () => {
     const values = buildInitialSetValues({
       existingSet,
       setsInSession: [],
-      previousSets: [],
-      dumbbellStepsKg: STEPS,
+      suggestion: suggestion(),
     })
 
     // Assert
@@ -46,73 +54,44 @@ describe('buildInitialSetValues', () => {
     const values = buildInitialSetValues({
       existingSet: null,
       setsInSession,
-      previousSets: [],
-      dumbbellStepsKg: STEPS,
+      suggestion: suggestion(),
     })
 
     // Assert: RPE とウォームアップは引き継がない
     expect(values).toEqual({ weightKg: 11.5, reps: 8, rpe: null, isWarmup: false })
   })
 
-  test('セッション内が空なら前回セッションの最初の本セットを引き継ぐ', () => {
-    // Arrange
-    const previousSets = [
-      set({ order: 1, weightKg: 5.5, reps: 15, isWarmup: true }),
-      set({ order: 2, weightKg: 11.5, reps: 10 }),
-      set({ order: 3, weightKg: 11.5, reps: 7 }),
-    ]
-
+  test('セッションの1セット目は今回の提案を初期値にする', () => {
     // Act
     const values = buildInitialSetValues({
       existingSet: null,
       setsInSession: [],
-      previousSets,
-      dumbbellStepsKg: STEPS,
-    })
-
-    // Assert: ウォームアップではなく本セットの重量から始める
-    expect(values).toEqual({ weightKg: 11.5, reps: 10, rpe: null, isWarmup: false })
-  })
-
-  test('前回セッションがウォームアップだけならそのセットを使う', () => {
-    // Arrange
-    const previousSets = [set({ weightKg: 4.5, reps: 20, isWarmup: true })]
-
-    // Act
-    const values = buildInitialSetValues({
-      existingSet: null,
-      setsInSession: [],
-      previousSets,
-      dumbbellStepsKg: STEPS,
+      suggestion: suggestion({ weightKg: 13.5, repsHint: 8 }),
     })
 
     // Assert
-    expect(values.weightKg).toBe(4.5)
-    expect(values.reps).toBe(20)
-    expect(values.isWarmup).toBe(false)
+    expect(values).toEqual({ weightKg: 13.5, reps: 8, rpe: null, isWarmup: false })
   })
 
-  test('記録が無ければ最も軽い段階と既定回数から始める', () => {
+  test('提案が増量なら、その重量と下限回数で始まる', () => {
+    // Arrange: 目標達成で 11.5 → 13.5 に上げる提案
+    const increased = suggestion({
+      action: 'increase',
+      weightKg: 13.5,
+      repsHint: 8,
+      previousWeightKg: 11.5,
+      hasReachedTarget: true,
+    })
+
     // Act
     const values = buildInitialSetValues({
       existingSet: null,
       setsInSession: [],
-      previousSets: [],
-      dumbbellStepsKg: STEPS,
+      suggestion: increased,
     })
 
     // Assert
-    expect(values).toEqual({ weightKg: 2.5, reps: DEFAULT_REPS, rpe: null, isWarmup: false })
-  })
-
-  test('ダンベルの段階が未設定なら重量0から始める', () => {
-    const values = buildInitialSetValues({
-      existingSet: null,
-      setsInSession: [],
-      previousSets: [],
-      dumbbellStepsKg: [],
-    })
-
-    expect(values.weightKg).toBe(0)
+    expect(values.weightKg).toBe(13.5)
+    expect(values.reps).toBe(8)
   })
 })

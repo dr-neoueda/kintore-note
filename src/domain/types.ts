@@ -35,6 +35,19 @@ export const EQUIPMENT_LABELS: Readonly<Record<EquipmentType, string>> = {
   other: 'その他',
 }
 
+/**
+ * 重量を上げる判断に使う目標。
+ * 「回数で伸ばし、上限に達したら重量を1段階上げる」ダブルプログレッションの基準になる。
+ */
+export interface ProgressionTarget {
+  /** 重量を上げた直後に落ち込む想定の下限回数。 */
+  readonly repsMin: number
+  /** 全セットでこの回数に達したら重量を上げる。 */
+  readonly repsMax: number
+  /** 判定の対象になる本セット数。 */
+  readonly sets: number
+}
+
 /** 種目マスタ。 */
 export interface Exercise {
   readonly id?: ExerciseId
@@ -42,6 +55,8 @@ export interface Exercise {
   readonly muscleGroup: MuscleGroup
   readonly equipment: EquipmentType
   readonly dumbbellCount: DumbbellCount
+  /** 種目ごとの目標。未設定の古いデータは移行時に既定値で埋める。 */
+  readonly target: ProgressionTarget
   readonly isArchived: boolean
   readonly createdAt: string
 }
@@ -102,6 +117,8 @@ export interface AppSettings {
   readonly lastBackupAt: string | null
   /** この日数を超えてバックアップしていなければ警告する。 */
   readonly backupReminderDays: number
+  /** 新しく作る種目に適用する目標の初期値。 */
+  readonly defaultTarget: ProgressionTarget
 }
 
 export const RPE_MIN = 1

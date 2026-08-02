@@ -19,6 +19,13 @@ const ChartsPage = lazy(() =>
   import('./features/charts/ChartsPage').then((module) => ({ default: module.ChartsPage })),
 )
 
+// カルテ画面も推移グラフを描くため、同じく遅延読み込みにする
+const ExerciseDetailPage = lazy(() =>
+  import('./features/exercises/ExerciseDetailPage').then((module) => ({
+    default: module.ExerciseDetailPage,
+  })),
+)
+
 export function App() {
   const { isReady, error } = useBootstrap()
 
@@ -48,6 +55,14 @@ export function App() {
         <Route path="/" element={<TodayPage />} />
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/history/:date" element={<WorkoutDetailPage />} />
+        <Route
+          path="/exercises/:exerciseId"
+          element={
+            <Suspense fallback={<p className="empty-state">読み込み中…</p>}>
+              <ExerciseDetailPage />
+            </Suspense>
+          }
+        />
         <Route
           path="/charts"
           element={

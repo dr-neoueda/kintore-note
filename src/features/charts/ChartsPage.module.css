@@ -25,36 +25,6 @@
   height: 200px;
 }
 
-.legend {
-  display: flex;
-  gap: var(--space-4);
-  padding: var(--space-2) var(--space-2) 0;
-  font-size: 11px;
-  color: var(--text-dim);
-}
-
-.legendItem {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-.swatch {
-  width: 14px;
-  height: 3px;
-  border-radius: 999px;
-}
-
-/* 推定1RM はグラフ上で破線のため、凡例も破線で示す。 */
-.swatchDashed {
-  border-radius: 0;
-  background: repeating-linear-gradient(
-    to right,
-    var(--text-faint) 0 4px,
-    transparent 4px 7px
-  ) !important;
-}
-
 .best {
   display: flex;
   gap: var(--space-4);
@@ -74,4 +44,21 @@
 .bestLabel {
   font-size: 11px;
   color: var(--text-faint);
+}
+
+.detailLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-height: var(--tap-min);
+  margin-top: var(--space-2);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.detailLink:active {
+  opacity: 0.6;
 }

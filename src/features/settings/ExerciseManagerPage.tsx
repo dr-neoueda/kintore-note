@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { PageHeader } from '@/components/PageHeader'
 import { Sheet } from '@/components/Sheet'
-import { PlusIcon } from '@/components/icons'
+import { ChevronRightIcon, PlusIcon } from '@/components/icons'
 import {
   createExercise,
   setExerciseArchived,
@@ -90,7 +91,10 @@ export function ExerciseManagerPage() {
                   exercise.isArchived ? `${styles.item} ${styles.archived}` : styles.item
                 }
               >
-                <span className={styles.name}>{exercise.name}</span>
+                <Link to={`/exercises/${exercise.id}`} className={styles.name}>
+                  {exercise.name}
+                  <ChevronRightIcon size={14} />
+                </Link>
                 <span className={styles.meta}>
                   {exercise.equipment === 'dumbbell' && exercise.dumbbellCount === 2
                     ? '両手'

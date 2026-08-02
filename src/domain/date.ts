@@ -28,3 +28,9 @@ export function formatDateLabelWithYear(dateKey: DateKey): string {
   if (!isValidDateKey(dateKey)) return dateKey
   return format(parseISO(dateKey), 'yyyy年M月d日(E)', { locale: ja })
 }
+
+/** 日付キーをグラフの軸用の「8/2」形式にする。 */
+export function formatShortDateLabel(dateKey: DateKey): string {
+  if (!isValidDateKey(dateKey)) return dateKey
+  return format(parseISO(dateKey), 'M/d')
+}

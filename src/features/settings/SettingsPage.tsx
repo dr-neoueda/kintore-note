@@ -17,8 +17,10 @@ import {
   serializeBackup,
 } from '@/domain/backup'
 import { toDateKey } from '@/domain/date'
+import type { ProgressionTarget } from '@/domain/types'
 import { ValidationError } from '@/domain/validation'
 import { formatWeightKg } from '@/domain/weight'
+import { TargetEditorSheet } from '../exercises/TargetEditorSheet'
 import { downloadTextFile } from './downloadFile'
 import styles from './SettingsPage.module.css'
 
@@ -49,6 +51,7 @@ export function SettingsPage() {
 
   const [stepsText, setStepsText] = useState('')
   const [restText, setRestText] = useState('')
+  const [isTargetOpen, setIsTargetOpen] = useState(false)
   const [status, setStatus] = useState<StatusMessage | null>(null)
 
   useEffect(() => {
@@ -78,6 +81,11 @@ export function SettingsPage() {
 
     await updateSettings({ defaultRestSec: Math.round(seconds) })
     setStatus({ kind: 'success', text: '休憩時間の目安を保存しました' })
+  }
+
+  const handleSaveDefaultTarget = async (defaultTarget: ProgressionTarget) => {
+    await updateSettings({ defaultTarget })
+    setStatus({ kind: 'success', text: '新しい種目の既定の目標を保存しました' })
   }
 
   const handleExport = async () => {
@@ -178,6 +186,28 @@ export function SettingsPage() {
         </section>
 
         <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>新しい種目の既定の目標</h2>
+          <p className={styles.hint}>
+            これから作る種目に適用される、重量を上げる基準です。
+            既にある種目は各種目のカルテ画面から個別に変更できます。
+          </p>
+          <div className={styles.targetRow}>
+            <span className={styles.targetValue}>
+              {settings === undefined
+                ? '—'
+                : `${settings.defaultTarget.repsMin}〜${settings.defaultTarget.repsMax}回 × ${settings.defaultTarget.sets}セット`}
+            </span>
+            <button
+              type="button"
+              className={styles.editButton}
+              onClick={() => setIsTargetOpen(true)}
+            >
+              変更
+            </button>
+          </div>
+        </section>
+
+        <section className={styles.section}>
           <h2 className={styles.sectionTitle}>バックアップ</h2>
 
           {isOverdue && (
@@ -247,6 +277,16 @@ export function SettingsPage() {
 
         <p className={styles.version}>筋トレノート</p>
       </div>
+
+      {settings !== undefined && (
+        <TargetEditorSheet
+          isOpen={isTargetOpen}
+          title="新しい種目の既定の目標"
+          initialTarget={settings.defaultTarget}
+          onClose={() => setIsTargetOpen(false)}
+          onSubmit={handleSaveDefaultTarget}
+        />
+      )}
     </>
   )
 }

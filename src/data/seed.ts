@@ -1,4 +1,5 @@
 import { db } from './db'
+import { DEFAULT_PROGRESSION_TARGET } from '@/domain/progression'
 import type { NewExercise } from './repositories/exerciseRepository'
 
 /**
@@ -61,6 +62,7 @@ export async function ensureSeeded(
   await db.exercises.bulkAdd(
     SEED_EXERCISES.map((exercise) => ({
       ...exercise,
+      target: { ...DEFAULT_PROGRESSION_TARGET },
       isArchived: false,
       createdAt: nowIso,
     })),

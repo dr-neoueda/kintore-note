@@ -1,5 +1,11 @@
 import { describe, test, expect } from 'vitest'
-import { formatDateLabel, formatDateLabelWithYear, isValidDateKey, toDateKey } from './date'
+import {
+  formatDateLabel,
+  formatDateLabelWithYear,
+  formatShortDateLabel,
+  isValidDateKey,
+  toDateKey,
+} from './date'
 
 describe('toDateKey', () => {
   test('Date をローカル日付の YYYY-MM-DD に変換する', () => {
@@ -44,5 +50,19 @@ describe('formatDateLabel', () => {
 describe('formatDateLabelWithYear', () => {
   test('年を含めて表示する', () => {
     expect(formatDateLabelWithYear('2026-08-02')).toBe('2026年8月2日(日)')
+  })
+})
+
+describe('formatShortDateLabel', () => {
+  test('月日だけの短い表記にする', () => {
+    expect(formatShortDateLabel('2026-08-02')).toBe('8/2')
+  })
+
+  test('ゼロ埋めしない', () => {
+    expect(formatShortDateLabel('2026-01-05')).toBe('1/5')
+  })
+
+  test('不正な日付キーはそのまま返す', () => {
+    expect(formatShortDateLabel('bad')).toBe('bad')
   })
 })

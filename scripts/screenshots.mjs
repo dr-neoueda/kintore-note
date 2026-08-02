@@ -96,4 +96,82 @@ await shot('09-template-editor')
 await page.getByRole('link', { name: '設定' }).click()
 await shot('10-settings')
 
+// ここから先は、過去の記録がある状態の画面。
+// バックアップ復元で数セッション分を流し込み、重量の提案が出る状態を作る。
+const pastDateKey = (daysAgo) => {
+  const date = new Date()
+  date.setDate(date.getDate() - daysAgo)
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${date.getFullYear()}-${month}-${day}`
+}
+
+const SESSIONS = [
+  { daysAgo: 11, weightKg: 10, reps: [11, 10, 9] },
+  { daysAgo: 8, weightKg: 10, reps: [12, 12, 12] },
+  { daysAgo: 5, weightKg: 11.5, reps: [10, 9, 8] },
+  { daysAgo: 2, weightKg: 11.5, reps: [12, 12, 12] },
+]
+
+let setId = 0
+const backup = {
+  app: 'kintore-note',
+  version: 1,
+  exportedAt: new Date(0).toISOString(),
+  data: {
+    exercises: [
+      {
+        id: 1,
+        name: 'インクラインダンベルプレス',
+        muscleGroup: 'chest',
+        equipment: 'dumbbell',
+        dumbbellCount: 2,
+        target: { repsMin: 8, repsMax: 12, sets: 3 },
+        isArchived: false,
+        createdAt: new Date(0).toISOString(),
+      },
+    ],
+    workouts: SESSIONS.map((session, index) => ({
+      id: index + 1,
+      date: pastDateKey(session.daysAgo),
+      note: '',
+      bodyWeightKg: null,
+      startedAt: `${pastDateKey(session.daysAgo)}T10:00:00.000Z`,
+      finishedAt: null,
+    })),
+    sets: SESSIONS.flatMap((session, index) =>
+      session.reps.map((reps, order) => ({
+        id: (setId += 1),
+        workoutId: index + 1,
+        exerciseId: 1,
+        order: order + 1,
+        weightKg: session.weightKg,
+        reps,
+        rpe: null,
+        restSec: null,
+        isWarmup: false,
+        recordedAt: `${pastDateKey(session.daysAgo)}T10:0${order}:00.000Z`,
+      })),
+    ),
+    templates: [],
+    settings: null,
+  },
+}
+
+page.on('dialog', (dialog) => void dialog.accept())
+await page.locator('input[type="file"]').setInputFiles({
+  name: 'backup.json',
+  mimeType: 'application/json',
+  buffer: Buffer.from(JSON.stringify(backup), 'utf-8'),
+})
+await page.goto(`${BASE_URL}/exercises/1`)
+await page.getByRole('heading', { name: 'インクラインダンベルプレス' }).waitFor()
+await shot('11-exercise-detail')
+
+await page.goto(BASE_URL)
+await page.getByRole('button', { name: '種目を追加' }).click()
+await shot('12-picker-with-history')
+await page.getByRole('dialog').getByRole('button', { name: /^インクラインダンベルプレス/ }).click()
+await shot('13-home-with-suggestion')
+
 await browser.close()

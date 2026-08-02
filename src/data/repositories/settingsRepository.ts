@@ -1,4 +1,5 @@
 import { db } from '../db'
+import { DEFAULT_PROGRESSION_TARGET, normalizeProgressionTarget } from '@/domain/progression'
 import { SETTINGS_ID, type AppSettings } from '@/domain/types'
 import { DEFAULT_DUMBBELL_STEPS_KG } from '@/domain/weight'
 
@@ -14,6 +15,7 @@ function createDefaultSettings(): AppSettings {
     defaultRestSec: DEFAULT_REST_SEC,
     lastBackupAt: null,
     backupReminderDays: DEFAULT_BACKUP_REMINDER_DAYS,
+    defaultTarget: { ...DEFAULT_PROGRESSION_TARGET },
   }
 }
 
@@ -26,7 +28,8 @@ function normalizeDumbbellSteps(steps: readonly number[]): number[] {
 /** 設定を取得する。未保存なら既定値を作成して返す。 */
 export async function getSettings(): Promise<AppSettings> {
   const existing = await db.settings.get(SETTINGS_ID)
-  if (existing) return existing
+  // 項目を追加したあとの古いレコードでも欠けを既定値で補えるようにする
+  if (existing) return { ...createDefaultSettings(), ...existing }
 
   const defaults = createDefaultSettings()
   await db.settings.put(defaults)
@@ -44,6 +47,9 @@ export async function updateSettings(patch: SettingsPatch): Promise<AppSettings>
     dumbbellStepsKg: patch.dumbbellStepsKg
       ? normalizeDumbbellSteps(patch.dumbbellStepsKg)
       : current.dumbbellStepsKg,
+    defaultTarget: patch.defaultTarget
+      ? normalizeProgressionTarget(patch.defaultTarget)
+      : current.defaultTarget,
   }
 
   await db.settings.put(next)

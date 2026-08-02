@@ -17,10 +17,13 @@ import {
   updateWorkout,
 } from '@/data/repositories/workoutRepository'
 import { formatDateLabel } from '@/domain/date'
+import { suggestNextSession, type ProgressionSuggestion } from '@/domain/progression'
+import { describeProgression } from '@/domain/progressionText'
 import type { ExerciseId, WorkoutSet } from '@/domain/types'
 import { formatWeightKg } from '@/domain/weight'
 import { summarizeWorkout } from '@/domain/workoutStats'
 import { useExercises } from '@/hooks/useExercises'
+import { useLastSessions } from '@/hooks/useLastSessions'
 import { useRestTimer } from '@/hooks/useRestTimer'
 import { useTodayKey } from '@/hooks/useTodayKey'
 import { ExercisePickerSheet } from './ExercisePickerSheet'
@@ -35,6 +38,7 @@ import styles from './TodayPage.module.css'
 const MAX_REST_SECONDS = 30 * 60
 
 const EMPTY_SETS: readonly WorkoutSet[] = []
+const EMPTY_STEPS: readonly number[] = []
 
 interface EditorTarget {
   readonly exerciseId: ExerciseId
@@ -44,6 +48,7 @@ interface EditorTarget {
 export function TodayPage() {
   const todayKey = useTodayKey()
   const { exerciseById, activeExercises } = useExercises()
+  const lastSessionByExercise = useLastSessions()
 
   const settings = useLiveQuery(() => getSettings(), [])
   const templates = useLiveQuery(() => listTemplates(), [])
@@ -98,7 +103,29 @@ export function TodayPage() {
   const shouldShowRestTimer =
     isRestVisible && lastSet !== undefined && restSeconds < MAX_REST_SECONDS
 
-  const dumbbellStepsKg = settings?.dumbbellStepsKg ?? []
+  const dumbbellStepsKg = settings?.dumbbellStepsKg ?? EMPTY_STEPS
+
+  // 前回の実績から「今回は何kgでやるか」を種目ごとに決める
+  const suggestionByExercise = useMemo(() => {
+    const suggestions = new Map<ExerciseId, ProgressionSuggestion>()
+    for (const exerciseId of sectionExerciseIds) {
+      const exercise = exerciseById.get(exerciseId)
+      if (exercise === undefined) continue
+
+      suggestions.set(
+        exerciseId,
+        suggestNextSession({
+          previousSets: previousSetsByExercise?.get(exerciseId) ?? EMPTY_SETS,
+          target: exercise.target,
+          dumbbellStepsKg,
+          isBodyweight: exercise.equipment === 'bodyweight',
+        }),
+      )
+    }
+    return suggestions
+    // sectionKey は sectionExerciseIds を安定した文字列にしたもの
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sectionKey, exerciseById, previousSetsByExercise, dumbbellStepsKg])
 
   const editorExercise =
     editorTarget === null ? undefined : exerciseById.get(editorTarget.exerciseId)
@@ -107,14 +134,17 @@ export function TodayPage() {
     if (editorTarget === null) {
       return { weightKg: 0, reps: 0, rpe: null, isWarmup: false }
     }
+    const suggestion = suggestionByExercise.get(editorTarget.exerciseId)
+    if (suggestion === undefined) {
+      return { weightKg: 0, reps: 0, rpe: null, isWarmup: false }
+    }
+
     return buildInitialSetValues({
       existingSet: editorTarget.set,
       setsInSession: setsByExercise.get(editorTarget.exerciseId) ?? EMPTY_SETS,
-      previousSets: previousSetsByExercise?.get(editorTarget.exerciseId) ?? EMPTY_SETS,
-      dumbbellStepsKg,
+      suggestion,
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editorTarget, setsByExercise, previousSetsByExercise, sectionKey])
+  }, [editorTarget, setsByExercise, suggestionByExercise])
 
   const handleAddExercise = useCallback((exerciseId: ExerciseId) => {
     setPendingExerciseIds((current) =>
@@ -242,6 +272,7 @@ export function TodayPage() {
           if (exercise === undefined) return null
 
           const exerciseSets = setsByExercise.get(exerciseId) ?? EMPTY_SETS
+          const suggestion = suggestionByExercise.get(exerciseId)
 
           return (
             <ExerciseSection
@@ -249,6 +280,17 @@ export function TodayPage() {
               exercise={exercise}
               sets={exerciseSets}
               previousSets={previousSetsByExercise?.get(exerciseId) ?? EMPTY_SETS}
+              message={
+                suggestion === undefined
+                  ? undefined
+                  : describeProgression({
+                      suggestion,
+                      target: exercise.target,
+                      dumbbellStepsKg,
+                      isBodyweight: exercise.equipment === 'bodyweight',
+                    })
+              }
+              isHighlighted={suggestion?.action === 'increase'}
               onAddSet={() => setEditorTarget({ exerciseId, set: null })}
               onEditSet={(set) => setEditorTarget({ exerciseId, set })}
               onRemove={
@@ -288,6 +330,7 @@ export function TodayPage() {
         isOpen={isPickerOpen}
         exercises={activeExercises}
         addedExerciseIds={sectionExerciseIds}
+        lastSessionByExercise={lastSessionByExercise}
         onClose={() => setIsPickerOpen(false)}
         onSelect={handleAddExercise}
       />

@@ -1,5 +1,6 @@
 import { describe, test, expect } from 'vitest'
 import type { DateKey } from './date'
+import { DEFAULT_PROGRESSION_TARGET } from './progression'
 import { buildExerciseProgress, buildVolumeHistory } from './progress'
 import type { Exercise, ExerciseId, WorkoutId, WorkoutSet } from './types'
 
@@ -101,6 +102,7 @@ describe('buildVolumeHistory', () => {
         muscleGroup: 'chest',
         equipment: 'dumbbell',
         dumbbellCount: 2,
+        target: DEFAULT_PROGRESSION_TARGET,
         isArchived: false,
         createdAt: '2026-07-01T00:00:00.000Z',
       },
@@ -113,6 +115,7 @@ describe('buildVolumeHistory', () => {
         muscleGroup: 'back',
         equipment: 'dumbbell',
         dumbbellCount: 1,
+        target: DEFAULT_PROGRESSION_TARGET,
         isArchived: false,
         createdAt: '2026-07-01T00:00:00.000Z',
       },

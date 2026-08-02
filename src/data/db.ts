@@ -1,13 +1,20 @@
 import Dexie, { type Table } from 'dexie'
+import { DEFAULT_PROGRESSION_TARGET } from '@/domain/progression'
 import type {
   AppSettings,
   Exercise,
+  ProgressionTarget,
   Workout,
   WorkoutSet,
   WorkoutTemplate,
 } from '@/domain/types'
 
 export const DATABASE_NAME = 'kintore-note'
+
+/** 移行前の種目レコード。目標を持っていない可能性がある。 */
+interface UpgradingExercise {
+  target?: ProgressionTarget
+}
 
 /**
  * IndexedDB のスキーマ定義。
@@ -33,6 +40,19 @@ export class KintoreDatabase extends Dexie {
       sets: '++id, workoutId, exerciseId, [workoutId+order], [exerciseId+recordedAt]',
       templates: '++id, order',
       settings: 'id',
+    })
+
+    // v2: 種目ごとの目標（ダブルプログレッションの基準）を追加。索引は変えていない。
+    this.version(2).upgrade(async (transaction) => {
+      await transaction
+        .table('exercises')
+        .toCollection()
+        .modify((exercise: UpgradingExercise) => {
+          // Dexie の modify は対象をその場で書き換える API のため、ここだけは代入で更新する
+          if (exercise.target === undefined) {
+            exercise.target = { ...DEFAULT_PROGRESSION_TARGET }
+          }
+        })
     })
   }
 }

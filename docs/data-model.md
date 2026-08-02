@@ -13,6 +13,7 @@
 | muscleGroup | MuscleGroup | chest / back / shoulders / arms / legs / core / other |
 | equipment | EquipmentType | dumbbell / bodyweight / other |
 | dumbbellCount | 1 \| 2 | 同時に使うダンベルの数。ボリューム計算の倍率 |
+| target | ProgressionTarget | `{ repsMin, repsMax, sets }`。重量を上げる基準 |
 | isArchived | boolean | 一覧から隠しているか |
 | createdAt | string | ISO 8601 |
 
@@ -77,8 +78,18 @@
 | defaultRestSec | number | 休憩時間の目安 |
 | lastBackupAt | string \| null | 最終バックアップ日時 |
 | backupReminderDays | number | この日数を超えたら警告する |
+| defaultTarget | ProgressionTarget | 新しく作る種目に適用する目標の初期値 |
 
 索引: `id`
+
+## スキーマのバージョン
+
+| version | 変更内容 |
+|---|---|
+| 1 | 初版 |
+| 2 | 種目に `target`（重量を上げる基準）を追加。既存レコードは移行時に既定値 8〜12回×3セット で埋める |
+
+設定は項目を増やしても移行を書かず、`getSettings` が既定値で欠けを補う。
 
 ## 層の分け方
 

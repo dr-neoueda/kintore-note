@@ -3,30 +3,25 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts'
+import { Link } from 'react-router-dom'
 import { PageHeader } from '@/components/PageHeader'
+import { ChevronRightIcon } from '@/components/icons'
+import { formatShortDateLabel } from '@/domain/date'
 import { buildExerciseProgress, buildVolumeHistory } from '@/domain/progress'
 import type { ExerciseId } from '@/domain/types'
 import { useColorScheme } from '@/hooks/useColorScheme'
 import { useExercises } from '@/hooks/useExercises'
 import { useWorkoutHistory } from '@/hooks/useWorkoutHistory'
 import { CHART_PALETTES } from './chartPalette'
+import { ExerciseWeightChart } from './ExerciseWeightChart'
 import styles from './ChartsPage.module.css'
 
 const AXIS_FONT_SIZE = 10
-
-/** 'YYYY-MM-DD' を軸表示用の 'M/D' にする。 */
-function toAxisLabel(dateKey: string): string {
-  const [, month, day] = dateKey.split('-')
-  if (month === undefined || day === undefined) return dateKey
-  return `${Number(month)}/${Number(day)}`
-}
 
 /** 総ボリュームは4桁以上になるため、狭い軸に収まるよう千単位で丸める。 */
 function formatVolumeTick(value: number): string {
@@ -38,15 +33,6 @@ export function ChartsPage() {
   const { exerciseById, allExercises } = useExercises()
   const { allSets, dateByWorkoutId, isLoading } = useWorkoutHistory()
   const palette = CHART_PALETTES[useColorScheme()]
-
-  const axisStyle = { fill: palette.axisText, fontSize: AXIS_FONT_SIZE }
-  const tooltipStyle = {
-    background: palette.tooltipBg,
-    border: `1px solid ${palette.tooltipBorder}`,
-    borderRadius: 8,
-    fontSize: 12,
-    color: palette.tooltipText,
-  }
 
   const [selectedExerciseId, setSelectedExerciseId] = useState<ExerciseId | null>(null)
 
@@ -79,16 +65,19 @@ export function ChartsPage() {
     0,
   )
 
-  const chartData = progress.map((point) => ({
-    label: toAxisLabel(point.date),
-    最大重量: point.maxWeightKg,
-    推定1RM: point.estimatedOneRepMaxKg,
-  }))
-
   const volumeData = volumeHistory.map((point) => ({
-    label: toAxisLabel(point.date),
+    label: formatShortDateLabel(point.date),
     ボリューム: point.volumeKg,
   }))
+
+  const axisStyle = { fill: palette.axisText, fontSize: AXIS_FONT_SIZE }
+  const tooltipStyle = {
+    background: palette.tooltipBg,
+    border: `1px solid ${palette.tooltipBorder}`,
+    borderRadius: 8,
+    fontSize: 12,
+    color: palette.tooltipText,
+  }
 
   if (isLoading) {
     return (
@@ -145,47 +134,14 @@ export function ChartsPage() {
             </div>
           </div>
 
-          <div className={styles.chart}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 8, right: 12, bottom: 0, left: -20 }}>
-                <CartesianGrid stroke={palette.grid} strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" tick={axisStyle} stroke={palette.axis} />
-                <YAxis tick={axisStyle} stroke={palette.axis} width={40} />
-                <Tooltip contentStyle={tooltipStyle} labelStyle={{ color: palette.tooltipLabel }} />
-                <Line
-                  type="monotone"
-                  dataKey="最大重量"
-                  stroke={palette.maxWeight}
-                  strokeWidth={2}
-                  // 既定の白抜きの点は地色に紛れるため、線と同じ色で塗りつぶす
-                  dot={{ r: 3, fill: palette.maxWeight, stroke: palette.maxWeight }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="推定1RM"
-                  stroke={palette.oneRepMax}
-                  strokeWidth={2}
-                  strokeDasharray="4 3"
-                  dot={false}
-                  connectNulls
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <ExerciseWeightChart points={progress} />
 
-          <div className={styles.legend}>
-            <span className={styles.legendItem}>
-              <span
-                className={styles.swatch}
-                style={{ background: palette.maxWeight }}
-              />
-              最大重量
-            </span>
-            <span className={styles.legendItem}>
-              <span className={`${styles.swatch} ${styles.swatchDashed}`} />
-              推定1RM
-            </span>
-          </div>
+          {activeExerciseId !== null && (
+            <Link to={`/exercises/${activeExerciseId}`} className={styles.detailLink}>
+              この種目のカルテを見る
+              <ChevronRightIcon size={16} />
+            </Link>
+          )}
         </section>
 
         <section className={styles.card}>

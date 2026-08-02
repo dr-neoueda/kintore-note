@@ -33,11 +33,21 @@
   opacity: 0.45;
 }
 
+/* 種目名はカルテ画面への入口を兼ねる。 */
 .name {
   flex: 1;
   min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
   font-size: 15px;
   font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.name:active {
+  opacity: 0.6;
 }
 
 .meta {

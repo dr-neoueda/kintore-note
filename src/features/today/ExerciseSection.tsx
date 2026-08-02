@@ -1,5 +1,8 @@
-import { CloseIcon, PlusIcon } from '@/components/icons'
+import { Link } from 'react-router-dom'
+import { ProgressionHint } from '@/components/ProgressionHint'
+import { ChevronRightIcon, CloseIcon, PlusIcon } from '@/components/icons'
 import { formatSetSummary } from '@/domain/setFormat'
+import type { ProgressionMessage } from '@/domain/progressionText'
 import type { Exercise, WorkoutSet } from '@/domain/types'
 import { formatWeightKg } from '@/domain/weight'
 import styles from './ExerciseSection.module.css'
@@ -8,6 +11,9 @@ interface ExerciseSectionProps {
   readonly exercise: Exercise
   readonly sets: readonly WorkoutSet[]
   readonly previousSets: readonly WorkoutSet[]
+  /** 今回どうすべきかの提案。履歴画面のように提案が不要な場面では省略する。 */
+  readonly message?: ProgressionMessage
+  readonly isHighlighted?: boolean
   readonly onAddSet: () => void
   readonly onEditSet: (set: WorkoutSet) => void
   /** セットが1件も無いときだけ、今日のメニューから外せる。 */
@@ -23,6 +29,8 @@ export function ExerciseSection({
   exercise,
   sets,
   previousSets,
+  message,
+  isHighlighted = false,
   onAddSet,
   onEditSet,
   onRemove,
@@ -33,7 +41,10 @@ export function ExerciseSection({
   return (
     <section className={styles.section}>
       <div className={styles.header}>
-        <h2 className={styles.name}>{exercise.name}</h2>
+        <Link to={`/exercises/${exercise.id}`} className={styles.name}>
+          {exercise.name}
+          <ChevronRightIcon size={16} />
+        </Link>
         {onRemove !== undefined && (
           <button
             type="button"
@@ -49,6 +60,12 @@ export function ExerciseSection({
       <p className={styles.previous}>
         {previousSummary === '' ? '前回の記録はありません' : `前回： ${previousSummary}`}
       </p>
+
+      {message !== undefined && (
+        <div className={styles.hint}>
+          <ProgressionHint message={message} isHighlighted={isHighlighted} />
+        </div>
+      )}
 
       {sets.length > 0 && (
         <ul className={styles.setList}>

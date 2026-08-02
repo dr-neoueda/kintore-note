@@ -12,11 +12,21 @@
   margin-bottom: var(--space-2);
 }
 
+/* 種目名はカルテ画面への入口を兼ねる。 */
 .name {
   flex: 1;
   min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
   font-size: 16px;
   font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.name:active {
+  opacity: 0.6;
 }
 
 .remove {
@@ -32,8 +42,12 @@
 .previous {
   font-size: 12px;
   color: var(--text-dim);
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
   font-variant-numeric: tabular-nums;
+}
+
+.hint {
+  margin-bottom: var(--space-3);
 }
 
 .setList {

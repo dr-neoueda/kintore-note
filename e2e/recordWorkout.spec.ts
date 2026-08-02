@@ -30,34 +30,34 @@ test.describe('筋トレの記録', () => {
     await page.getByRole('button', { name: '重量を上げる' }).click()
     await recordSet(page)
 
-    // Assert: 最軽量の 2.5kg から1段階上がって 3.5kg で記録される
+    // Assert: 最軽量の 2.5kg から1段階上がって 3.5kg、回数は目標の下限8回で記録される
     const firstSet = page.getByRole('button', { name: '1セット目を編集' })
     await expect(firstSet).toContainText('3.5 kg')
-    await expect(firstSet).toContainText('10')
+    await expect(firstSet).toContainText('8')
   })
 
   test('総ボリュームが両手ダンベルとして計算される', async ({ page }) => {
     // Arrange
     await addExercise(page, /^インクラインダンベルプレス/)
 
-    // Act: 2.5kg × 10回 を両手に1個ずつ = 50kg
+    // Act: 2.5kg × 8回 を両手に1個ずつ = 40kg
     await page.getByRole('button', { name: 'セットを追加' }).click()
     await recordSet(page)
 
     // Assert
-    await expect(page.getByTestId('total-volume')).toHaveText('50')
+    await expect(page.getByTestId('total-volume')).toHaveText('40')
   })
 
   test('片手種目のボリュームは2倍にならない', async ({ page }) => {
     // Arrange: ワンハンドダンベルロウは同時に使うダンベルが1個
     await addExercise(page, /^ワンハンドダンベルロウ/)
 
-    // Act: 2.5kg × 10回 = 25kg
+    // Act: 2.5kg × 8回 = 20kg
     await page.getByRole('button', { name: 'セットを追加' }).click()
     await recordSet(page)
 
     // Assert
-    await expect(page.getByTestId('total-volume')).toHaveText('25')
+    await expect(page.getByTestId('total-volume')).toHaveText('20')
   })
 
   test('2セット目の初期値に直前のセットが引き継がれる', async ({ page }) => {

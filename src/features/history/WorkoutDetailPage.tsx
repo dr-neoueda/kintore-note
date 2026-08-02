@@ -17,7 +17,7 @@ import { summarizeWorkout } from '@/domain/workoutStats'
 import { useExercises } from '@/hooks/useExercises'
 import { ExerciseSection } from '../today/ExerciseSection'
 import { SetEditorSheet } from '../today/SetEditorSheet'
-import { buildInitialSetValues, type SetFormValues } from '../today/setDefaults'
+import { toSetFormValues, type SetFormValues } from '../today/setDefaults'
 import styles from './WorkoutDetailPage.module.css'
 
 const EMPTY_SETS: readonly WorkoutSet[] = []
@@ -59,15 +59,10 @@ export function WorkoutDetailPage() {
 
   const summary = useMemo(() => summarizeWorkout(sets, exerciseById), [sets, exerciseById])
 
-  const editorInitialValues = useMemo<SetFormValues>(
-    () =>
-      buildInitialSetValues({
-        existingSet: editingSet,
-        setsInSession: EMPTY_SETS,
-        previousSets: EMPTY_SETS,
-        dumbbellStepsKg: settings?.dumbbellStepsKg ?? [],
-      }),
-    [editingSet, settings?.dumbbellStepsKg],
+  // 履歴画面では既存セットの編集しか行わないため、提案は使わない
+  const editorInitialValues = useMemo<SetFormValues | null>(
+    () => (editingSet === null ? null : toSetFormValues(editingSet)),
+    [editingSet],
   )
 
   const handleUpdateSet = async (values: SetFormValues) => {
@@ -161,7 +156,7 @@ export function WorkoutDetailPage() {
         </button>
       </div>
 
-      {editingSet !== null && editingExercise !== undefined && (
+      {editingSet !== null && editingExercise !== undefined && editorInitialValues !== null && (
         <SetEditorSheet
           isOpen
           exercise={editingExercise}
