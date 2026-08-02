@@ -61,19 +61,40 @@ npm run dev          # 開発サーバー（http://localhost:5173）
 
 この方法は Mac が起動していないと開けない。日常利用には方法2を使う。
 
-### 方法2: 無料ホスティングに公開して、どこでも使えるようにする（推奨）
+### 方法2: GitHub Pages に公開して、どこからでも使う（推奨）
 
-PWA は HTTPS でないとオフライン動作しないため、公開先が必要になる。
+方法1は Mac と同じネットワークにいる必要がある。日常利用にはこちらを使う。
 **記録したデータは iPhone の中だけに保存され、公開先のサーバーには送られない。**
 
-1. `npm run build` で `dist/` を生成する
-2. [Cloudflare Pages](https://pages.cloudflare.com/) の無料プランに `dist/` をデプロイする
-   - `public/_redirects` により、SPA のパス直打ちにも対応済み
-3. 発行された HTTPS の URL を iPhone の Safari で開く
-4. 共有ボタン → **「ホーム画面に追加」**
-5. ホーム画面のアイコンから起動する（Safari の UI が消え、アプリのように全画面で動く）
+`main` に push すると GitHub Actions が型チェック・テスト・ビルドを行い、
+GitHub Pages へ自動デプロイする（`.github/workflows/deploy.yml`）。
 
-一度ホーム画面に追加すれば、機内モードでも起動できる。
+1. 発行された HTTPS の URL を iPhone の Safari で開く
+2. 共有ボタン → **「ホーム画面に追加」**
+3. ホーム画面のアイコンから起動する（Safari の UI が消え、アプリのように全画面で動く）
+
+**一度ホーム画面に追加すれば、以降はオフラインで起動できる。**
+Mac の起動状態やネットワークに依存しない。
+
+#### サブディレクトリ配信への対応
+
+GitHub Pages は `https://<user>.github.io/kintore-note/` のように
+サブディレクトリで配信されるため、次の対応を入れてある。
+
+- `VITE_BASE_PATH` でベースパスを切り替え（アセット・マニフェスト・Service Worker）
+- `scripts/postbuild.mjs` が `404.html` を生成し、SPA のパス直打ちに対応
+- 公開前の確認用に `scripts/smokeBuild.mjs`（実際のベースパスで起動・遷移・アセット取得を検証）
+
+```bash
+VITE_BASE_PATH=/kintore-note/ npm run build
+VITE_BASE_PATH=/kintore-note/ npx vite preview --port 4173
+node scripts/smokeBuild.mjs
+```
+
+#### 別のホスティングを使う場合
+
+`public/_redirects` を同梱しているため、Cloudflare Pages / Netlify にも
+`dist/` をそのまま置ける（ルート配信ならベースパスの指定は不要）。
 
 ## バックアップについて（重要）
 
