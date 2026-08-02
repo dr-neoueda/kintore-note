@@ -17,11 +17,21 @@ import {
   serializeBackup,
 } from '@/domain/backup'
 import { toDateKey } from '@/domain/date'
-import type { ProgressionTarget } from '@/domain/types'
+import { DEFAULT_REST_SEC_BY_MUSCLE_GROUP } from '@/domain/muscle'
+import { MUSCLE_GROUP_LABELS, type MuscleGroup } from '@/domain/types'
 import { ValidationError } from '@/domain/validation'
 import { formatWeightKg } from '@/domain/weight'
-import { TargetEditorSheet } from '../exercises/TargetEditorSheet'
 import { downloadTextFile } from './downloadFile'
+
+const MUSCLE_GROUP_ORDER: readonly MuscleGroup[] = [
+  'chest',
+  'back',
+  'shoulders',
+  'arms',
+  'legs',
+  'core',
+  'other',
+]
 import styles from './SettingsPage.module.css'
 
 type StatusKind = 'success' | 'error'
@@ -50,14 +60,20 @@ export function SettingsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [stepsText, setStepsText] = useState('')
-  const [restText, setRestText] = useState('')
-  const [isTargetOpen, setIsTargetOpen] = useState(false)
+  const [restTexts, setRestTexts] = useState<Record<string, string>>({})
   const [status, setStatus] = useState<StatusMessage | null>(null)
 
   useEffect(() => {
     if (settings === undefined) return
     setStepsText(stepsToText(settings.dumbbellStepsKg))
-    setRestText(String(settings.defaultRestSec))
+    setRestTexts(
+      Object.fromEntries(
+        MUSCLE_GROUP_ORDER.map((group) => [
+          group,
+          String(settings.restSecByMuscleGroup[group]),
+        ]),
+      ),
+    )
   }, [settings])
 
   const handleSaveSteps = async () => {
@@ -73,19 +89,19 @@ export function SettingsPage() {
   }
 
   const handleSaveRest = async () => {
-    const seconds = Number(restText)
-    if (!Number.isFinite(seconds) || seconds < 0) {
-      setStatus({ kind: 'error', text: '休憩時間は0以上の秒数で入力してください' })
-      return
+    const parsed = { ...DEFAULT_REST_SEC_BY_MUSCLE_GROUP }
+
+    for (const group of MUSCLE_GROUP_ORDER) {
+      const seconds = Number(restTexts[group])
+      if (!Number.isFinite(seconds) || seconds < 0) {
+        setStatus({ kind: 'error', text: '休憩時間は0以上の秒数で入力してください' })
+        return
+      }
+      parsed[group] = Math.round(seconds)
     }
 
-    await updateSettings({ defaultRestSec: Math.round(seconds) })
-    setStatus({ kind: 'success', text: '休憩時間の目安を保存しました' })
-  }
-
-  const handleSaveDefaultTarget = async (defaultTarget: ProgressionTarget) => {
-    await updateSettings({ defaultTarget })
-    setStatus({ kind: 'success', text: '新しい種目の既定の目標を保存しました' })
+    await updateSettings({ restSecByMuscleGroup: parsed })
+    setStatus({ kind: 'success', text: '部位ごとの休憩時間を保存しました' })
   }
 
   const handleExport = async () => {
@@ -167,44 +183,49 @@ export function SettingsPage() {
         </section>
 
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>休憩時間の目安</h2>
+          <h2 className={styles.sectionTitle}>部位ごとの休憩時間</h2>
           <p className={styles.hint}>
-            セット間タイマーがこの秒数に達すると色が変わります。
+            新しく作る種目に適用される既定値です（秒）。
+            筋肥大を目的とした研究では、多関節・大筋群は2分以上とる方が
+            総挙上量を保てるぶん有利とされています。単関節・小筋群は60〜90秒が目安です。
+            既にある種目は各種目のカルテ画面から個別に変更できます。
           </p>
-          <input
-            type="number"
-            inputMode="numeric"
-            min="0"
-            step="15"
-            value={restText}
-            onChange={(event) => setRestText(event.target.value)}
-            aria-label="休憩時間の目安（秒）"
-          />
+
+          <div className={styles.restGrid}>
+            {MUSCLE_GROUP_ORDER.map((group) => (
+              <div key={group} className={styles.restRow}>
+                <label className={styles.restLabel} htmlFor={`rest-${group}`}>
+                  {MUSCLE_GROUP_LABELS[group]}
+                </label>
+                <input
+                  id={`rest-${group}`}
+                  className={styles.restInput}
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  step="15"
+                  value={restTexts[group] ?? ''}
+                  onChange={(event) =>
+                    setRestTexts((current) => ({ ...current, [group]: event.target.value }))
+                  }
+                />
+                <span className={styles.restUnit}>秒</span>
+              </div>
+            ))}
+          </div>
+
           <button type="button" className="btn btn-block" onClick={handleSaveRest}>
             休憩時間を保存
           </button>
         </section>
 
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>新しい種目の既定の目標</h2>
+          <h2 className={styles.sectionTitle}>回数レンジについて</h2>
           <p className={styles.hint}>
-            これから作る種目に適用される、重量を上げる基準です。
-            既にある種目は各種目のカルテ画面から個別に変更できます。
+            回数の目標は、種目ごとの「筋の種類」から決まります。
+            平行筋（紡錘状筋）は 10〜15回、羽状筋は 8〜12回 が既定です。
+            種目ごとの変更はカルテ画面から行えます。
           </p>
-          <div className={styles.targetRow}>
-            <span className={styles.targetValue}>
-              {settings === undefined
-                ? '—'
-                : `${settings.defaultTarget.repsMin}〜${settings.defaultTarget.repsMax}回 × ${settings.defaultTarget.sets}セット`}
-            </span>
-            <button
-              type="button"
-              className={styles.editButton}
-              onClick={() => setIsTargetOpen(true)}
-            >
-              変更
-            </button>
-          </div>
         </section>
 
         <section className={styles.section}>
@@ -277,16 +298,6 @@ export function SettingsPage() {
 
         <p className={styles.version}>筋トレノート</p>
       </div>
-
-      {settings !== undefined && (
-        <TargetEditorSheet
-          isOpen={isTargetOpen}
-          title="新しい種目の既定の目標"
-          initialTarget={settings.defaultTarget}
-          onClose={() => setIsTargetOpen(false)}
-          onSubmit={handleSaveDefaultTarget}
-        />
-      )}
     </>
   )
 }

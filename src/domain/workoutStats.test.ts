@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest'
-import { DEFAULT_PROGRESSION_TARGET } from './progression'
+import { PENNATE_TARGET } from './muscle'
 import type { Exercise, ExerciseId, WorkoutSet } from './types'
 import { summarizeWorkout, toVolumeInputs } from './workoutStats'
 
@@ -9,7 +9,9 @@ const exercise = (id: ExerciseId, dumbbellCount: 1 | 2): Exercise => ({
   muscleGroup: 'chest',
   equipment: 'dumbbell',
   dumbbellCount,
-  target: DEFAULT_PROGRESSION_TARGET,
+  muscleArchitecture: 'pennate',
+  target: PENNATE_TARGET,
+  restSec: 150,
   isArchived: false,
   createdAt: '2026-08-02T00:00:00.000Z',
 })

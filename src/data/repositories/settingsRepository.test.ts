@@ -1,5 +1,6 @@
 import { describe, test, expect, beforeEach } from 'vitest'
 import { resetDatabase } from '@/test/dbTestUtils'
+import { DEFAULT_REST_SEC_BY_MUSCLE_GROUP } from '@/domain/muscle'
 import { DEFAULT_DUMBBELL_STEPS_KG } from '@/domain/weight'
 import { getSettings, markBackedUp, updateSettings } from './settingsRepository'
 
@@ -15,18 +16,20 @@ describe('getSettings', () => {
     // Assert
     expect(settings.dumbbellStepsKg).toEqual(DEFAULT_DUMBBELL_STEPS_KG)
     expect(settings.lastBackupAt).toBeNull()
-    expect(settings.defaultRestSec).toBeGreaterThan(0)
+    expect(settings.restSecByMuscleGroup).toEqual(DEFAULT_REST_SEC_BY_MUSCLE_GROUP)
   })
 
   test('2回目以降は同じ設定を返す', async () => {
     // Arrange
-    await updateSettings({ defaultRestSec: 120 })
+    await updateSettings({
+      restSecByMuscleGroup: { ...DEFAULT_REST_SEC_BY_MUSCLE_GROUP, chest: 200 },
+    })
 
     // Act
     const settings = await getSettings()
 
     // Assert
-    expect(settings.defaultRestSec).toBe(120)
+    expect(settings.restSecByMuscleGroup.chest).toBe(200)
   })
 })
 
@@ -36,11 +39,24 @@ describe('updateSettings', () => {
     const before = await getSettings()
 
     // Act
-    const after = await updateSettings({ defaultRestSec: 90 })
+    const after = await updateSettings({
+      restSecByMuscleGroup: { ...DEFAULT_REST_SEC_BY_MUSCLE_GROUP, arms: 60 },
+    })
 
     // Assert
-    expect(after.defaultRestSec).toBe(90)
+    expect(after.restSecByMuscleGroup.arms).toBe(60)
     expect(after.dumbbellStepsKg).toEqual(before.dumbbellStepsKg)
+  })
+
+  test('休憩秒数の負の値は0に、小数は整数に丸める', async () => {
+    // Act
+    const after = await updateSettings({
+      restSecByMuscleGroup: { ...DEFAULT_REST_SEC_BY_MUSCLE_GROUP, core: -10, arms: 95.6 },
+    })
+
+    // Assert
+    expect(after.restSecByMuscleGroup.core).toBe(0)
+    expect(after.restSecByMuscleGroup.arms).toBe(96)
   })
 
   test('ダンベルの段階を昇順に整列して保存する', async () => {

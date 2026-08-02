@@ -1,6 +1,7 @@
 import { describe, test, expect, beforeEach } from 'vitest'
 import { resetDatabase } from '@/test/dbTestUtils'
 import { createBackupFile, parseBackup, serializeBackup } from '@/domain/backup'
+import { DEFAULT_REST_SEC_BY_MUSCLE_GROUP } from '@/domain/muscle'
 import { collectBackupData, replaceAllData } from './backupRepository'
 import { createExercise, listAllExercises } from './exerciseRepository'
 import { addSet, listSetsByWorkout } from './setRepository'
@@ -38,7 +39,9 @@ async function seedSampleData(): Promise<void> {
     note: '',
     items: [{ exerciseId, targetSets: 3, targetReps: 10, targetWeightKg: null }],
   })
-  await updateSettings({ defaultRestSec: 120 })
+  await updateSettings({
+    restSecByMuscleGroup: { ...DEFAULT_REST_SEC_BY_MUSCLE_GROUP, chest: 200 },
+  })
 }
 
 describe('collectBackupData', () => {
@@ -54,7 +57,7 @@ describe('collectBackupData', () => {
     expect(data.workouts).toHaveLength(1)
     expect(data.sets).toHaveLength(1)
     expect(data.templates).toHaveLength(1)
-    expect(data.settings?.defaultRestSec).toBe(120)
+    expect(data.settings?.restSecByMuscleGroup.chest).toBe(200)
   })
 
   test('データが無くても空の構造を返す', async () => {
@@ -83,7 +86,7 @@ describe('replaceAllData', () => {
     expect(workouts).toHaveLength(1)
     expect(await listSetsByWorkout(workouts[0]!.id!)).toHaveLength(1)
     expect(await listTemplates()).toHaveLength(1)
-    expect((await getSettings()).defaultRestSec).toBe(120)
+    expect((await getSettings()).restSecByMuscleGroup.chest).toBe(200)
   })
 
   test('復元前のデータは残さず置き換える', async () => {

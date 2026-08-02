@@ -3,20 +3,24 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useParams } from 'react-router-dom'
 import { PageHeader } from '@/components/PageHeader'
 import { ProgressionHint } from '@/components/ProgressionHint'
-import { updateExerciseTarget } from '@/data/repositories/exerciseRepository'
+import { updateExerciseSettings } from '@/data/repositories/exerciseRepository'
 import { getSettings } from '@/data/repositories/settingsRepository'
 import { formatShortDateLabel } from '@/domain/date'
+import { formatDuration } from '@/domain/duration'
 import { buildExerciseSessions } from '@/domain/exerciseSessions'
 import { buildExerciseProgress } from '@/domain/progress'
 import { suggestNextSession } from '@/domain/progression'
 import { describeProgression } from '@/domain/progressionText'
 import { formatSetSummary } from '@/domain/setFormat'
-import type { ProgressionTarget } from '@/domain/types'
+import { MUSCLE_ARCHITECTURE_LABELS } from '@/domain/types'
 import { formatWeightKg } from '@/domain/weight'
 import { useExercises } from '@/hooks/useExercises'
 import { useWorkoutHistory } from '@/hooks/useWorkoutHistory'
 import { ExerciseWeightChart } from '../charts/ExerciseWeightChart'
-import { TargetEditorSheet } from './TargetEditorSheet'
+import {
+  ExerciseSettingsSheet,
+  type ExerciseSettingsValues,
+} from './ExerciseSettingsSheet'
 import styles from './ExerciseDetailPage.module.css'
 
 export function ExerciseDetailPage() {
@@ -27,7 +31,7 @@ export function ExerciseDetailPage() {
   const { allSets, dateByWorkoutId } = useWorkoutHistory()
   const settings = useLiveQuery(() => getSettings(), [])
 
-  const [isTargetOpen, setIsTargetOpen] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   const exercise = exerciseById.get(numericId)
 
@@ -78,8 +82,8 @@ export function ExerciseDetailPage() {
           isBodyweight,
         })
 
-  const handleSaveTarget = async (target: ProgressionTarget) => {
-    await updateExerciseTarget(numericId, target)
+  const handleSaveSettings = async (values: ExerciseSettingsValues) => {
+    await updateExerciseSettings(numericId, values)
   }
 
   return (
@@ -114,20 +118,36 @@ export function ExerciseDetailPage() {
         </section>
 
         <section className={styles.card}>
-          <h2 className={styles.cardTitle}>重量を上げる基準</h2>
           <div className={styles.targetRow}>
-            <span className={styles.targetValue}>
-              {exercise.target.repsMin}〜{exercise.target.repsMax}回 × {exercise.target.sets}
-              セット
-            </span>
+            <h2 className={styles.cardTitle}>この種目の設定</h2>
             <button
               type="button"
               className={styles.editButton}
-              onClick={() => setIsTargetOpen(true)}
+              onClick={() => setIsSettingsOpen(true)}
             >
               変更
             </button>
           </div>
+
+          <dl className={styles.settingList}>
+            <div className={styles.settingRow}>
+              <dt className={styles.settingLabel}>筋の種類</dt>
+              <dd className={styles.settingValue}>
+                {MUSCLE_ARCHITECTURE_LABELS[exercise.muscleArchitecture]}
+              </dd>
+            </div>
+            <div className={styles.settingRow}>
+              <dt className={styles.settingLabel}>重量を上げる基準</dt>
+              <dd className={styles.settingValue}>
+                {exercise.target.repsMin}〜{exercise.target.repsMax}回 × {exercise.target.sets}
+                セット
+              </dd>
+            </div>
+            <div className={styles.settingRow}>
+              <dt className={styles.settingLabel}>セット間の休憩</dt>
+              <dd className={styles.settingValue}>{formatDuration(exercise.restSec)}</dd>
+            </div>
+          </dl>
         </section>
 
         <section className={styles.card}>
@@ -161,12 +181,16 @@ export function ExerciseDetailPage() {
         )}
       </div>
 
-      <TargetEditorSheet
-        isOpen={isTargetOpen}
-        title={`${exercise.name}の目標`}
-        initialTarget={exercise.target}
-        onClose={() => setIsTargetOpen(false)}
-        onSubmit={handleSaveTarget}
+      <ExerciseSettingsSheet
+        isOpen={isSettingsOpen}
+        title={exercise.name}
+        initialValues={{
+          muscleArchitecture: exercise.muscleArchitecture,
+          target: exercise.target,
+          restSec: exercise.restSec,
+        }}
+        onClose={() => setIsSettingsOpen(false)}
+        onSubmit={handleSaveSettings}
       />
     </>
   )

@@ -7,8 +7,18 @@ import {
   createExercise,
   setExerciseArchived,
 } from '@/data/repositories/exerciseRepository'
-import type { DumbbellCount, EquipmentType, MuscleGroup } from '@/domain/types'
-import { EQUIPMENT_LABELS, MUSCLE_GROUP_LABELS } from '@/domain/types'
+import { DEFAULT_ARCHITECTURE_BY_MUSCLE_GROUP } from '@/domain/muscle'
+import type {
+  DumbbellCount,
+  EquipmentType,
+  MuscleArchitecture,
+  MuscleGroup,
+} from '@/domain/types'
+import {
+  EQUIPMENT_LABELS,
+  MUSCLE_ARCHITECTURE_LABELS,
+  MUSCLE_GROUP_LABELS,
+} from '@/domain/types'
 import { ValidationError } from '@/domain/validation'
 import { useExercises } from '@/hooks/useExercises'
 import styles from './ExerciseManagerPage.module.css'
@@ -25,6 +35,8 @@ const MUSCLE_GROUP_ORDER: readonly MuscleGroup[] = [
 
 const EQUIPMENT_ORDER: readonly EquipmentType[] = ['dumbbell', 'bodyweight', 'other']
 
+const ARCHITECTURE_ORDER: readonly MuscleArchitecture[] = ['parallel', 'pennate']
+
 export function ExerciseManagerPage() {
   const { allExercises } = useExercises()
 
@@ -33,7 +45,16 @@ export function ExerciseManagerPage() {
   const [muscleGroup, setMuscleGroup] = useState<MuscleGroup>('chest')
   const [equipment, setEquipment] = useState<EquipmentType>('dumbbell')
   const [dumbbellCount, setDumbbellCount] = useState<DumbbellCount>(2)
+  const [muscleArchitecture, setMuscleArchitecture] = useState<MuscleArchitecture>(
+    DEFAULT_ARCHITECTURE_BY_MUSCLE_GROUP.chest,
+  )
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  /** 部位を変えたら、その部位で代表的な筋の分類に合わせる。 */
+  const handleMuscleGroupChange = (group: MuscleGroup) => {
+    setMuscleGroup(group)
+    setMuscleArchitecture(DEFAULT_ARCHITECTURE_BY_MUSCLE_GROUP[group])
+  }
 
   const groups = useMemo(
     () =>
@@ -49,13 +70,14 @@ export function ExerciseManagerPage() {
     setMuscleGroup('chest')
     setEquipment('dumbbell')
     setDumbbellCount(2)
+    setMuscleArchitecture(DEFAULT_ARCHITECTURE_BY_MUSCLE_GROUP.chest)
     setErrorMessage(null)
   }
 
   const handleCreate = async () => {
     setErrorMessage(null)
     try {
-      await createExercise({ name, muscleGroup, equipment, dumbbellCount })
+      await createExercise({ name, muscleGroup, equipment, dumbbellCount, muscleArchitecture })
       resetForm()
       setIsSheetOpen(false)
     } catch (cause) {
@@ -154,7 +176,7 @@ export function ExerciseManagerPage() {
             <select
               id="exercise-muscle"
               value={muscleGroup}
-              onChange={(event) => setMuscleGroup(event.target.value as MuscleGroup)}
+              onChange={(event) => handleMuscleGroupChange(event.target.value as MuscleGroup)}
             >
               {MUSCLE_GROUP_ORDER.map((group) => (
                 <option key={group} value={group}>
@@ -162,6 +184,28 @@ export function ExerciseManagerPage() {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="exercise-architecture">
+              筋の種類
+            </label>
+            <select
+              id="exercise-architecture"
+              value={muscleArchitecture}
+              onChange={(event) =>
+                setMuscleArchitecture(event.target.value as MuscleArchitecture)
+              }
+            >
+              {ARCHITECTURE_ORDER.map((architecture) => (
+                <option key={architecture} value={architecture}>
+                  {MUSCLE_ARCHITECTURE_LABELS[architecture]}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-dim">
+              回数の目標が決まります。平行筋は 10〜15回、羽状筋は 8〜12回。
+            </p>
           </div>
 
           <div className={styles.field}>

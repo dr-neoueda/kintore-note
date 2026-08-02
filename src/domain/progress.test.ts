@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest'
 import type { DateKey } from './date'
-import { DEFAULT_PROGRESSION_TARGET } from './progression'
+import { PENNATE_TARGET } from './muscle'
 import { buildExerciseProgress, buildVolumeHistory } from './progress'
 import type { Exercise, ExerciseId, WorkoutId, WorkoutSet } from './types'
 
@@ -102,7 +102,9 @@ describe('buildVolumeHistory', () => {
         muscleGroup: 'chest',
         equipment: 'dumbbell',
         dumbbellCount: 2,
-        target: DEFAULT_PROGRESSION_TARGET,
+        muscleArchitecture: 'pennate',
+        target: PENNATE_TARGET,
+        restSec: 150,
         isArchived: false,
         createdAt: '2026-07-01T00:00:00.000Z',
       },
@@ -115,7 +117,9 @@ describe('buildVolumeHistory', () => {
         muscleGroup: 'back',
         equipment: 'dumbbell',
         dumbbellCount: 1,
-        target: DEFAULT_PROGRESSION_TARGET,
+        muscleArchitecture: 'parallel',
+        target: PENNATE_TARGET,
+        restSec: 150,
         isArchived: false,
         createdAt: '2026-07-01T00:00:00.000Z',
       },

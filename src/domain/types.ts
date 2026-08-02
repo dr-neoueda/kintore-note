@@ -19,6 +19,13 @@ export type EquipmentType = 'dumbbell' | 'bodyweight' | 'other'
 
 export type MuscleGroup = 'chest' | 'back' | 'shoulders' | 'arms' | 'legs' | 'core' | 'other'
 
+/**
+ * 筋線維の走行による分類。既定の回数レンジを決めるのに使う。
+ * - 平行筋（紡錘状筋）: 線維が腱と平行。可動域が大きく、比較的高回数が向くとされる
+ * - 羽状筋: 線維が腱に対して斜め。単位体積あたりの線維数が多く、高負荷・低回数が向くとされる
+ */
+export type MuscleArchitecture = 'parallel' | 'pennate'
+
 export const MUSCLE_GROUP_LABELS: Readonly<Record<MuscleGroup, string>> = {
   chest: '胸',
   back: '背中',
@@ -27,6 +34,11 @@ export const MUSCLE_GROUP_LABELS: Readonly<Record<MuscleGroup, string>> = {
   legs: '脚',
   core: '体幹',
   other: 'その他',
+}
+
+export const MUSCLE_ARCHITECTURE_LABELS: Readonly<Record<MuscleArchitecture, string>> = {
+  parallel: '平行筋',
+  pennate: '羽状筋',
 }
 
 export const EQUIPMENT_LABELS: Readonly<Record<EquipmentType, string>> = {
@@ -55,8 +67,12 @@ export interface Exercise {
   readonly muscleGroup: MuscleGroup
   readonly equipment: EquipmentType
   readonly dumbbellCount: DumbbellCount
+  /** 主に効かせる筋の構造。既定の回数レンジの根拠になる。 */
+  readonly muscleArchitecture: MuscleArchitecture
   /** 種目ごとの目標。未設定の古いデータは移行時に既定値で埋める。 */
   readonly target: ProgressionTarget
+  /** この種目のセット間休憩の目安（秒）。 */
+  readonly restSec: number
   readonly isArchived: boolean
   readonly createdAt: string
 }
@@ -113,12 +129,11 @@ export interface AppSettings {
   readonly id: typeof SETTINGS_ID
   /** 可変式ダンベルで実際に設定できる重量の段階（kg・昇順）。 */
   readonly dumbbellStepsKg: readonly number[]
-  readonly defaultRestSec: number
   readonly lastBackupAt: string | null
   /** この日数を超えてバックアップしていなければ警告する。 */
   readonly backupReminderDays: number
-  /** 新しく作る種目に適用する目標の初期値。 */
-  readonly defaultTarget: ProgressionTarget
+  /** 部位ごとの既定の休憩秒数。新しく作る種目の初期値になる。 */
+  readonly restSecByMuscleGroup: Readonly<Record<MuscleGroup, number>>
 }
 
 export const RPE_MIN = 1

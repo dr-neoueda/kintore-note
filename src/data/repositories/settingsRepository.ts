@@ -1,10 +1,12 @@
 import { db } from '../db'
-import { DEFAULT_PROGRESSION_TARGET, normalizeProgressionTarget } from '@/domain/progression'
-import { SETTINGS_ID, type AppSettings } from '@/domain/types'
+import { DEFAULT_REST_SEC_BY_MUSCLE_GROUP } from '@/domain/muscle'
+import { SETTINGS_ID, type AppSettings, type MuscleGroup } from '@/domain/types'
 import { DEFAULT_DUMBBELL_STEPS_KG } from '@/domain/weight'
 
-export const DEFAULT_REST_SEC = 90
 export const DEFAULT_BACKUP_REMINDER_DAYS = 14
+
+/** 休憩時間として受け付ける上限（秒）。 */
+const MAX_REST_SEC = 60 * 30
 
 export type SettingsPatch = Partial<Omit<AppSettings, 'id'>>
 
@@ -12,11 +14,24 @@ function createDefaultSettings(): AppSettings {
   return {
     id: SETTINGS_ID,
     dumbbellStepsKg: [...DEFAULT_DUMBBELL_STEPS_KG],
-    defaultRestSec: DEFAULT_REST_SEC,
     lastBackupAt: null,
     backupReminderDays: DEFAULT_BACKUP_REMINDER_DAYS,
-    defaultTarget: { ...DEFAULT_PROGRESSION_TARGET },
+    restSecByMuscleGroup: { ...DEFAULT_REST_SEC_BY_MUSCLE_GROUP },
   }
+}
+
+/** 0未満や極端に長い値を、扱える範囲の整数に整える。 */
+function normalizeRestSecByMuscleGroup(
+  restSecByMuscleGroup: Readonly<Record<MuscleGroup, number>>,
+): Record<MuscleGroup, number> {
+  const normalized = { ...DEFAULT_REST_SEC_BY_MUSCLE_GROUP }
+
+  for (const [group, seconds] of Object.entries(restSecByMuscleGroup)) {
+    if (!Number.isFinite(seconds)) continue
+    normalized[group as MuscleGroup] = Math.min(MAX_REST_SEC, Math.max(0, Math.round(seconds)))
+  }
+
+  return normalized
 }
 
 /** 重複と非正の値を除き、昇順に整列した段階リストを返す。 */
@@ -47,9 +62,9 @@ export async function updateSettings(patch: SettingsPatch): Promise<AppSettings>
     dumbbellStepsKg: patch.dumbbellStepsKg
       ? normalizeDumbbellSteps(patch.dumbbellStepsKg)
       : current.dumbbellStepsKg,
-    defaultTarget: patch.defaultTarget
-      ? normalizeProgressionTarget(patch.defaultTarget)
-      : current.defaultTarget,
+    restSecByMuscleGroup: patch.restSecByMuscleGroup
+      ? normalizeRestSecByMuscleGroup(patch.restSecByMuscleGroup)
+      : current.restSecByMuscleGroup,
   }
 
   await db.settings.put(next)

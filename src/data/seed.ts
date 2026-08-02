@@ -1,5 +1,9 @@
 import { db } from './db'
-import { DEFAULT_PROGRESSION_TARGET } from '@/domain/progression'
+import {
+  defaultRestSecForMuscleGroup,
+  defaultTargetForArchitecture,
+  resolveArchitecture,
+} from '@/domain/muscle'
 import type { NewExercise } from './repositories/exerciseRepository'
 
 /**
@@ -60,12 +64,18 @@ export async function ensureSeeded(
   if (count > 0) return false
 
   await db.exercises.bulkAdd(
-    SEED_EXERCISES.map((exercise) => ({
-      ...exercise,
-      target: { ...DEFAULT_PROGRESSION_TARGET },
-      isArchived: false,
-      createdAt: nowIso,
-    })),
+    SEED_EXERCISES.map((exercise) => {
+      const muscleArchitecture = resolveArchitecture(exercise.name, exercise.muscleGroup)
+
+      return {
+        ...exercise,
+        muscleArchitecture,
+        target: defaultTargetForArchitecture(muscleArchitecture),
+        restSec: defaultRestSecForMuscleGroup(exercise.muscleGroup),
+        isArchived: false,
+        createdAt: nowIso,
+      }
+    }),
   )
   return true
 }

@@ -49,15 +49,35 @@ test.describe('筋トレの記録', () => {
   })
 
   test('片手種目のボリュームは2倍にならない', async ({ page }) => {
-    // Arrange: ワンハンドダンベルロウは同時に使うダンベルが1個
+    // Arrange: ワンハンドダンベルロウは同時に使うダンベルが1個。
+    // 背中（広背筋）は平行筋なので既定の下限回数は10回になる
     await addExercise(page, /^ワンハンドダンベルロウ/)
 
-    // Act: 2.5kg × 8回 = 20kg
+    // Act: 2.5kg × 10回 = 25kg
     await page.getByRole('button', { name: 'セットを追加' }).click()
     await recordSet(page)
 
     // Assert
-    await expect(page.getByTestId('total-volume')).toHaveText('20')
+    await expect(page.getByTestId('total-volume')).toHaveText('25')
+  })
+
+  test('筋の構造によって既定の回数レンジが変わる', async ({ page }) => {
+    // Arrange: 羽状筋の胸種目は 8〜12回、平行筋の背中種目は 10〜15回 が既定
+    await addExercise(page, /^インクラインダンベルプレス/)
+
+    // Act
+    await page.getByRole('button', { name: 'セットを追加' }).click()
+
+    // Assert: 羽状筋なので下限8回から始まる
+    await expect(page.getByRole('dialog')).toContainText('8')
+    await page.getByRole('dialog').getByRole('button', { name: '閉じる' }).click()
+
+    // Act: 平行筋の種目を追加する
+    await addExercise(page, /^ワンハンドダンベルロウ/)
+    await page.getByRole('button', { name: 'セットを追加' }).last().click()
+
+    // Assert: 平行筋なので下限10回から始まる
+    await expect(page.getByRole('dialog')).toContainText('10')
   })
 
   test('2セット目の初期値に直前のセットが引き継がれる', async ({ page }) => {

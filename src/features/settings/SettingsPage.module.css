@@ -110,30 +110,35 @@
   color: var(--text-faint);
 }
 
-.targetRow {
+.restGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.restRow {
   display: flex;
   align-items: center;
   gap: var(--space-2);
 }
 
-.targetValue {
+.restLabel {
+  flex: none;
+  width: 56px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.restInput {
   flex: 1;
   min-width: 0;
-  font-size: 15px;
-  font-weight: 600;
+  padding: var(--space-2) var(--space-3);
+  text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-.editButton {
+.restUnit {
   flex: none;
-  min-height: var(--tap-min);
-  padding: 0 var(--space-3);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
   font-size: 13px;
-  font-weight: 600;
-}
-
-.editButton:active {
-  opacity: 0.6;
+  color: var(--text-dim);
 }

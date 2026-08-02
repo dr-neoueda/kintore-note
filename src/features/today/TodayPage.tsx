@@ -100,6 +100,9 @@ export function TodayPage() {
 
   const lastSet = sets[sets.length - 1]
   const restSeconds = useRestTimer(lastSet?.recordedAt ?? null)
+  // 休憩の目安は「直前に行った種目」の設定に従う
+  const restTargetSec =
+    lastSet === undefined ? 0 : exerciseById.get(lastSet.exerciseId)?.restSec ?? 0
   const shouldShowRestTimer =
     isRestVisible && lastSet !== undefined && restSeconds < MAX_REST_SECONDS
 
@@ -321,7 +324,7 @@ export function TodayPage() {
       {shouldShowRestTimer && (
         <RestTimerBar
           seconds={restSeconds}
-          targetSeconds={settings?.defaultRestSec ?? 0}
+          targetSeconds={restTargetSec}
           onDismiss={() => setIsRestVisible(false)}
         />
       )}
