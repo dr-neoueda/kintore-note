@@ -40,15 +40,16 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* 色を使えないため、左の太い罫線と地色で注意喚起する。 */
 .warning {
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
   padding: var(--space-3);
   border-radius: var(--radius-md);
-  background: rgba(245, 165, 36, 0.12);
-  border: 1px solid var(--warning);
-  color: var(--warning);
+  background: var(--surface-raised);
+  border-left: 4px solid var(--border-strong);
+  color: var(--text);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -64,11 +65,14 @@
 }
 
 .statusSuccess {
-  color: var(--success);
+  color: var(--text);
 }
 
+/* エラーは色ではなく太字と下線で区別する。 */
 .statusError {
-  color: var(--danger);
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: underline;
 }
 
 .link {

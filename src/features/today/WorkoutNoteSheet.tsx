@@ -107,11 +107,7 @@ export function WorkoutNoteSheet({
           />
         </div>
 
-        {errorMessage !== null && (
-          <p className="text-sm" style={{ color: 'var(--danger)' }}>
-            {errorMessage}
-          </p>
-        )}
+        {errorMessage !== null && <p className="error-text">{errorMessage}</p>}
       </div>
     </Sheet>
   )

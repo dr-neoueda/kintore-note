@@ -73,8 +73,11 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* 色を使えないため、太字と下線でエラーだと分かるようにする。 */
 .error {
-  color: var(--danger);
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: underline;
   font-size: 13px;
 }
 

@@ -40,9 +40,19 @@
 }
 
 .swatch {
-  width: 10px;
+  width: 14px;
   height: 3px;
   border-radius: 999px;
+}
+
+/* 推定1RM はグラフ上で破線のため、凡例も破線で示す。 */
+.swatchDashed {
+  border-radius: 0;
+  background: repeating-linear-gradient(
+    to right,
+    var(--text-faint) 0 4px,
+    transparent 4px 7px
+  ) !important;
 }
 
 .best {

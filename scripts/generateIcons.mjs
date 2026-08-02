@@ -11,8 +11,8 @@ import sharp from 'sharp'
 
 const PUBLIC_DIR = fileURLToPath(new URL('../public', import.meta.url))
 
-const BACKGROUND = '#0f1115'
-const ACCENT = '#ff6b35'
+const BACKGROUND = '#ffffff'
+const ACCENT = '#111113'
 
 /**
  * ダンベルのアイコン。

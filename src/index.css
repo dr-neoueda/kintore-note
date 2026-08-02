@@ -7,22 +7,28 @@
  */
 
 :root {
-  --bg: #0f1115;
-  --surface: #181b22;
-  --surface-raised: #21252e;
-  --border: #2c313c;
+  /*
+   * 白黒のみで構成する。色で意味を伝えられないぶん、
+   * 太さ・枠線・余白でコントラストを付ける。
+   */
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-raised: #f4f4f5;
+  --border: #e0e0e2;
+  --border-strong: #111113;
 
-  --text: #e8eaed;
-  --text-dim: #9aa1ad;
-  --text-faint: #6b7280;
+  --text: #111113;
+  --text-dim: #55565c;
+  --text-faint: #6e6f75;
 
-  --accent: #ff6b35;
-  --accent-pressed: #e05520;
+  --accent: #111113;
+  --accent-pressed: #000000;
   --accent-text: #ffffff;
 
-  --danger: #e5484d;
-  --success: #30a46c;
-  --warning: #f5a524;
+  /* 意味づけ用。白黒のため色ではなく枠線と字の太さで区別する。 */
+  --danger: #111113;
+  --success: #111113;
+  --warning: #111113;
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -45,7 +51,7 @@
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 * {
@@ -110,7 +116,7 @@ textarea {
   /* iOS で 16px 未満だとフォーカス時に自動ズームするため下限を守る */
   font-size: 16px;
   color: var(--text);
-  background: var(--surface-raised);
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: var(--space-3);
@@ -194,6 +200,14 @@ ol {
   font-variant-numeric: tabular-nums;
 }
 
+/* エラー文言。色を使えないため太字と下線で示す。 */
+.error-text {
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: underline;
+  font-size: 13px;
+}
+
 /* ---- ボタン ---- */
 
 .btn {
@@ -225,9 +239,10 @@ ol {
   color: var(--accent-text);
 }
 
+/* 取り消せない操作。色を使えないため、太い枠線で他のボタンと区別する。 */
 .btn-danger {
   color: var(--danger);
-  border-color: var(--danger);
+  border: 2px solid var(--border-strong);
   background: transparent;
 }
 

@@ -5,7 +5,7 @@
   right: 0;
   z-index: 40;
   display: flex;
-  background: rgba(24, 27, 34, 0.94);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(12px);
   border-top: 1px solid var(--border);
   padding-bottom: var(--safe-bottom);
@@ -29,6 +29,8 @@
   opacity: 0.6;
 }
 
+/* 色で選択状態を示せないため、濃さと太さで区別する。 */
 .active {
-  color: var(--accent);
+  color: var(--text);
+  font-weight: 700;
 }

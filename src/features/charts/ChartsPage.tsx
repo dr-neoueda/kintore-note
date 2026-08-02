@@ -17,16 +17,20 @@ import { useExercises } from '@/hooks/useExercises'
 import { useWorkoutHistory } from '@/hooks/useWorkoutHistory'
 import styles from './ChartsPage.module.css'
 
-const MAX_WEIGHT_COLOR = '#ff6b35'
-const ONE_REP_MAX_COLOR = '#5b9dff'
-const VOLUME_COLOR = '#30a46c'
+// 白黒で描くため、線種（実線／破線）と濃さで系列を区別する
+const MAX_WEIGHT_COLOR = '#111113'
+const ONE_REP_MAX_COLOR = '#8e8f96'
+const VOLUME_COLOR = '#55565c'
+const GRID_COLOR = '#e0e0e2'
+const AXIS_COLOR = '#c9c9cc'
 
-const AXIS_STYLE = { fill: '#6b7280', fontSize: 10 } as const
+const AXIS_STYLE = { fill: '#6e6f75', fontSize: 10 } as const
 const TOOLTIP_STYLE = {
-  background: '#21252e',
-  border: '1px solid #2c313c',
+  background: '#ffffff',
+  border: '1px solid #e0e0e2',
   borderRadius: 8,
   fontSize: 12,
+  color: '#111113',
 } as const
 
 /** 'YYYY-MM-DD' を軸表示用の 'M/D' にする。 */
@@ -146,16 +150,17 @@ export function ChartsPage() {
           <div className={styles.chart}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 8, right: 12, bottom: 0, left: -20 }}>
-                <CartesianGrid stroke="#2c313c" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" tick={AXIS_STYLE} stroke="#2c313c" />
-                <YAxis tick={AXIS_STYLE} stroke="#2c313c" width={40} />
-                <Tooltip contentStyle={TOOLTIP_STYLE} labelStyle={{ color: '#9aa1ad' }} />
+                <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="label" tick={AXIS_STYLE} stroke={AXIS_COLOR} />
+                <YAxis tick={AXIS_STYLE} stroke={AXIS_COLOR} width={40} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} labelStyle={{ color: '#55565c' }} />
                 <Line
                   type="monotone"
                   dataKey="最大重量"
                   stroke={MAX_WEIGHT_COLOR}
                   strokeWidth={2}
-                  dot={{ r: 3 }}
+                  // 白背景では既定の白抜きの点が見えないため、塗りつぶす
+                  dot={{ r: 3, fill: MAX_WEIGHT_COLOR, stroke: MAX_WEIGHT_COLOR }}
                 />
                 <Line
                   type="monotone"
@@ -179,10 +184,7 @@ export function ChartsPage() {
               最大重量
             </span>
             <span className={styles.legendItem}>
-              <span
-                className={styles.swatch}
-                style={{ background: ONE_REP_MAX_COLOR }}
-              />
+              <span className={`${styles.swatch} ${styles.swatchDashed}`} />
               推定1RM
             </span>
           </div>
@@ -193,18 +195,18 @@ export function ChartsPage() {
           <div className={styles.chart}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={volumeData} margin={{ top: 8, right: 12, bottom: 0, left: -8 }}>
-                <CartesianGrid stroke="#2c313c" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" tick={AXIS_STYLE} stroke="#2c313c" />
+                <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="label" tick={AXIS_STYLE} stroke={AXIS_COLOR} />
                 <YAxis
                   tick={AXIS_STYLE}
-                  stroke="#2c313c"
+                  stroke={AXIS_COLOR}
                   width={40}
                   tickFormatter={formatVolumeTick}
                 />
                 <Tooltip
                   contentStyle={TOOLTIP_STYLE}
-                  labelStyle={{ color: '#9aa1ad' }}
-                  cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                  labelStyle={{ color: '#55565c' }}
+                  cursor={{ fill: 'rgba(17,17,19,0.05)' }}
                 />
                 <Bar dataKey="ボリューム" fill={VOLUME_COLOR} radius={[4, 4, 0, 0]} />
               </BarChart>
