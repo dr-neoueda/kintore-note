@@ -17,7 +17,7 @@ async function recordSet(page: Page): Promise<void> {
 test.describe('筋トレの記録', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: '今日' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'ホーム' })).toBeVisible()
   })
 
   test('種目を追加してセットを記録できる', async ({ page }) => {

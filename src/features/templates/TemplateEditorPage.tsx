@@ -1,50 +1,33 @@
 import { useEffect, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate, useParams } from 'react-router-dom'
 import { PageHeader } from '@/components/PageHeader'
 import { PlusIcon, TrashIcon } from '@/components/icons'
+import { getSettings } from '@/data/repositories/settingsRepository'
 import {
   createTemplate,
   deleteTemplate,
   getTemplate,
   updateTemplate,
 } from '@/data/repositories/templateRepository'
+import { formatTemplateTarget } from '@/domain/templateFormat'
 import type { ExerciseId, TemplateItem } from '@/domain/types'
 import { ValidationError } from '@/domain/validation'
 import { useExercises } from '@/hooks/useExercises'
 import { ExercisePickerSheet } from '../today/ExercisePickerSheet'
+import { TemplateItemSheet } from './TemplateItemSheet'
 import styles from './TemplateEditorPage.module.css'
 
 const NEW_TEMPLATE_PARAM = 'new'
 const DEFAULT_TARGET_SETS = 3
 const DEFAULT_TARGET_REPS = 10
 
-/** 入力途中の空文字を許すため、フォーム上の目標値は文字列で保持する。 */
-interface EditableItem {
-  readonly exerciseId: ExerciseId
-  readonly targetSets: string
-  readonly targetReps: string
-  readonly targetWeightKg: string
-}
-
-function toEditableItem(item: TemplateItem): EditableItem {
+function createDefaultItem(exerciseId: ExerciseId): TemplateItem {
   return {
-    exerciseId: item.exerciseId,
-    targetSets: String(item.targetSets),
-    targetReps: String(item.targetReps),
-    targetWeightKg: item.targetWeightKg === null ? '' : String(item.targetWeightKg),
-  }
-}
-
-function toTemplateItem(item: EditableItem): TemplateItem {
-  const weight = Number(item.targetWeightKg)
-  return {
-    exerciseId: item.exerciseId,
-    targetSets: Number(item.targetSets) || DEFAULT_TARGET_SETS,
-    targetReps: Number(item.targetReps) || DEFAULT_TARGET_REPS,
-    targetWeightKg:
-      item.targetWeightKg.trim() === '' || !Number.isFinite(weight) || weight <= 0
-        ? null
-        : weight,
+    exerciseId,
+    targetSets: DEFAULT_TARGET_SETS,
+    targetReps: DEFAULT_TARGET_REPS,
+    targetWeightKg: null,
   }
 }
 
@@ -52,21 +35,23 @@ export function TemplateEditorPage() {
   const { templateId = NEW_TEMPLATE_PARAM } = useParams<{ templateId: string }>()
   const navigate = useNavigate()
   const { activeExercises, exerciseById } = useExercises()
+  const settings = useLiveQuery(() => getSettings(), [])
 
   const isNew = templateId === NEW_TEMPLATE_PARAM
   const numericId = Number(templateId)
 
   const [name, setName] = useState('')
   const [note, setNote] = useState('')
-  const [items, setItems] = useState<readonly EditableItem[]>([])
+  const [items, setItems] = useState<readonly TemplateItem[]>([])
   const [isPickerOpen, setIsPickerOpen] = useState(false)
+  const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
     if (isNew) {
       setIsLoaded(true)
-      return
+      return undefined
     }
 
     let isCancelled = false
@@ -74,7 +59,7 @@ export function TemplateEditorPage() {
       if (isCancelled || template === undefined) return
       setName(template.name)
       setNote(template.note)
-      setItems(template.items.map(toEditableItem))
+      setItems(template.items)
       setIsLoaded(true)
     })
 
@@ -83,41 +68,31 @@ export function TemplateEditorPage() {
     }
   }, [isNew, numericId])
 
-  const updateItem = (index: number, patch: Partial<EditableItem>) => {
-    setItems((current) =>
-      current.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item)),
-    )
-  }
-
   const removeItem = (index: number) => {
     setItems((current) => current.filter((_, itemIndex) => itemIndex !== index))
   }
 
+  /** 種目を選んだらそのまま目標値の設定に進む。 */
   const addItem = (exerciseId: ExerciseId) => {
-    setItems((current) => [
-      ...current,
-      {
-        exerciseId,
-        targetSets: String(DEFAULT_TARGET_SETS),
-        targetReps: String(DEFAULT_TARGET_REPS),
-        targetWeightKg: '',
-      },
-    ])
+    // 更新関数の中で他の state を触らないよう、追加位置を先に決めておく
+    const appendedIndex = items.length
+    setItems((current) => [...current, createDefaultItem(exerciseId)])
+    setEditingIndex(appendedIndex)
+  }
+
+  const applyEditedItem = (edited: TemplateItem) => {
+    setItems((current) =>
+      current.map((item, itemIndex) => (itemIndex === editingIndex ? edited : item)),
+    )
   }
 
   const handleSave = async () => {
     setErrorMessage(null)
-    const payload = {
-      name,
-      note,
-      items: items.map(toTemplateItem),
-    }
-
     try {
       if (isNew) {
-        await createTemplate(payload)
+        await createTemplate({ name, note, items })
       } else {
-        await updateTemplate(numericId, payload)
+        await updateTemplate(numericId, { name, note, items })
       }
       navigate('/templates', { replace: true })
     } catch (cause) {
@@ -143,6 +118,10 @@ export function TemplateEditorPage() {
       </>
     )
   }
+
+  const editingItem = editingIndex === null ? undefined : items[editingIndex]
+  const editingExercise =
+    editingItem === undefined ? undefined : exerciseById.get(editingItem.exerciseId)
 
   return (
     <>
@@ -177,71 +156,30 @@ export function TemplateEditorPage() {
 
         <div>
           <span className={styles.label}>種目</span>
-          <div style={{ marginTop: 'var(--space-2)' }}>
+
+          <div className={styles.itemList}>
             {items.length === 0 && <p className="empty-state">種目を追加してください。</p>}
 
             {items.map((item, index) => (
               <div key={`${item.exerciseId}-${index}`} className={styles.item}>
-                <div className={styles.itemHeader}>
-                  <span className={styles.itemName}>
+                <button
+                  type="button"
+                  className={styles.itemMain}
+                  onClick={() => setEditingIndex(index)}
+                >
+                  <div className={styles.itemName}>
                     {exerciseById.get(item.exerciseId)?.name ?? '削除された種目'}
-                  </span>
-                  <button
-                    type="button"
-                    className={styles.iconButton}
-                    onClick={() => removeItem(index)}
-                    aria-label="この種目を外す"
-                  >
-                    <TrashIcon size={18} />
-                  </button>
-                </div>
-
-                <div className={styles.targets}>
-                  <div className={styles.targetField}>
-                    <span className={styles.targetLabel}>セット数</span>
-                    <input
-                      className={styles.targetInput}
-                      type="number"
-                      inputMode="numeric"
-                      min="1"
-                      value={item.targetSets}
-                      onChange={(event) =>
-                        updateItem(index, { targetSets: event.target.value })
-                      }
-                      aria-label="目標セット数"
-                    />
                   </div>
-                  <div className={styles.targetField}>
-                    <span className={styles.targetLabel}>回数</span>
-                    <input
-                      className={styles.targetInput}
-                      type="number"
-                      inputMode="numeric"
-                      min="1"
-                      value={item.targetReps}
-                      onChange={(event) =>
-                        updateItem(index, { targetReps: event.target.value })
-                      }
-                      aria-label="目標回数"
-                    />
-                  </div>
-                  <div className={styles.targetField}>
-                    <span className={styles.targetLabel}>重量kg</span>
-                    <input
-                      className={styles.targetInput}
-                      type="number"
-                      inputMode="decimal"
-                      min="0"
-                      step="0.5"
-                      placeholder="—"
-                      value={item.targetWeightKg}
-                      onChange={(event) =>
-                        updateItem(index, { targetWeightKg: event.target.value })
-                      }
-                      aria-label="目標重量"
-                    />
-                  </div>
-                </div>
+                  <div className={styles.itemTarget}>{formatTemplateTarget(item)}</div>
+                </button>
+                <button
+                  type="button"
+                  className={styles.iconButton}
+                  onClick={() => removeItem(index)}
+                  aria-label="この種目を外す"
+                >
+                  <TrashIcon size={18} />
+                </button>
               </div>
             ))}
           </div>
@@ -277,6 +215,17 @@ export function TemplateEditorPage() {
         onClose={() => setIsPickerOpen(false)}
         onSelect={addItem}
       />
+
+      {editingItem !== undefined && editingExercise !== undefined && (
+        <TemplateItemSheet
+          isOpen
+          exercise={editingExercise}
+          initialItem={editingItem}
+          dumbbellStepsKg={settings?.dumbbellStepsKg ?? []}
+          onClose={() => setEditingIndex(null)}
+          onSubmit={applyEditedItem}
+        />
+      )}
     </>
   )
 }

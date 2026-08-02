@@ -238,6 +238,19 @@ ol {
   font-variant-numeric: tabular-nums;
 }
 
+/* 画面上は見せず、支援技術には読ませたい文言。 */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* エラー文言。色を使えないため太字と下線で示す。 */
 .error-text {
   color: var(--text);

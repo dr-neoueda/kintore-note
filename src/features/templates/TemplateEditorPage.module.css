@@ -17,26 +17,48 @@
   color: var(--text-dim);
 }
 
-.item {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: var(--space-3);
-  margin-bottom: var(--space-2);
+.itemList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
 }
 
-.itemHeader {
+.item {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin-bottom: var(--space-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding-right: var(--space-1);
+}
+
+/* 目標値の編集はシートで行うため、行全体をタップ領域にする。 */
+.itemMain {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  padding: var(--space-3);
+  min-height: var(--tap-min);
+}
+
+.itemMain:active {
+  opacity: 0.6;
 }
 
 .itemName {
-  flex: 1;
-  min-width: 0;
   font-size: 15px;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itemTarget {
+  font-size: 13px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
 }
 
 .iconButton {
@@ -44,33 +66,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: var(--tap-min);
+  height: var(--tap-min);
   color: var(--text-faint);
-}
-
-.targets {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: var(--space-2);
-}
-
-.targetField {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.targetLabel {
-  font-size: 10px;
-  color: var(--text-faint);
-}
-
-.targetInput {
-  padding: var(--space-2);
-  font-size: 15px;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
 }
 
 /* 色を使えないため、太字と下線でエラーだと分かるようにする。 */

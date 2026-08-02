@@ -28,7 +28,7 @@ const shot = async (name) => {
 }
 
 await page.goto(BASE_URL)
-await page.getByRole('heading', { name: '今日' }).waitFor()
+await page.getByRole('heading', { name: 'ホーム' }).waitFor()
 await shot('01-today-empty')
 
 // 種目を追加する画面
@@ -76,7 +76,24 @@ await shot('06-charts')
 await page.getByRole('link', { name: 'メニュー' }).click()
 await shot('07-templates')
 
+// メニューの目標設定（記録画面と同じ ± 形式）
+await page.getByRole('link', { name: 'メニューを作る' }).click()
+await page.getByLabel('メニュー名').fill('胸の日')
+await page.getByRole('button', { name: '種目を追加' }).click()
+await page.getByRole('dialog').getByRole('button', { name: /^インクラインダンベルプレス/ }).click()
+await page.getByRole('button', { name: '指定なし' }).click()
+for (let i = 0; i < 8; i += 1) {
+  await page.getByRole('button', { name: '重量を上げる' }).click()
+}
+await shot('08-template-item-sheet')
+await page.getByRole('button', { name: '決定' }).click()
+
+await page.getByRole('button', { name: '種目を追加' }).click()
+await page.getByRole('dialog').getByRole('button', { name: /^インクラインダンベルフライ/ }).click()
+await page.getByRole('button', { name: '決定' }).click()
+await shot('09-template-editor')
+
 await page.getByRole('link', { name: '設定' }).click()
-await shot('08-settings')
+await shot('10-settings')
 
 await browser.close()

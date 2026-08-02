@@ -23,7 +23,7 @@ test.describe('ライトモード', () => {
   test('白背景・黒文字で表示される', async ({ page }) => {
     // Arrange
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: '今日' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'ホーム' })).toBeVisible()
 
     // Act
     const { background, text } = await readBodyColors(page)
@@ -40,7 +40,7 @@ test.describe('ダークモード', () => {
   test('黒背景・白文字で表示される', async ({ page }) => {
     // Arrange
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: '今日' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'ホーム' })).toBeVisible()
 
     // Act
     const { background, text } = await readBodyColors(page)
@@ -70,7 +70,7 @@ test.describe('ダークモード', () => {
   test('固定表示の帯が透けて文字が重ならない', async ({ page }) => {
     // Arrange: ヘッダー・タブバーの地色がダーク側の値になっているか
     await page.goto('/')
-    await expect(page.getByRole('heading', { name: '今日' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'ホーム' })).toBeVisible()
 
     // Act
     const tabbarBackground = await page

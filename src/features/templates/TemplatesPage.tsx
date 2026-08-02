@@ -21,7 +21,7 @@ export function TemplatesPage() {
           <p className="empty-state">
             「胸の日」「背中の日」のようなメニューを登録すると、
             <br />
-            今日の画面からまとめて呼び出せます。
+            「ホーム」タブからまとめて呼び出せます。
           </p>
         )}
 

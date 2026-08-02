@@ -9,7 +9,7 @@ interface TabDefinition {
 }
 
 const TABS: readonly TabDefinition[] = [
-  { to: '/', label: '今日', Icon: DumbbellIcon },
+  { to: '/', label: 'ホーム', Icon: DumbbellIcon },
   { to: '/history', label: '履歴', Icon: CalendarIcon },
   { to: '/charts', label: 'グラフ', Icon: ChartIcon },
   { to: '/templates', label: 'メニュー', Icon: ListIcon },

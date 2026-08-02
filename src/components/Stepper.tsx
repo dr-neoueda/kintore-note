@@ -9,6 +9,8 @@ interface StepperProps {
   readonly onIncrement: () => void
   readonly canDecrement?: boolean
   readonly canIncrement?: boolean
+  /** 直上に同じ見出しがある場合に、ラベルの重複表示だけを避ける。読み上げには残す。 */
+  readonly hideLabel?: boolean
 }
 
 /**
@@ -23,10 +25,11 @@ export function Stepper({
   onIncrement,
   canDecrement = true,
   canIncrement = true,
+  hideLabel = false,
 }: StepperProps) {
   return (
     <div className={styles.wrapper}>
-      <span className={styles.label}>{label}</span>
+      <span className={hideLabel ? 'visually-hidden' : styles.label}>{label}</span>
       <div className={styles.control}>
         <button
           type="button"

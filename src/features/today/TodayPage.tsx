@@ -181,7 +181,7 @@ export function TodayPage() {
 
   return (
     <>
-      <PageHeader title="今日" subtitle={formatDateLabel(todayKey)} />
+      <PageHeader title="ホーム" subtitle={formatDateLabel(todayKey)} />
 
       <div
         className={
