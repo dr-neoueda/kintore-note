@@ -88,6 +88,15 @@ export function SettingsPage() {
     setStatus({ kind: 'success', text: 'ダンベルの段階を保存しました' })
   }
 
+  const handleToggleRestAlarm = async () => {
+    const next = !(settings?.isRestAlarmEnabled ?? false)
+    await updateSettings({ isRestAlarmEnabled: next })
+    setStatus({
+      kind: 'success',
+      text: next ? '休憩終了の音を鳴らします' : '休憩終了の音を鳴らしません',
+    })
+  }
+
   const handleSaveRest = async () => {
     const parsed = { ...DEFAULT_REST_SEC_BY_MUSCLE_GROUP }
 
@@ -179,6 +188,29 @@ export function SettingsPage() {
           )}
           <button type="button" className="btn btn-block" onClick={handleSaveSteps}>
             段階を保存
+          </button>
+        </section>
+
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>休憩終了の合図</h2>
+          <p className={styles.hint}>
+            休憩が目標時間に達したら音で知らせます。
+            iOS の Web アプリは画面が消えると音を鳴らせないため、
+            <strong>有効な間は休憩中だけ画面を点けたままにします</strong>
+            （目標に達したら解除するので、電池の消費は最小限です）。
+            他のアプリを見ている間は鳴りません。
+          </p>
+          <button
+            type="button"
+            className={
+              settings?.isRestAlarmEnabled ?? false
+                ? 'btn btn-primary btn-block'
+                : 'btn btn-block'
+            }
+            onClick={handleToggleRestAlarm}
+            aria-pressed={settings?.isRestAlarmEnabled ?? false}
+          >
+            {(settings?.isRestAlarmEnabled ?? false) ? '音で知らせる：オン' : '音で知らせる：オフ'}
           </button>
         </section>
 

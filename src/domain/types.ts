@@ -136,6 +136,8 @@ export interface AppSettings {
   readonly backupReminderDays: number
   /** 部位ごとの既定の休憩秒数。新しく作る種目の初期値になる。 */
   readonly restSecByMuscleGroup: Readonly<Record<MuscleGroup, number>>
+  /** 休憩が目標時間に達したら音で知らせる。有効な間は画面を点けたままにする。 */
+  readonly isRestAlarmEnabled: boolean
 }
 
 export const RPE_MIN = 1

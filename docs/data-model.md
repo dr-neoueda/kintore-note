@@ -81,6 +81,7 @@
 | lastBackupAt | string \| null | 最終バックアップ日時 |
 | backupReminderDays | number | この日数を超えたら警告する |
 | restSecByMuscleGroup | Record<MuscleGroup, number> | 部位ごとの既定の休憩秒数。新規種目の初期値 |
+| isRestAlarmEnabled | boolean | 休憩終了を音で知らせるか。有効な間は休憩中の画面点灯も行う |
 
 索引: `id`
 

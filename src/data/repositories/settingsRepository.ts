@@ -17,6 +17,7 @@ function createDefaultSettings(): AppSettings {
     lastBackupAt: null,
     backupReminderDays: DEFAULT_BACKUP_REMINDER_DAYS,
     restSecByMuscleGroup: { ...DEFAULT_REST_SEC_BY_MUSCLE_GROUP },
+    isRestAlarmEnabled: true,
   }
 }
 

@@ -7,6 +7,7 @@ import type { Exercise, WorkoutSet } from '@/domain/types'
 import { RPE_MAX, RPE_MIN } from '@/domain/types'
 import { ValidationError } from '@/domain/validation'
 import { formatWeightKg, snapToStep, stepWeight } from '@/domain/weight'
+import { unlockAlarmAudio } from './audioAlarm'
 import type { SetFormValues } from './setDefaults'
 import styles from './SetEditorSheet.module.css'
 
@@ -77,6 +78,9 @@ export function SetEditorSheet({
   }
 
   const handleSubmit = async () => {
+    // iOS は利用者の操作を起点にしないと音を鳴らせないため、ここで解錠しておく
+    void unlockAlarmAudio()
+
     setIsSaving(true)
     setErrorMessage(null)
     try {
