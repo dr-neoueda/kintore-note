@@ -37,7 +37,7 @@ export interface NewExercise {
 /** 種目ごとに変更できる設定。 */
 export interface ExerciseSettingsPatch {
   readonly equipment?: EquipmentType
-  /** ボリューム計算の倍率。作成後に直せないと記録がずれ続けるため変更できるようにする。 */
+  /** 同時に使うダンベルの数。作成時に取り違えても直せるようにする。 */
   readonly dumbbellCount?: DumbbellCount
   readonly muscleArchitecture?: MuscleArchitecture
   readonly target?: ProgressionTarget

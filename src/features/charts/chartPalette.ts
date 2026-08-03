@@ -10,7 +10,6 @@ import type { ColorScheme } from '@/hooks/useColorScheme'
 export interface ChartPalette {
   readonly maxWeight: string
   readonly oneRepMax: string
-  readonly volume: string
   readonly grid: string
   readonly axis: string
   readonly axisText: string
@@ -25,7 +24,6 @@ export const CHART_PALETTES: Readonly<Record<ColorScheme, ChartPalette>> = {
   light: {
     maxWeight: '#111113',
     oneRepMax: '#8e8f96',
-    volume: '#55565c',
     grid: '#e0e0e2',
     axis: '#c9c9cc',
     axisText: '#6e6f75',
@@ -38,7 +36,6 @@ export const CHART_PALETTES: Readonly<Record<ColorScheme, ChartPalette>> = {
   dark: {
     maxWeight: '#f2f2f4',
     oneRepMax: '#8a8a91',
-    volume: '#a1a1a8',
     grid: '#2e2e32',
     axis: '#3a3a3f',
     axisText: '#8a8a91',

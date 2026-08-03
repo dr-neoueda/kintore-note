@@ -1,8 +1,8 @@
 import type { DateRange } from './date'
 import { isWithinRange } from './date'
 import type { WorkoutDateMap } from './progress'
-import type { MuscleGroup, WorkoutSet } from './types'
-import type { ExerciseMap } from './workoutStats'
+import type { ExerciseMap, MuscleGroup, WorkoutSet } from './types'
+
 
 /**
  * 1部位あたりの週間セット数の目安。

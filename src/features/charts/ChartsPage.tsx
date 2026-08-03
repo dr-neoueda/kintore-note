@@ -1,39 +1,18 @@
 import { useMemo, useState } from 'react'
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
 import { Link } from 'react-router-dom'
 import { PageHeader } from '@/components/PageHeader'
 import { ChevronRightIcon } from '@/components/icons'
-import { formatShortDateLabel } from '@/domain/date'
-import { buildExerciseProgress, buildVolumeHistory } from '@/domain/progress'
+import { buildExerciseProgress } from '@/domain/progress'
 import type { ExerciseId } from '@/domain/types'
-import { useColorScheme } from '@/hooks/useColorScheme'
 import { useExercises } from '@/hooks/useExercises'
 import { useWorkoutHistory } from '@/hooks/useWorkoutHistory'
-import { CHART_PALETTES } from './chartPalette'
 import { ExerciseWeightChart } from './ExerciseWeightChart'
 import { WeeklySetsCard } from './WeeklySetsCard'
 import styles from './ChartsPage.module.css'
 
-const AXIS_FONT_SIZE = 10
-
-/** 総ボリュームは4桁以上になるため、狭い軸に収まるよう千単位で丸める。 */
-function formatVolumeTick(value: number): string {
-  if (value >= 1000) return `${Math.round(value / 100) / 10}k`
-  return String(value)
-}
-
 export function ChartsPage() {
   const { exerciseById, allExercises } = useExercises()
   const { allSets, dateByWorkoutId, isLoading } = useWorkoutHistory()
-  const palette = CHART_PALETTES[useColorScheme()]
 
   const [selectedExerciseId, setSelectedExerciseId] = useState<ExerciseId | null>(null)
 
@@ -52,33 +31,14 @@ export function ChartsPage() {
   const progress = useMemo(() => {
     if (activeExercise?.id === undefined) return []
     const exerciseSets = allSets.filter((set) => set.exerciseId === activeExercise.id)
-    return buildExerciseProgress(exerciseSets, activeExercise.dumbbellCount, dateByWorkoutId)
+    return buildExerciseProgress(exerciseSets, dateByWorkoutId)
   }, [activeExercise, allSets, dateByWorkoutId])
-
-  const volumeHistory = useMemo(
-    () => buildVolumeHistory(allSets, exerciseById, dateByWorkoutId),
-    [allSets, exerciseById, dateByWorkoutId],
-  )
 
   const bestWeight = progress.reduce((max, point) => Math.max(max, point.maxWeightKg), 0)
   const bestOneRepMax = progress.reduce(
     (max, point) => Math.max(max, point.estimatedOneRepMaxKg ?? 0),
     0,
   )
-
-  const volumeData = volumeHistory.map((point) => ({
-    label: formatShortDateLabel(point.date),
-    ボリューム: point.volumeKg,
-  }))
-
-  const axisStyle = { fill: palette.axisText, fontSize: AXIS_FONT_SIZE }
-  const tooltipStyle = {
-    background: palette.tooltipBg,
-    border: `1px solid ${palette.tooltipBorder}`,
-    borderRadius: 8,
-    fontSize: 12,
-    color: palette.tooltipText,
-  }
 
   if (isLoading) {
     return (
@@ -148,29 +108,6 @@ export function ChartsPage() {
           )}
         </section>
 
-        <section className={styles.card}>
-          <h2 className={styles.cardTitle}>総ボリュームの推移（全種目）</h2>
-          <div className={styles.chart}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={volumeData} margin={{ top: 8, right: 12, bottom: 0, left: -8 }}>
-                <CartesianGrid stroke={palette.grid} strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" tick={axisStyle} stroke={palette.axis} />
-                <YAxis
-                  tick={axisStyle}
-                  stroke={palette.axis}
-                  width={40}
-                  tickFormatter={formatVolumeTick}
-                />
-                <Tooltip
-                  contentStyle={tooltipStyle}
-                  labelStyle={{ color: palette.tooltipLabel }}
-                  cursor={{ fill: palette.cursorFill }}
-                />
-                <Bar dataKey="ボリューム" fill={palette.volume} radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </section>
       </div>
     </>
   )

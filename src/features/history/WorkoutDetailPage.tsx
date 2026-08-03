@@ -46,10 +46,8 @@ export function WorkoutDetailPage() {
       <div className={styles.content}>
         <div className={styles.summary}>
           <div className={styles.metric}>
-            <div className={styles.metricValue}>
-              {summary.totalVolumeKg.toLocaleString('ja-JP')} kg
-            </div>
-            <div className={styles.metricLabel}>総ボリューム</div>
+            <div className={styles.metricValue}>{summary.exerciseCount}</div>
+            <div className={styles.metricLabel}>種目</div>
           </div>
           <div className={styles.metric}>
             <div className={styles.metricValue}>{summary.workingSetCount}</div>

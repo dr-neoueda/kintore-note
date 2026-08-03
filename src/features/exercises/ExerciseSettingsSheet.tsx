@@ -17,7 +17,7 @@ import styles from './ExerciseSettingsSheet.module.css'
 
 export interface ExerciseSettingsValues {
   readonly equipment: EquipmentType
-  /** ボリューム計算の倍率。両手に1個ずつなら 2。 */
+  /** 同時に使うダンベルの数。両手に1個ずつなら 2。 */
   readonly dumbbellCount: DumbbellCount
   readonly muscleArchitecture: MuscleArchitecture
   readonly target: ProgressionTarget
@@ -184,7 +184,7 @@ export function ExerciseSettingsSheet({
               ))}
             </div>
             <p className={styles.note}>
-              総ボリュームの計算に使います。ワンハンドロウやプルオーバーは「片手ずつ」です。
+              記録する重量はダンベル1個あたりです。ワンハンドロウやプルオーバーは「片手ずつ」です。
             </p>
           </div>
         )}

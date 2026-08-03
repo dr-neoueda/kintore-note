@@ -9,7 +9,8 @@ export type SetId = number
 export type TemplateId = number
 
 /**
- * その種目で同時に使うダンベルの数。ボリューム計算の倍率になる。
+ * その種目で同時に使うダンベルの数。記録する重量はダンベル1個あたりなので、
+ * 「片手ずつ」か「両手に1個ずつ」かを持っておく。
  * 両手に1個ずつ持つプレス系は 2、片手ずつ行うロウや両手で1個を持つプルオーバーは 1。
  * 自重種目は重量が0なので 1 とする。
  */
@@ -78,6 +79,9 @@ export interface Exercise {
   readonly isArchived: boolean
   readonly createdAt: string
 }
+
+/** 種目 ID から種目を引くための索引。 */
+export type ExerciseMap = ReadonlyMap<ExerciseId, Exercise>
 
 /** 1日のトレーニングセッション。 */
 export interface Workout {

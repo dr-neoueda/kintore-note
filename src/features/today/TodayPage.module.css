@@ -24,35 +24,24 @@
   padding: var(--space-3) var(--space-4);
 }
 
-.volume {
+.metric {
   flex: 1;
   min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
 }
 
-.volumeValue {
+.metricValue {
   font-size: 24px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
 
-.volumeUnit {
-  font-size: 13px;
-  color: var(--text-dim);
-  margin-left: 2px;
-}
-
-.volumeLabel {
-  font-size: 11px;
-  color: var(--text-faint);
-}
-
-.counts {
-  flex: none;
-  text-align: right;
+.metricLabel {
   font-size: 12px;
   color: var(--text-dim);
-  font-variant-numeric: tabular-nums;
 }
 
 .noteButton {

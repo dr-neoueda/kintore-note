@@ -36,29 +36,38 @@ test.describe('筋トレの記録', () => {
     await expect(firstSet).toContainText('8')
   })
 
-  test('総ボリュームが両手ダンベルとして計算される', async ({ page }) => {
+  test('その日の種目数とセット数を集計する', async ({ page }) => {
     // Arrange
     await addExercise(page, /^インクラインダンベルプレス/)
 
-    // Act: 2.5kg × 8回 を両手に1個ずつ = 40kg
+    // Act
     await page.getByRole('button', { name: 'セットを追加' }).click()
     await recordSet(page)
 
     // Assert
-    await expect(page.getByTestId('total-volume')).toHaveText('40')
+    await expect(page.getByTestId('exercise-count')).toHaveText('1')
+    await expect(page.getByTestId('set-count')).toHaveText('1')
   })
 
-  test('片手種目のボリュームは2倍にならない', async ({ page }) => {
-    // Arrange: ワンハンドダンベルロウは同時に使うダンベルが1個。
-    // 背中（広背筋）は平行筋なので既定の下限回数は10回になる
+  test('追加しただけの種目は数えず、記録した種目だけを数える', async ({ page }) => {
+    // Arrange: 2種目を追加し、片方だけ記録する
+    await addExercise(page, /^インクラインダンベルプレス/)
     await addExercise(page, /^ワンハンドダンベルロウ/)
 
-    // Act: 2.5kg × 10回 = 25kg
-    await page.getByRole('button', { name: 'セットを追加' }).click()
+    // Act
+    await page.getByRole('button', { name: 'セットを追加' }).first().click()
     await recordSet(page)
 
     // Assert
-    await expect(page.getByTestId('total-volume')).toHaveText('25')
+    await expect(page.getByTestId('exercise-count')).toHaveText('1')
+
+    // Act: もう片方も記録する
+    await page.getByRole('button', { name: 'セットを追加' }).last().click()
+    await recordSet(page)
+
+    // Assert
+    await expect(page.getByTestId('exercise-count')).toHaveText('2')
+    await expect(page.getByTestId('set-count')).toHaveText('2')
   })
 
   test('筋の構造によって既定の回数レンジが変わる', async ({ page }) => {

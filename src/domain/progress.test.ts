@@ -1,8 +1,7 @@
 import { describe, test, expect } from 'vitest'
 import type { DateKey } from './date'
-import { PENNATE_TARGET } from './muscle'
-import { buildExerciseProgress, buildVolumeHistory } from './progress'
-import type { Exercise, ExerciseId, WorkoutId, WorkoutSet } from './types'
+import { buildExerciseProgress } from './progress'
+import type { WorkoutId, WorkoutSet } from './types'
 
 const DATE_BY_WORKOUT = new Map<WorkoutId, DateKey>([
   [1, '2026-07-26'],
@@ -23,7 +22,7 @@ const set = (overrides: Partial<WorkoutSet> = {}): WorkoutSet => ({
 })
 
 describe('buildExerciseProgress', () => {
-  test('セッションごとに最大重量とボリュームを集計する', () => {
+  test('セッションごとに最大重量を集計する', () => {
     // Arrange
     const sets = [
       set({ workoutId: 1, weightKg: 10, reps: 10 }),
@@ -32,13 +31,12 @@ describe('buildExerciseProgress', () => {
     ]
 
     // Act
-    const points = buildExerciseProgress(sets, 2, DATE_BY_WORKOUT)
+    const points = buildExerciseProgress(sets, DATE_BY_WORKOUT)
 
     // Assert
     expect(points).toHaveLength(2)
     expect(points[0]?.date).toBe('2026-07-26')
     expect(points[0]?.maxWeightKg).toBe(11.5)
-    expect(points[0]?.volumeKg).toBe(384) // 10*10*2 + 11.5*8*2
     expect(points[1]?.maxWeightKg).toBe(13.5)
   })
 
@@ -47,7 +45,7 @@ describe('buildExerciseProgress', () => {
     const sets = [set({ workoutId: 2 }), set({ workoutId: 1 })]
 
     // Act
-    const points = buildExerciseProgress(sets, 1, DATE_BY_WORKOUT)
+    const points = buildExerciseProgress(sets, DATE_BY_WORKOUT)
 
     // Assert
     expect(points.map((point) => point.date)).toEqual(['2026-07-26', '2026-08-02'])
@@ -61,7 +59,7 @@ describe('buildExerciseProgress', () => {
     ]
 
     // Act
-    const points = buildExerciseProgress(sets, 1, DATE_BY_WORKOUT)
+    const points = buildExerciseProgress(sets, DATE_BY_WORKOUT)
 
     // Assert: ウォームアップの24kgが最大重量にならない
     expect(points[0]?.maxWeightKg).toBe(10)
@@ -75,7 +73,7 @@ describe('buildExerciseProgress', () => {
     ]
 
     // Act
-    const points = buildExerciseProgress(sets, 1, DATE_BY_WORKOUT)
+    const points = buildExerciseProgress(sets, DATE_BY_WORKOUT)
 
     // Assert
     expect(points[0]?.estimatedOneRepMaxKg).toBe(14)
@@ -84,69 +82,10 @@ describe('buildExerciseProgress', () => {
   test('日付が引けないセットは無視する', () => {
     const sets = [set({ workoutId: 999 })]
 
-    expect(buildExerciseProgress(sets, 1, DATE_BY_WORKOUT)).toEqual([])
+    expect(buildExerciseProgress(sets, DATE_BY_WORKOUT)).toEqual([])
   })
 
   test('セットが無ければ空配列を返す', () => {
-    expect(buildExerciseProgress([], 1, DATE_BY_WORKOUT)).toEqual([])
-  })
-})
-
-describe('buildVolumeHistory', () => {
-  const exercises = new Map<ExerciseId, Exercise>([
-    [
-      1,
-      {
-        id: 1,
-        name: '両手種目',
-        muscleGroup: 'chest',
-        equipment: 'dumbbell',
-        dumbbellCount: 2,
-        muscleArchitecture: 'pennate',
-        target: PENNATE_TARGET,
-        restSec: 150,
-        referenceUrl: null,
-        isArchived: false,
-        createdAt: '2026-07-01T00:00:00.000Z',
-      },
-    ],
-    [
-      2,
-      {
-        id: 2,
-        name: '片手種目',
-        muscleGroup: 'back',
-        equipment: 'dumbbell',
-        dumbbellCount: 1,
-        muscleArchitecture: 'parallel',
-        target: PENNATE_TARGET,
-        restSec: 150,
-        referenceUrl: null,
-        isArchived: false,
-        createdAt: '2026-07-01T00:00:00.000Z',
-      },
-    ],
-  ])
-
-  test('日ごとの総ボリュームを種目のダンベル数を考慮して集計する', () => {
-    // Arrange
-    const sets = [
-      set({ workoutId: 1, exerciseId: 1, weightKg: 10, reps: 10 }), // 200
-      set({ workoutId: 1, exerciseId: 2, weightKg: 10, reps: 10 }), // 100
-      set({ workoutId: 2, exerciseId: 1, weightKg: 11.5, reps: 8 }), // 184
-    ]
-
-    // Act
-    const points = buildVolumeHistory(sets, exercises, DATE_BY_WORKOUT)
-
-    // Assert
-    expect(points).toEqual([
-      { date: '2026-07-26', volumeKg: 300 },
-      { date: '2026-08-02', volumeKg: 184 },
-    ])
-  })
-
-  test('セットが無ければ空配列を返す', () => {
-    expect(buildVolumeHistory([], exercises, DATE_BY_WORKOUT)).toEqual([])
+    expect(buildExerciseProgress([], DATE_BY_WORKOUT)).toEqual([])
   })
 })

@@ -12,7 +12,7 @@
 | name | string | 種目名。**重複不可** |
 | muscleGroup | MuscleGroup | chest / back / shoulders / arms / legs / core / other |
 | equipment | EquipmentType | dumbbell / bodyweight / other |
-| dumbbellCount | 1 \| 2 | 同時に使うダンベルの数。ボリューム計算の倍率 |
+| dumbbellCount | 1 \| 2 | 同時に使うダンベルの数。片手ずつか両手に1個ずつかの区別 |
 | muscleArchitecture | 'parallel' \| 'pennate' | 平行筋／羽状筋。既定の回数レンジの根拠 |
 | target | ProgressionTarget | `{ repsMin, repsMax, sets }`。重量を上げる基準 |
 | restSec | number | この種目のセット間休憩の目安（秒） |

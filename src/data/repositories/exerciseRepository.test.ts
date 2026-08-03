@@ -182,7 +182,7 @@ describe('updateExerciseSettings', () => {
 
 describe('updateExerciseSettings（器具とダンベル数）', () => {
   test('作成後に器具と同時に使うダンベルの数を変更できる', async () => {
-    // Arrange: 作成時に間違えるとボリューム計算がずれ続けるため、後から直せる必要がある
+    // Arrange: 作成時に取り違えても、あとから直せる必要がある
     const id = await createExercise(inclinePress)
 
     // Act

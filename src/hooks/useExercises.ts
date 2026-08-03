@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { listAllExercises } from '@/data/repositories/exerciseRepository'
-import type { Exercise, ExerciseId } from '@/domain/types'
-import type { ExerciseMap } from '@/domain/workoutStats'
+import type { Exercise, ExerciseId, ExerciseMap } from '@/domain/types'
 
 const EMPTY_EXERCISES: readonly Exercise[] = []
 

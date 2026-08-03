@@ -49,7 +49,7 @@ export function ExerciseDetailPage() {
 
   const progress = useMemo(() => {
     if (exercise === undefined) return []
-    return buildExerciseProgress(exerciseSets, exercise.dumbbellCount, dateByWorkoutId)
+    return buildExerciseProgress(exerciseSets, dateByWorkoutId)
   }, [exercise, exerciseSets, dateByWorkoutId])
 
   const suggestion = useMemo(() => {

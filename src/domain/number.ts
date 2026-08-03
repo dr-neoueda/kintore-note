@@ -4,5 +4,5 @@ export function roundTo(value: number, digits: number): number {
   return Math.round(value * factor) / factor
 }
 
-/** 重量・ボリュームの表示に使う小数桁数。 */
+/** 重量の表示に使う小数桁数。 */
 export const WEIGHT_DECIMALS = 1

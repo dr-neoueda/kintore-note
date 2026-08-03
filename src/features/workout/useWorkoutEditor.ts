@@ -15,8 +15,8 @@ import {
 } from '@/data/repositories/workoutRepository'
 import { buildRecordedAt, startOfDayIso, type DateKey } from '@/domain/date'
 import { suggestNextSession, type ProgressionSuggestion } from '@/domain/progression'
-import type { Exercise, ExerciseId, Workout, WorkoutSet } from '@/domain/types'
-import { summarizeWorkout, type ExerciseMap, type WorkoutSummary } from '@/domain/workoutStats'
+import type { Exercise, ExerciseId, ExerciseMap, Workout, WorkoutSet } from '@/domain/types'
+import { summarizeWorkout, type WorkoutSummary } from '@/domain/workoutStats'
 import { useExercises } from '@/hooks/useExercises'
 import { buildInitialSetValues, type SetFormValues } from './setDefaults'
 
@@ -147,7 +147,7 @@ export function useWorkoutEditor({
   }, [sectionKey, workoutId, dayStartIso])
   const previousSetsByExercise = loadedPrevious ?? EMPTY_PREVIOUS
 
-  const summary = useMemo(() => summarizeWorkout(sets, exerciseById), [sets, exerciseById])
+  const summary = useMemo(() => summarizeWorkout(sets), [sets])
   const dumbbellStepsKg = settings?.dumbbellStepsKg ?? EMPTY_STEPS
 
   // 前回の実績から「今回は何kgでやるか」を種目ごとに決める

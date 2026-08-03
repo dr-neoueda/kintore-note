@@ -90,18 +90,17 @@ export function TodayPage() {
         <BackupReminderBanner />
 
         <div className={styles.summary}>
-          <div className={styles.volume}>
-            <div>
-              <span className={styles.volumeValue} data-testid="total-volume">
-                {summary.totalVolumeKg.toLocaleString('ja-JP')}
-              </span>
-              <span className={styles.volumeUnit}>kg</span>
-            </div>
-            <div className={styles.volumeLabel}>総ボリューム</div>
+          <div className={styles.metric}>
+            <span className={styles.metricValue} data-testid="exercise-count">
+              {summary.exerciseCount}
+            </span>
+            <span className={styles.metricLabel}>種目</span>
           </div>
-          <div className={styles.counts}>
-            <div>{summary.exerciseCount} 種目</div>
-            <div>{summary.workingSetCount} セット</div>
+          <div className={styles.metric}>
+            <span className={styles.metricValue} data-testid="set-count">
+              {summary.workingSetCount}
+            </span>
+            <span className={styles.metricLabel}>セット</span>
           </div>
         </div>
 

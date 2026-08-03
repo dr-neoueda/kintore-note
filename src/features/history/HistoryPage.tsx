@@ -56,7 +56,7 @@ export function HistoryPage() {
 
         {workouts.map((workout) => {
           const sets = workout.id === undefined ? EMPTY_SETS : setsByWorkoutId.get(workout.id) ?? EMPTY_SETS
-          const summary = summarizeWorkout(sets, exerciseById)
+          const summary = summarizeWorkout(sets)
           const exerciseNames = [...new Set(sets.map((set) => set.exerciseId))]
             .map((id) => exerciseById.get(id)?.name)
             .filter((name): name is string => name !== undefined)
@@ -71,10 +71,8 @@ export function HistoryPage() {
                 </div>
               </div>
               <div className={styles.stats}>
-                <div className={styles.volume}>
-                  {summary.totalVolumeKg.toLocaleString('ja-JP')} kg
-                </div>
                 <div className={styles.setCount}>{summary.workingSetCount} セット</div>
+                <div className={styles.exerciseCount}>{summary.exerciseCount} 種目</div>
               </div>
               <span className={styles.chevron}>
                 <ChevronRightIcon size={18} />
