@@ -147,6 +147,15 @@ button {
   cursor: pointer;
 }
 
+/*
+ * このアプリのリンクは本文中のリンクではなく、行やカードそのものが遷移先を持つ。
+ * 既定の青字と下線は誤って目立つため、外して各所で明示的に装飾する。
+ */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
 input,
 select,
 textarea {

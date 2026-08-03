@@ -1,0 +1,43 @@
+/* 色を使えないため、左の太い罫線と地色で注意を促す。 */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  border-left: 4px solid var(--border-strong);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.banner:active {
+  opacity: 0.6;
+}
+
+.icon {
+  flex: none;
+  display: flex;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.detail {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.chevron {
+  flex: none;
+  display: flex;
+  color: var(--text-faint);
+}

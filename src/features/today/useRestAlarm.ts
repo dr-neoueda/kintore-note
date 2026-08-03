@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { shouldFireRestAlarm } from '@/domain/restAlarm'
-import { playRestAlarm } from './audioAlarm'
+import { playRestAlarm } from '../workout/audioAlarm'
 
 interface UseRestAlarmParams {
   /** 休憩の開始時刻。休憩ごとに1回だけ鳴らすための識別子も兼ねる。 */

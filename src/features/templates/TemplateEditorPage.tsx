@@ -14,7 +14,7 @@ import { formatTemplateTarget } from '@/domain/templateFormat'
 import type { ExerciseId, TemplateItem } from '@/domain/types'
 import { ValidationError } from '@/domain/validation'
 import { useExercises } from '@/hooks/useExercises'
-import { ExercisePickerSheet } from '../today/ExercisePickerSheet'
+import { ExercisePickerSheet } from '../workout/ExercisePickerSheet'
 import { TemplateItemSheet } from './TemplateItemSheet'
 import styles from './TemplateEditorPage.module.css'
 

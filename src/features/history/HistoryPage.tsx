@@ -1,7 +1,7 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { PageHeader } from '@/components/PageHeader'
 import { ChevronRightIcon } from '@/components/icons'
-import { formatDateLabelWithYear } from '@/domain/date'
+import { formatDateLabelWithYear, isValidDateKey, toDateKey } from '@/domain/date'
 import { summarizeWorkout } from '@/domain/workoutStats'
 import { useExercises } from '@/hooks/useExercises'
 import { useWorkoutHistory } from '@/hooks/useWorkoutHistory'
@@ -10,14 +10,33 @@ import styles from './HistoryPage.module.css'
 const EMPTY_SETS = Object.freeze([])
 
 export function HistoryPage() {
+  const navigate = useNavigate()
   const { exerciseById } = useExercises()
   const { workouts, setsByWorkoutId, isLoading } = useWorkoutHistory()
+
+  /** 記録し忘れた日を後から入力できるようにする。 */
+  const openDate = (dateKey: string) => {
+    if (!isValidDateKey(dateKey)) return
+    navigate(`/history/${dateKey}`)
+  }
 
   return (
     <>
       <PageHeader title="履歴" subtitle={`${workouts.length} 回のトレーニング`} />
 
       <div className={styles.content}>
+        <div className={styles.datePicker}>
+          <label className={styles.datePickerLabel} htmlFor="history-date">
+            記録し忘れた日を入力する
+          </label>
+          <input
+            id="history-date"
+            type="date"
+            max={toDateKey(new Date())}
+            onChange={(event) => openDate(event.target.value)}
+          />
+        </div>
+
         {isLoading && <p className="empty-state">読み込み中…</p>}
 
         {!isLoading && workouts.length === 0 && (

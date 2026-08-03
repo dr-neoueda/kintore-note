@@ -3,7 +3,10 @@ import {
   formatDateLabel,
   formatDateLabelWithYear,
   formatShortDateLabel,
+  buildRecordedAt,
+  getWeekRange,
   isValidDateKey,
+  isWithinRange,
   toDateKey,
 } from './date'
 
@@ -64,5 +67,86 @@ describe('formatShortDateLabel', () => {
 
   test('不正な日付キーはそのまま返す', () => {
     expect(formatShortDateLabel('bad')).toBe('bad')
+  })
+})
+
+describe('buildRecordedAt', () => {
+  test('今日の記録なら現在時刻をそのまま使う', () => {
+    // Arrange
+    const now = new Date(2026, 7, 3, 19, 30)
+
+    // Act
+    const recordedAt = buildRecordedAt('2026-08-03', now)
+
+    // Assert
+    expect(recordedAt).toBe(now.toISOString())
+  })
+
+  test('過去の日付なら、その日の正午の時刻にする', () => {
+    // Arrange: 後から入力しても「前回の記録」の順序が壊れないようにする
+    const now = new Date(2026, 7, 3, 19, 30)
+
+    // Act
+    const recordedAt = buildRecordedAt('2026-07-28', now)
+
+    // Assert
+    expect(recordedAt).toBe(new Date(2026, 6, 28, 12, 0, 0, 0).toISOString())
+  })
+
+  test('過去の日付の記録時刻は、その日より後の記録より前になる', () => {
+    // Arrange
+    const now = new Date(2026, 7, 3, 19, 30)
+
+    // Act
+    const past = buildRecordedAt('2026-07-28', now)
+    const today = buildRecordedAt('2026-08-03', now)
+
+    // Assert
+    expect(past < today).toBe(true)
+  })
+
+  test('不正な日付キーなら現在時刻を使う', () => {
+    const now = new Date(2026, 7, 3, 19, 30)
+
+    expect(buildRecordedAt('こわれた', now)).toBe(now.toISOString())
+  })
+})
+
+describe('getWeekRange', () => {
+  test('月曜始まりの週範囲を返す', () => {
+    // Arrange: 2026-08-03 は月曜
+    // Act
+    const range = getWeekRange('2026-08-03')
+
+    // Assert
+    expect(range).toEqual({ fromDate: '2026-08-03', toDate: '2026-08-09' })
+  })
+
+  test('日曜はその前の月曜から始まる週に属する', () => {
+    expect(getWeekRange('2026-08-02')).toEqual({
+      fromDate: '2026-07-27',
+      toDate: '2026-08-02',
+    })
+  })
+
+  test('weeksAgo に 1 を渡すと先週になる', () => {
+    expect(getWeekRange('2026-08-03', 1)).toEqual({
+      fromDate: '2026-07-27',
+      toDate: '2026-08-02',
+    })
+  })
+})
+
+describe('isWithinRange', () => {
+  const range = { fromDate: '2026-08-03', toDate: '2026-08-09' }
+
+  test('両端を含む', () => {
+    expect(isWithinRange('2026-08-03', range)).toBe(true)
+    expect(isWithinRange('2026-08-09', range)).toBe(true)
+  })
+
+  test('範囲外は false', () => {
+    expect(isWithinRange('2026-08-02', range)).toBe(false)
+    expect(isWithinRange('2026-08-10', range)).toBe(false)
   })
 })

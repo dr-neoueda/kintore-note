@@ -1,0 +1,94 @@
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.range {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-bottom: var(--space-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.name {
+  flex: none;
+  width: 40px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.barArea {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  height: 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  overflow: hidden;
+}
+
+/* 週10〜20セットの目安を、地色より少し濃い帯で示す。 */
+.targetZone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--border);
+}
+
+.fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--text-faint);
+  border-radius: var(--radius-sm);
+}
+
+/* 目安の範囲に入っている部位は濃く塗り、達している実感が出るようにする。 */
+.fillInTarget {
+  background: var(--text);
+}
+
+.count {
+  flex: none;
+  width: 58px;
+  text-align: right;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.countValue {
+  font-weight: 700;
+}
+
+.previous {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.legend {
+  margin-top: var(--space-3);
+  font-size: 11px;
+  color: var(--text-faint);
+  line-height: 1.6;
+}

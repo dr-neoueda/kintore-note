@@ -19,6 +19,7 @@ import { useExercises } from '@/hooks/useExercises'
 import { useWorkoutHistory } from '@/hooks/useWorkoutHistory'
 import { CHART_PALETTES } from './chartPalette'
 import { ExerciseWeightChart } from './ExerciseWeightChart'
+import { WeeklySetsCard } from './WeeklySetsCard'
 import styles from './ChartsPage.module.css'
 
 const AXIS_FONT_SIZE = 10
@@ -92,11 +93,12 @@ export function ChartsPage() {
     return (
       <>
         <PageHeader title="グラフ" />
-        <p className="empty-state">
-          記録が貯まるとここに推移が表示されます。
-          <br />
-          まずは今日のトレーニングを記録しましょう。
-        </p>
+        <div className={styles.content}>
+          <WeeklySetsCard />
+          <p className="empty-state">
+            記録が貯まると、ここに種目ごとの推移が表示されます。
+          </p>
+        </div>
       </>
     )
   }
@@ -106,6 +108,8 @@ export function ChartsPage() {
       <PageHeader title="グラフ" />
 
       <div className={styles.content}>
+        <WeeklySetsCard />
+
         <select
           value={activeExerciseId ?? ''}
           onChange={(event) => setSelectedExerciseId(Number(event.target.value))}

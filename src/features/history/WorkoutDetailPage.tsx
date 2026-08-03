@@ -1,99 +1,38 @@
-import { useMemo, useState } from 'react'
-import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate, useParams } from 'react-router-dom'
 import { PageHeader } from '@/components/PageHeader'
-import { getSettings } from '@/data/repositories/settingsRepository'
-import {
-  deleteSet,
-  findPreviousSessionSets,
-  listSetsByWorkout,
-  updateSet,
-} from '@/data/repositories/setRepository'
-import { deleteWorkout, getWorkoutByDate } from '@/data/repositories/workoutRepository'
-import { formatDateLabelWithYear } from '@/domain/date'
-import type { ExerciseId, WorkoutSet } from '@/domain/types'
+import { deleteWorkout } from '@/data/repositories/workoutRepository'
+import { formatDateLabelWithYear, isValidDateKey } from '@/domain/date'
 import { formatWeightKg } from '@/domain/weight'
-import { summarizeWorkout } from '@/domain/workoutStats'
 import { useExercises } from '@/hooks/useExercises'
-import { ExerciseSection } from '../today/ExerciseSection'
-import { SetEditorSheet } from '../today/SetEditorSheet'
-import { toSetFormValues, type SetFormValues } from '../today/setDefaults'
+import { WorkoutEditorBody } from '../workout/WorkoutEditorBody'
+import { useWorkoutEditor } from '../workout/useWorkoutEditor'
 import styles from './WorkoutDetailPage.module.css'
-
-const EMPTY_SETS: readonly WorkoutSet[] = []
 
 export function WorkoutDetailPage() {
   const { date = '' } = useParams<{ date: string }>()
   const navigate = useNavigate()
-  const { exerciseById } = useExercises()
+  const { activeExercises } = useExercises()
 
-  const settings = useLiveQuery(() => getSettings(), [])
-  const workout = useLiveQuery(() => getWorkoutByDate(date), [date])
-  const workoutId = workout?.id
-
-  const loadedSets = useLiveQuery(
-    () => (workoutId === undefined ? Promise.resolve([]) : listSetsByWorkout(workoutId)),
-    [workoutId],
-  )
-  const sets = loadedSets ?? EMPTY_SETS
-
-  const [editingSet, setEditingSet] = useState<WorkoutSet | null>(null)
-
-  const setsByExercise = useMemo(() => {
-    const grouped = new Map<ExerciseId, WorkoutSet[]>()
-    for (const set of sets) {
-      const current = grouped.get(set.exerciseId)
-      if (current === undefined) grouped.set(set.exerciseId, [set])
-      else current.push(set)
-    }
-    return grouped
-  }, [sets])
-
-  const previousSets = useLiveQuery(
-    () =>
-      editingSet === null
-        ? Promise.resolve([])
-        : findPreviousSessionSets(editingSet.exerciseId, editingSet.workoutId),
-    [editingSet?.exerciseId, editingSet?.workoutId],
-  )
-
-  const summary = useMemo(() => summarizeWorkout(sets, exerciseById), [sets, exerciseById])
-
-  // 履歴画面では既存セットの編集しか行わないため、提案は使わない
-  const editorInitialValues = useMemo<SetFormValues | null>(
-    () => (editingSet === null ? null : toSetFormValues(editingSet)),
-    [editingSet],
-  )
-
-  const handleUpdateSet = async (values: SetFormValues) => {
-    if (editingSet?.id === undefined) return
-    await updateSet(editingSet.id, values)
-  }
-
-  const handleDeleteSet = async () => {
-    if (editingSet?.id === undefined) return
-    await deleteSet(editingSet.id)
-  }
+  const editor = useWorkoutEditor({ dateKey: date })
+  const { workout, summary } = editor
 
   const handleDeleteWorkout = async () => {
-    if (workoutId === undefined) return
+    if (workout?.id === undefined) return
+
     const isConfirmed = window.confirm(
       `${formatDateLabelWithYear(date)} の記録をすべて削除します。よろしいですか？`,
     )
     if (!isConfirmed) return
 
-    await deleteWorkout(workoutId)
+    await deleteWorkout(workout.id)
     navigate('/history', { replace: true })
   }
 
-  const editingExercise =
-    editingSet === null ? undefined : exerciseById.get(editingSet.exerciseId)
-
-  if (workout === undefined) {
+  if (!isValidDateKey(date)) {
     return (
       <>
         <PageHeader title="記録" showBack />
-        <p className="empty-state">この日の記録は見つかりませんでした。</p>
+        <p className="empty-state">日付が正しくありません。</p>
       </>
     )
   }
@@ -114,7 +53,7 @@ export function WorkoutDetailPage() {
             <div className={styles.metricValue}>{summary.workingSetCount}</div>
             <div className={styles.metricLabel}>セット</div>
           </div>
-          {workout.bodyWeightKg !== null && (
+          {workout?.bodyWeightKg != null && (
             <div className={styles.metric}>
               <div className={styles.metricValue}>
                 {formatWeightKg(workout.bodyWeightKg)} kg
@@ -124,51 +63,29 @@ export function WorkoutDetailPage() {
           )}
         </div>
 
-        {workout.note !== '' && <p className={styles.note}>{workout.note}</p>}
-
-        {[...setsByExercise.entries()].map(([exerciseId, exerciseSets]) => {
-          const exercise = exerciseById.get(exerciseId)
-          if (exercise === undefined) return null
-
-          return (
-            <ExerciseSection
-              key={exerciseId}
-              exercise={exercise}
-              sets={exerciseSets}
-              previousSets={EMPTY_SETS}
-              onAddSet={() => {
-                const lastSet = exerciseSets[exerciseSets.length - 1]
-                if (lastSet !== undefined) setEditingSet(lastSet)
-              }}
-              onEditSet={(set) => setEditingSet(set)}
-            />
-          )
-        })}
-
-        {sets.length === 0 && <p className="empty-state">この日はセットの記録がありません。</p>}
-
-        <button
-          type="button"
-          className={`btn btn-danger btn-block ${styles.danger}`}
-          onClick={handleDeleteWorkout}
-        >
-          この日の記録を削除
+        <button type="button" className={styles.noteButton} onClick={editor.openNote}>
+          {workout?.note !== undefined && workout.note !== ''
+            ? workout.note
+            : '体重・メモを記録する'}
         </button>
-      </div>
 
-      {editingSet !== null && editingExercise !== undefined && editorInitialValues !== null && (
-        <SetEditorSheet
-          isOpen
-          exercise={editingExercise}
-          initialValues={editorInitialValues}
-          dumbbellStepsKg={settings?.dumbbellStepsKg ?? []}
-          previousSets={previousSets ?? EMPTY_SETS}
-          isEditing
-          onClose={() => setEditingSet(null)}
-          onSubmit={handleUpdateSet}
-          onDelete={handleDeleteSet}
+        <WorkoutEditorBody
+          editor={editor}
+          activeExercises={activeExercises}
+          showProgressionHints={false}
+          emptyMessage="この日の記録はまだありません。種目を追加すると、後からでも記録できます。"
         />
-      )}
+
+        {workout !== undefined && (
+          <button
+            type="button"
+            className={`btn btn-danger btn-block ${styles.danger}`}
+            onClick={handleDeleteWorkout}
+          >
+            この日の記録を削除
+          </button>
+        )}
+      </div>
     </>
   )
 }
