@@ -109,9 +109,11 @@ export function ExercisePickerSheet({
                 >
                   <span className={styles.itemMain}>
                     <span className={styles.itemName}>{exercise.name}</span>
-                    <span className={styles.itemLast}>
-                      {lastSessionText ?? '記録なし'}
-                    </span>
+                    {lastSessionByExercise !== undefined && (
+                      <span className={styles.itemLast}>
+                        {lastSessionText ?? '記録なし'}
+                      </span>
+                    )}
                   </span>
                   {isAdded ? (
                     <CheckIcon size={18} />

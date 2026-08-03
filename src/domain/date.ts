@@ -82,3 +82,12 @@ export function getWeekRange(dateKey: DateKey, weeksAgo = 0): DateRange {
 export function isWithinRange(dateKey: DateKey, range: DateRange): boolean {
   return dateKey >= range.fromDate && dateKey <= range.toDate
 }
+
+/** その日の始まり（ローカル 00:00）の ISO 文字列。 */
+export function startOfDayIso(dateKey: DateKey): string {
+  if (!isValidDateKey(dateKey)) return new Date(0).toISOString()
+
+  const date = parseISO(dateKey)
+  date.setHours(0, 0, 0, 0)
+  return date.toISOString()
+}

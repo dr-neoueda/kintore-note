@@ -3,7 +3,12 @@ import { db } from '@/data/db'
 import { resetDatabase } from '@/test/dbTestUtils'
 import { DEFAULT_REST_SEC_BY_MUSCLE_GROUP } from '@/domain/muscle'
 import { DEFAULT_DUMBBELL_STEPS_KG } from '@/domain/weight'
-import { getSettings, markBackedUp, updateSettings } from './settingsRepository'
+import {
+  ensureSettings,
+  getSettings,
+  markBackedUp,
+  updateSettings,
+} from './settingsRepository'
 
 beforeEach(async () => {
   await resetDatabase()
@@ -103,6 +108,51 @@ describe('liveQuery からの読み出し', () => {
     const settings = await db.transaction('r', db.settings, () => getSettings())
 
     // Assert
+    expect(settings.dumbbellStepsKg).toEqual(DEFAULT_DUMBBELL_STEPS_KG)
+  })
+})
+
+describe('ensureSettings', () => {
+  test('未保存なら既定値を保存して返す', async () => {
+    // Act
+    const settings = await ensureSettings()
+
+    // Assert: 保存されているので、次の読み出しでは書き込みが起きない
+    expect(settings.dumbbellStepsKg).toEqual(DEFAULT_DUMBBELL_STEPS_KG)
+    expect(await db.settings.count()).toBe(1)
+  })
+
+  test('既に保存されていれば、その内容を返す', async () => {
+    // Arrange
+    await updateSettings({ backupReminderDays: 30 })
+
+    // Act
+    const settings = await ensureSettings()
+
+    // Assert
+    expect(settings.backupReminderDays).toBe(30)
+    expect(await db.settings.count()).toBe(1)
+  })
+
+  test('項目を追加したあとの古いレコードでも欠けを補う', async () => {
+    // Arrange: 新しい項目を持たないレコードを直接置く
+    await db.settings.put({ id: 1, dumbbellStepsKg: [5, 10] } as never)
+
+    // Act
+    const settings = await ensureSettings()
+
+    // Assert
+    expect(settings.dumbbellStepsKg).toEqual([5, 10])
+    expect(settings.restSecByMuscleGroup).toBeDefined()
+    expect(settings.isRestAlarmEnabled).toBe(true)
+  })
+
+  test('起動後は読み出しが書き込みを伴わない', async () => {
+    // Arrange: 起動時の初期化を済ませる
+    await ensureSettings()
+
+    // Act & Assert: liveQuery と同じ読み取り専用トランザクションで読める
+    const settings = await db.transaction('r', db.settings, () => getSettings())
     expect(settings.dumbbellStepsKg).toEqual(DEFAULT_DUMBBELL_STEPS_KG)
   })
 })

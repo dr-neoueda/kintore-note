@@ -19,31 +19,6 @@ function toLadder(steps: readonly number[]): number[] {
 }
 
 /**
- * 任意の重量を、実際にダンベルで設定できる最も近い段階に丸める。
- * 2段階のちょうど中間の場合は軽い方を選ぶ。
- * 段階リストが空の場合は入力値をそのまま返す。
- */
-export function snapToStep(weightKg: number, steps: readonly number[]): number {
-  const ladder = toLadder(steps)
-  const first = ladder[0]
-  if (first === undefined) return weightKg
-
-  let nearest = first
-  let smallestDiff = Math.abs(weightKg - first)
-
-  for (const step of ladder) {
-    const diff = Math.abs(weightKg - step)
-    // 「厳密に小さいときだけ」更新することで、同差なら先に来る軽い方が残る。
-    if (diff < smallestDiff) {
-      nearest = step
-      smallestDiff = diff
-    }
-  }
-
-  return nearest
-}
-
-/**
  * 現在の重量から1段階上げ下げした重量を返す。
  * 段階の間の値からは、直近の上（または下）の段階へ移動する。
  * 端を超える場合は最大値・最小値で止まる。

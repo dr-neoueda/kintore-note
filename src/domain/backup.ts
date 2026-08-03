@@ -1,11 +1,34 @@
+import {
+  defaultRestSecForMuscleGroup,
+  defaultTargetForArchitecture,
+  resolveArchitecture,
+} from './muscle'
+import { normalizeProgressionTarget } from './progression'
 import type {
   AppSettings,
+  DumbbellCount,
+  EquipmentType,
   Exercise,
+  MuscleArchitecture,
+  MuscleGroup,
+  ProgressionTarget,
   Workout,
   WorkoutSet,
   WorkoutTemplate,
 } from './types'
 import { ValidationError } from './validation'
+
+const MUSCLE_GROUPS: readonly MuscleGroup[] = [
+  'chest',
+  'back',
+  'shoulders',
+  'arms',
+  'legs',
+  'core',
+  'other',
+]
+const EQUIPMENT_TYPES: readonly EquipmentType[] = ['dumbbell', 'bodyweight', 'other']
+const ARCHITECTURES: readonly MuscleArchitecture[] = ['parallel', 'pennate']
 
 export const BACKUP_APP_ID = 'kintore-note'
 export const BACKUP_FORMAT_VERSION = 1
@@ -44,6 +67,104 @@ export function serializeBackup(file: BackupFile): string {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function isProgressionTarget(value: unknown): value is ProgressionTarget {
+  if (!isRecord(value)) return false
+  return (
+    typeof value.repsMin === 'number' &&
+    typeof value.repsMax === 'number' &&
+    typeof value.sets === 'number'
+  )
+}
+
+/**
+ * 取り込んだ種目を現在の形に整える。
+ *
+ * 項目を増やす前に書き出したバックアップには新しい項目が無く、
+ * そのまま保存すると画面側が `target.repsMin` などを触った時点で落ちる。
+ * 取り込みの入口でここを埋めておく。
+ */
+function normalizeExercise(raw: Exercise): Exercise {
+  const source = raw as unknown as Record<string, unknown>
+
+  const muscleGroup = MUSCLE_GROUPS.includes(source.muscleGroup as MuscleGroup)
+    ? (source.muscleGroup as MuscleGroup)
+    : 'other'
+  const equipment = EQUIPMENT_TYPES.includes(source.equipment as EquipmentType)
+    ? (source.equipment as EquipmentType)
+    : 'other'
+  const name = typeof source.name === 'string' ? source.name : ''
+  const muscleArchitecture = ARCHITECTURES.includes(
+    source.muscleArchitecture as MuscleArchitecture,
+  )
+    ? (source.muscleArchitecture as MuscleArchitecture)
+    : resolveArchitecture(name, muscleGroup)
+
+  return {
+    ...raw,
+    name,
+    muscleGroup,
+    equipment,
+    dumbbellCount: (source.dumbbellCount === 1 ? 1 : 2) as DumbbellCount,
+    muscleArchitecture,
+    target: isProgressionTarget(source.target)
+      ? normalizeProgressionTarget(source.target)
+      : defaultTargetForArchitecture(muscleArchitecture),
+    restSec:
+      typeof source.restSec === 'number' && source.restSec >= 0
+        ? source.restSec
+        : defaultRestSecForMuscleGroup(muscleGroup),
+    referenceUrl: typeof source.referenceUrl === 'string' ? source.referenceUrl : null,
+    isArchived: source.isArchived === true,
+    createdAt: typeof source.createdAt === 'string' ? source.createdAt : '',
+  }
+}
+
+function normalizeWorkout(raw: Workout): Workout {
+  const source = raw as unknown as Record<string, unknown>
+
+  return {
+    ...raw,
+    note: typeof source.note === 'string' ? source.note : '',
+    bodyWeightKg: typeof source.bodyWeightKg === 'number' ? source.bodyWeightKg : null,
+    finishedAt: typeof source.finishedAt === 'string' ? source.finishedAt : null,
+  }
+}
+
+function normalizeSet(raw: WorkoutSet): WorkoutSet {
+  const source = raw as unknown as Record<string, unknown>
+
+  return {
+    ...raw,
+    rpe: typeof source.rpe === 'number' ? source.rpe : null,
+    restSec: typeof source.restSec === 'number' ? source.restSec : null,
+    isWarmup: source.isWarmup === true,
+  }
+}
+
+function normalizeTemplate(raw: WorkoutTemplate): WorkoutTemplate {
+  const source = raw as unknown as Record<string, unknown>
+
+  return {
+    ...raw,
+    note: typeof source.note === 'string' ? source.note : '',
+    items: Array.isArray(source.items) ? raw.items : [],
+  }
+}
+
+/**
+ * 取り込んだデータを現在の形に整える。
+ * 古い形式のバックアップや手で編集されたファイルでも、そのまま保存できる状態にする。
+ */
+export function normalizeBackupData(data: BackupData): BackupData {
+  return {
+    exercises: data.exercises.map(normalizeExercise),
+    workouts: data.workouts.map(normalizeWorkout),
+    sets: data.sets.map(normalizeSet),
+    templates: data.templates.map(normalizeTemplate),
+    settings: data.settings,
+  }
 }
 
 /**
@@ -88,13 +209,14 @@ export function parseBackup(json: string): BackupFile {
     app: BACKUP_APP_ID,
     version,
     exportedAt: typeof parsed.exportedAt === 'string' ? parsed.exportedAt : '',
-    data: {
+    // 取り込んだ値は境界でここだけ整える。以降の層は現在の形だけを扱えばよい
+    data: normalizeBackupData({
       exercises: data.exercises as Exercise[],
       workouts: data.workouts as Workout[],
       sets: data.sets as WorkoutSet[],
       templates: data.templates as WorkoutTemplate[],
       settings: isRecord(data.settings) ? (data.settings as unknown as AppSettings) : null,
-    },
+    }),
   }
 }
 

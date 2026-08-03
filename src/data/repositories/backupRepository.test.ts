@@ -127,3 +127,106 @@ describe('replaceAllData', () => {
     expect(restoredSets[0]?.rpe).toBe(8)
   })
 })
+
+describe('古い形式のバックアップの取り込み', () => {
+  /** 種目に muscleArchitecture / target / restSec / referenceUrl が無かった頃の形。 */
+  const legacyExercise = {
+    id: 1,
+    name: 'インクラインダンベルプレス',
+    muscleGroup: 'chest',
+    equipment: 'dumbbell',
+    dumbbellCount: 2,
+    isArchived: false,
+    createdAt: NOW,
+  }
+
+  test('項目が欠けていても、読み出したときに既定値で補われる', async () => {
+    // Arrange & Act
+    await replaceAllData({
+      exercises: [legacyExercise as never],
+      workouts: [],
+      sets: [],
+      templates: [],
+      settings: null,
+    })
+
+    // Assert: 画面側は target.repsMin などを直接参照するため、欠けていると落ちる
+    const exercises = await listAllExercises()
+    expect(exercises[0]?.muscleArchitecture).toBeDefined()
+    expect(exercises[0]?.target?.repsMin).toBeGreaterThan(0)
+    expect(exercises[0]?.restSec).toBeGreaterThan(0)
+    expect(exercises[0]?.referenceUrl).toBeNull()
+  })
+
+  test('セットに isWarmup が無くても本セットとして扱える', async () => {
+    // Arrange
+    const legacySet = {
+      id: 1,
+      workoutId: 1,
+      exerciseId: 1,
+      order: 1,
+      weightKg: 10,
+      reps: 10,
+      rpe: null,
+      restSec: null,
+      recordedAt: NOW,
+    }
+
+    // Act
+    await replaceAllData({
+      exercises: [legacyExercise as never],
+      workouts: [
+        {
+          id: 1,
+          date: '2026-08-02',
+          note: '',
+          bodyWeightKg: null,
+          startedAt: NOW,
+          finishedAt: null,
+        },
+      ],
+      sets: [legacySet as never],
+      templates: [],
+      settings: null,
+    })
+
+    // Assert
+    const sets = await listSetsByWorkout(1)
+    expect(sets[0]?.isWarmup).toBe(false)
+  })
+})
+
+describe('取り込みが失敗した場合', () => {
+  test('種目名が重複していれば、元のデータを壊さずに失敗する', async () => {
+    // Arrange
+    await seedSampleData()
+    const before = await listAllExercises()
+
+    // Act: 同じ名前の種目を2件含む不正なバックアップ
+    const duplicated = {
+      id: 1,
+      name: '重複する種目',
+      muscleGroup: 'chest',
+      equipment: 'dumbbell',
+      dumbbellCount: 2,
+      muscleArchitecture: 'pennate',
+      target: { repsMin: 8, repsMax: 12, sets: 3 },
+      restSec: 150,
+      referenceUrl: null,
+      isArchived: false,
+      createdAt: NOW,
+    }
+    await expect(
+      replaceAllData({
+        exercises: [duplicated as never, { ...duplicated, id: 2 } as never],
+        workouts: [],
+        sets: [],
+        templates: [],
+        settings: null,
+      }),
+    ).rejects.toThrow()
+
+    // Assert: 取り込み前の内容が残っている
+    expect(await listAllExercises()).toEqual(before)
+  })
+})

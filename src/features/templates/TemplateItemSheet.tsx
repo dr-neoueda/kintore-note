@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Sheet } from '@/components/Sheet'
 import { Stepper } from '@/components/Stepper'
 import type { Exercise, TemplateItem } from '@/domain/types'
-import { formatWeightKg, snapToStep, stepWeight } from '@/domain/weight'
+import { formatWeightKg, stepWeight } from '@/domain/weight'
+import { useResetOnOpen } from '@/hooks/useResetOnOpen'
 import styles from './TemplateItemSheet.module.css'
 
 interface TemplateItemSheetProps {
@@ -33,10 +34,7 @@ export function TemplateItemSheet({
 }: TemplateItemSheetProps) {
   const [item, setItem] = useState<TemplateItem>(initialItem)
 
-  useEffect(() => {
-    if (!isOpen) return
-    setItem(initialItem)
-  }, [isOpen, initialItem])
+  useResetOnOpen(isOpen, () => setItem(initialItem))
 
   const isBodyweight = exercise.equipment === 'bodyweight'
   const hasTargetWeight = !isBodyweight && item.targetWeightKg !== null
@@ -71,12 +69,10 @@ export function TemplateItemSheet({
   }
 
   const handleSubmit = () => {
+    // 画面に出ている値をそのまま保存する
     onSubmit({
       ...item,
-      targetWeightKg:
-        isBodyweight || item.targetWeightKg === null
-          ? null
-          : snapToStep(item.targetWeightKg, dumbbellStepsKg),
+      targetWeightKg: isBodyweight ? null : item.targetWeightKg,
     })
     onClose()
   }

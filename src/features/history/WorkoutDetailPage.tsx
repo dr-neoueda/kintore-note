@@ -4,6 +4,7 @@ import { deleteWorkout } from '@/data/repositories/workoutRepository'
 import { formatDateLabelWithYear, isValidDateKey } from '@/domain/date'
 import { formatWeightKg } from '@/domain/weight'
 import { useExercises } from '@/hooks/useExercises'
+import { useLastSessions } from '@/hooks/useLastSessions'
 import { WorkoutEditorBody } from '../workout/WorkoutEditorBody'
 import { useWorkoutEditor } from '../workout/useWorkoutEditor'
 import styles from './WorkoutDetailPage.module.css'
@@ -12,6 +13,7 @@ export function WorkoutDetailPage() {
   const { date = '' } = useParams<{ date: string }>()
   const navigate = useNavigate()
   const { activeExercises } = useExercises()
+  const lastSessionByExercise = useLastSessions()
 
   const editor = useWorkoutEditor({ dateKey: date })
   const { workout, summary } = editor
@@ -73,6 +75,7 @@ export function WorkoutDetailPage() {
           editor={editor}
           activeExercises={activeExercises}
           showProgressionHints={false}
+          lastSessionByExercise={lastSessionByExercise}
           emptyMessage="この日の記録はまだありません。種目を追加すると、後からでも記録できます。"
         />
 

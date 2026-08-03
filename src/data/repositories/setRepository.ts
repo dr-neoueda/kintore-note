@@ -58,28 +58,24 @@ export async function deleteSet(id: SetId): Promise<void> {
   await db.sets.delete(id)
 }
 
-/** 指定した種目のセットを記録日時の降順で返す。 */
-export async function listSetsByExercise(
-  exerciseId: ExerciseId,
-  limit: number,
-): Promise<WorkoutSet[]> {
-  const sets = await db.sets.where('exerciseId').equals(exerciseId).toArray()
-
-  return sets
-    .sort((a, b) => b.recordedAt.localeCompare(a.recordedAt))
-    .slice(0, limit)
-}
-
 /**
  * 前回その種目を行ったセッションのセットを返す。
  * 入力画面で「前回の記録」を提示するために使う。
+ *
+ * 過去の日を後から編集する場合、その日より後のセッションは「前回」ではない。
+ * beforeIso を渡すと、それより前の記録だけを対象にする。
  */
 export async function findPreviousSessionSets(
   exerciseId: ExerciseId,
   currentWorkoutId: WorkoutId,
+  beforeIso?: string,
 ): Promise<WorkoutSet[]> {
   const allSets = await db.sets.where('exerciseId').equals(exerciseId).toArray()
-  const pastSets = allSets.filter((set) => set.workoutId !== currentWorkoutId)
+  const pastSets = allSets.filter(
+    (set) =>
+      set.workoutId !== currentWorkoutId &&
+      (beforeIso === undefined || set.recordedAt < beforeIso),
+  )
 
   const mostRecent = pastSets.reduce<WorkoutSet | null>(
     (latest, set) => (latest === null || set.recordedAt > latest.recordedAt ? set : latest),

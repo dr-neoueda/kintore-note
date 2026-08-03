@@ -101,8 +101,10 @@ export function SettingsPage() {
     const parsed = { ...DEFAULT_REST_SEC_BY_MUSCLE_GROUP }
 
     for (const group of MUSCLE_GROUP_ORDER) {
-      const seconds = Number(restTexts[group])
-      if (!Number.isFinite(seconds) || seconds < 0) {
+      const text = (restTexts[group] ?? '').trim()
+      const seconds = Number(text)
+      // 空欄は 0 と解釈されてしまうため、明示的に弾く
+      if (text === '' || !Number.isFinite(seconds) || seconds < 0) {
         setStatus({ kind: 'error', text: '休憩時間は0以上の秒数で入力してください' })
         return
       }

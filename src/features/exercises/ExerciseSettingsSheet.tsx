@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Sheet } from '@/components/Sheet'
 import { Stepper } from '@/components/Stepper'
 import { formatDuration } from '@/domain/duration'
@@ -7,6 +7,7 @@ import { normalizeProgressionTarget } from '@/domain/progression'
 import type { MuscleArchitecture, ProgressionTarget } from '@/domain/types'
 import { MUSCLE_ARCHITECTURE_LABELS } from '@/domain/types'
 import { ValidationError } from '@/domain/validation'
+import { useResetOnOpen } from '@/hooks/useResetOnOpen'
 import styles from './ExerciseSettingsSheet.module.css'
 
 export interface ExerciseSettingsValues {
@@ -46,11 +47,10 @@ export function ExerciseSettingsSheet({
   const [values, setValues] = useState<ExerciseSettingsValues>(initialValues)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (!isOpen) return
+  useResetOnOpen(isOpen, () => {
     setValues(initialValues)
     setErrorMessage(null)
-  }, [isOpen, initialValues])
+  })
 
   const selectArchitecture = (muscleArchitecture: MuscleArchitecture) => {
     setValues((current) => ({

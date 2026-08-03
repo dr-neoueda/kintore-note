@@ -7,6 +7,7 @@ import {
   getWeekRange,
   isValidDateKey,
   isWithinRange,
+  startOfDayIso,
   toDateKey,
 } from './date'
 
@@ -148,5 +149,21 @@ describe('isWithinRange', () => {
   test('範囲外は false', () => {
     expect(isWithinRange('2026-08-02', range)).toBe(false)
     expect(isWithinRange('2026-08-10', range)).toBe(false)
+  })
+})
+
+describe('startOfDayIso', () => {
+  test('その日の 00:00 を返す', () => {
+    expect(startOfDayIso('2026-08-03')).toBe(new Date(2026, 7, 3, 0, 0, 0, 0).toISOString())
+  })
+
+  test('同じ日に記録した時刻より前になる', () => {
+    const recordedAt = new Date(2026, 7, 3, 9, 0).toISOString()
+
+    expect(startOfDayIso('2026-08-03') < recordedAt).toBe(true)
+  })
+
+  test('不正な日付キーなら比較に影響しない古い時刻を返す', () => {
+    expect(startOfDayIso('bad') < '2000-01-01T00:00:00.000Z').toBe(true)
   })
 })

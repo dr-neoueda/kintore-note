@@ -88,6 +88,8 @@ export function WorkoutEditorBody({
 
       {editor.editorTarget !== null && editor.editorExercise !== undefined && (
         <SetEditorSheet
+          // 対象が変わったら作り直し、前のセットの値が残らないようにする
+          key={`${editor.editorTarget.exerciseId}-${editor.editorTarget.set?.id ?? 'new'}`}
           isOpen
           exercise={editor.editorExercise}
           initialValues={editor.editorInitialValues}

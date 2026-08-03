@@ -4,6 +4,7 @@ import {
   BACKUP_FORMAT_VERSION,
   createBackupFile,
   isBackupOverdue,
+  normalizeBackupData,
   parseBackup,
   serializeBackup,
   type BackupData,
@@ -136,5 +137,119 @@ describe('isBackupOverdue', () => {
 
   test('日時が壊れていれば期限切れとみなす', () => {
     expect(isBackupOverdue('こわれた', 14, now)).toBe(true)
+  })
+})
+
+describe('normalizeBackupData', () => {
+  const legacyExercise = {
+    id: 1,
+    name: 'ダンベルカール',
+    muscleGroup: 'arms',
+    equipment: 'dumbbell',
+    dumbbellCount: 2,
+    isArchived: false,
+    createdAt: '2026-07-01T00:00:00.000Z',
+  }
+
+  test('種目に欠けている項目を既定値で補う', () => {
+    // Act
+    const normalized = normalizeBackupData({
+      ...emptyData,
+      exercises: [legacyExercise as never],
+    })
+
+    // Assert: 上腕二頭筋は平行筋なので 10〜15回、腕の休憩は90秒
+    const exercise = normalized.exercises[0]
+    expect(exercise?.muscleArchitecture).toBe('parallel')
+    expect(exercise?.target).toEqual({ repsMin: 10, repsMax: 15, sets: 3 })
+    expect(exercise?.restSec).toBe(90)
+    expect(exercise?.referenceUrl).toBeNull()
+  })
+
+  test('既に入っている値は上書きしない', () => {
+    // Arrange
+    const custom = {
+      ...legacyExercise,
+      muscleArchitecture: 'pennate',
+      target: { repsMin: 5, repsMax: 8, sets: 5 },
+      restSec: 240,
+      referenceUrl: 'https://example.com/form',
+    }
+
+    // Act
+    const exercise = normalizeBackupData({
+      ...emptyData,
+      exercises: [custom as never],
+    }).exercises[0]
+
+    // Assert
+    expect(exercise?.target).toEqual({ repsMin: 5, repsMax: 8, sets: 5 })
+    expect(exercise?.restSec).toBe(240)
+    expect(exercise?.referenceUrl).toBe('https://example.com/form')
+  })
+
+  test('知らない部位はその他として扱う', () => {
+    // Arrange: 手で編集されたファイルなどを想定
+    const broken = { ...legacyExercise, muscleGroup: 'unknown-group' }
+
+    // Act
+    const exercise = normalizeBackupData({
+      ...emptyData,
+      exercises: [broken as never],
+    }).exercises[0]
+
+    // Assert
+    expect(exercise?.muscleGroup).toBe('other')
+    expect(exercise?.restSec).toBeGreaterThan(0)
+  })
+
+  test('セットに欠けている項目を補う', () => {
+    // Arrange
+    const legacySet = {
+      id: 1,
+      workoutId: 1,
+      exerciseId: 1,
+      order: 1,
+      weightKg: 10,
+      reps: 10,
+      recordedAt: '2026-08-02T10:00:00.000Z',
+    }
+
+    // Act
+    const set = normalizeBackupData({ ...emptyData, sets: [legacySet as never] }).sets[0]
+
+    // Assert
+    expect(set?.isWarmup).toBe(false)
+    expect(set?.rpe).toBeNull()
+    expect(set?.restSec).toBeNull()
+  })
+
+  test('ワークアウトとテンプレートに欠けている項目を補う', () => {
+    // Act
+    const normalized = normalizeBackupData({
+      ...emptyData,
+      workouts: [{ id: 1, date: '2026-08-02', startedAt: '' } as never],
+      templates: [{ id: 1, name: '胸の日', order: 1 } as never],
+    })
+
+    // Assert
+    expect(normalized.workouts[0]?.note).toBe('')
+    expect(normalized.workouts[0]?.bodyWeightKg).toBeNull()
+    expect(normalized.workouts[0]?.finishedAt).toBeNull()
+    expect(normalized.templates[0]?.items).toEqual([])
+    expect(normalized.templates[0]?.note).toBe('')
+  })
+
+  test('parseBackup は正規化済みのデータを返す', () => {
+    // Arrange
+    const json = JSON.stringify({
+      app: BACKUP_APP_ID,
+      version: BACKUP_FORMAT_VERSION,
+      exportedAt: '',
+      data: { ...emptyData, exercises: [legacyExercise] },
+    })
+
+    // Act & Assert: 取り込み前に整えるので、後段が欠けた値を触らずに済む
+    expect(parseBackup(json).data.exercises[0]?.restSec).toBe(90)
   })
 })

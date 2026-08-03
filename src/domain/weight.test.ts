@@ -2,7 +2,6 @@ import { describe, test, expect } from 'vitest'
 import {
   DEFAULT_DUMBBELL_STEPS_KG,
   formatWeightKg,
-  snapToStep,
   stepWeight,
 } from './weight'
 
@@ -14,47 +13,6 @@ describe('DEFAULT_DUMBBELL_STEPS_KG', () => {
     expect(STEPS).toEqual([
       2.5, 3.5, 4.5, 5.5, 6.5, 8.0, 9.0, 10.0, 11.5, 13.5, 16.0, 18.0, 20.5, 22.5, 24.0,
     ])
-  })
-})
-
-describe('snapToStep', () => {
-  test('段階と完全に一致する重量はそのまま返す', () => {
-    expect(snapToStep(11.5, STEPS)).toBe(11.5)
-  })
-
-  test('段階の間の重量は最も近い段階に丸める', () => {
-    // Arrange: 13.5 と 16.0 の間で 16.0 寄り
-    const weight = 15.5
-
-    // Act
-    const snapped = snapToStep(weight, STEPS)
-
-    // Assert
-    expect(snapped).toBe(16.0)
-  })
-
-  test('2つの段階のちょうど中間なら軽い方に丸める', () => {
-    // Arrange: 8.0 と 9.0 の中間
-    const weight = 8.5
-
-    // Act & Assert
-    expect(snapToStep(weight, STEPS)).toBe(8.0)
-  })
-
-  test('最小段階より軽い重量は最小段階になる', () => {
-    expect(snapToStep(0, STEPS)).toBe(2.5)
-  })
-
-  test('最大段階より重い重量は最大段階になる', () => {
-    expect(snapToStep(100, STEPS)).toBe(24.0)
-  })
-
-  test('段階リストが空なら入力値をそのまま返す', () => {
-    expect(snapToStep(7.3, [])).toBe(7.3)
-  })
-
-  test('順不同の段階リストでも正しく丸める', () => {
-    expect(snapToStep(9.4, [10, 2.5, 9])).toBe(9)
   })
 })
 

@@ -1,6 +1,6 @@
 import { db } from '../db'
 import { buildDefaultSettings } from './settingsRepository'
-import type { BackupData } from '@/domain/backup'
+import { normalizeBackupData, type BackupData } from '@/domain/backup'
 import { SETTINGS_ID } from '@/domain/types'
 
 /** 全テーブルを読み出してバックアップ用のデータにまとめる。 */
@@ -20,7 +20,10 @@ export async function collectBackupData(): Promise<BackupData> {
  * バックアップの内容で全データを置き換える。
  * 部分的に取り込むと ID の整合性が壊れるため、トランザクション内で全消去してから入れ直す。
  */
-export async function replaceAllData(data: BackupData): Promise<void> {
+export async function replaceAllData(input: BackupData): Promise<void> {
+  // 呼び出し元によらず、保存する値は現在の形にそろえる
+  const data = normalizeBackupData(input)
+
   await db.transaction(
     'rw',
     db.exercises,

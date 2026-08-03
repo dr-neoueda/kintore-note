@@ -170,3 +170,19 @@ test.describe('週あたりの部位別セット数', () => {
     await expect(page.getByRole('main')).toContainText('背中')
   })
 })
+
+test.describe('履歴画面の種目選択', () => {
+  test('過去の日を編集するときも前回の重量が見える', async ({ page }) => {
+    // Arrange: 今日1セット記録しておく
+    await page.goto('/')
+    await addExerciseAndRecordSet(page, /^インクラインダンベルプレス/)
+
+    // Act: 別の日を開いて種目を選ぶ
+    await page.goto('/history')
+    await page.getByLabel('記録し忘れた日を入力する').fill(pastDateKey(2))
+    await page.getByRole('button', { name: '種目を追加' }).click()
+
+    // Assert: どの種目も「記録なし」になってしまっていた
+    await expect(page.getByRole('dialog')).toContainText('前回 2.5kg')
+  })
+})

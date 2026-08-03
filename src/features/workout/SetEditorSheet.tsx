@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Sheet } from '@/components/Sheet'
 import { Stepper } from '@/components/Stepper'
 import { TrashIcon } from '@/components/icons'
@@ -6,7 +6,8 @@ import { formatSetSummary } from '@/domain/setFormat'
 import type { Exercise, WorkoutSet } from '@/domain/types'
 import { RPE_MAX, RPE_MIN } from '@/domain/types'
 import { ValidationError } from '@/domain/validation'
-import { formatWeightKg, snapToStep, stepWeight } from '@/domain/weight'
+import { formatWeightKg, stepWeight } from '@/domain/weight'
+import { useResetOnOpen } from '@/hooks/useResetOnOpen'
 import { unlockAlarmAudio } from './audioAlarm'
 import type { SetFormValues } from './setDefaults'
 import styles from './SetEditorSheet.module.css'
@@ -45,12 +46,11 @@ export function SetEditorSheet({
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
-  // シートを開くたびに、その時点の初期値へ戻す
-  useEffect(() => {
-    if (!isOpen) return
+  // シートを開いたときだけ初期値へ戻す
+  useResetOnOpen(isOpen, () => {
     setValues(initialValues)
     setErrorMessage(null)
-  }, [isOpen, initialValues])
+  })
 
   const isBodyweight = exercise.equipment === 'bodyweight'
   const previousSummary = formatSetSummary(previousSets)
@@ -84,10 +84,10 @@ export function SetEditorSheet({
     setIsSaving(true)
     setErrorMessage(null)
     try {
-      await onSubmit({
-        ...values,
-        weightKg: isBodyweight ? 0 : snapToStep(values.weightKg, dumbbellStepsKg),
-      })
+      // 画面に出ている値をそのまま保存する。
+      // 段階に丸めると、ダンベルの設定を変えたあとに既存セットの重量が
+      // 表示と違う値で書き換わってしまう。
+      await onSubmit({ ...values, weightKg: isBodyweight ? 0 : values.weightKg })
       onClose()
     } catch (cause) {
       setErrorMessage(

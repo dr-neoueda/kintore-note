@@ -6,14 +6,12 @@ import {
   addSet,
   deleteSet,
   findPreviousSessionSets,
-  listSetsByExercise,
   listSetsByWorkout,
   updateSet,
 } from './setRepository'
 
 const NOW = '2026-08-02T10:00:00.000Z'
 const INCLINE_PRESS_ID = 1
-const SIDE_RAISE_ID = 2
 
 beforeEach(async () => {
   await resetDatabase()
@@ -135,23 +133,6 @@ describe('deleteSet', () => {
   })
 })
 
-describe('listSetsByExercise', () => {
-  test('指定した種目のセットだけを新しい順で返す', async () => {
-    // Arrange
-    const oldWorkoutId = await createWorkout('2026-07-30')
-    const newWorkoutId = await createWorkout('2026-08-02')
-    await addSet(setInput(oldWorkoutId, { recordedAt: '2026-07-30T10:00:00.000Z', reps: 10 }))
-    await addSet(setInput(newWorkoutId, { recordedAt: '2026-08-02T10:00:00.000Z', reps: 8 }))
-    await addSet(setInput(newWorkoutId, { exerciseId: SIDE_RAISE_ID, reps: 15 }))
-
-    // Act
-    const sets = await listSetsByExercise(INCLINE_PRESS_ID, 10)
-
-    // Assert
-    expect(sets.map((set) => set.reps)).toEqual([8, 10])
-  })
-})
-
 describe('findPreviousSessionSets', () => {
   test('直近の別のワークアウトのセットを返す', async () => {
     // Arrange
@@ -178,5 +159,44 @@ describe('findPreviousSessionSets', () => {
 
     // Act & Assert
     expect(await findPreviousSessionSets(INCLINE_PRESS_ID, currentId)).toEqual([])
+  })
+})
+
+describe('findPreviousSessionSets（その日より前だけを見る）', () => {
+  test('編集中の日より後のセッションは前回として扱わない', async () => {
+    // Arrange: 7/20 を後から入力している状況。8/2 は「前回」ではない
+    const pastId = await createWorkout('2026-07-20')
+    const laterId = await createWorkout('2026-08-02')
+    await addSet(setInput(pastId, { recordedAt: '2026-07-20T12:00:00.000Z', weightKg: 9 }))
+    await addSet(setInput(laterId, { recordedAt: '2026-08-02T10:00:00.000Z', weightKg: 20 }))
+
+    // Act
+    const previous = await findPreviousSessionSets(
+      INCLINE_PRESS_ID,
+      pastId,
+      '2026-07-20T00:00:00.000Z',
+    )
+
+    // Assert
+    expect(previous).toEqual([])
+  })
+
+  test('その日より前のセッションは前回として返す', async () => {
+    // Arrange
+    const olderId = await createWorkout('2026-07-10')
+    const pastId = await createWorkout('2026-07-20')
+    await addSet(setInput(olderId, { recordedAt: '2026-07-10T12:00:00.000Z', weightKg: 7 }))
+    await addSet(setInput(pastId, { recordedAt: '2026-07-20T12:00:00.000Z', weightKg: 9 }))
+
+    // Act
+    const previous = await findPreviousSessionSets(
+      INCLINE_PRESS_ID,
+      pastId,
+      '2026-07-20T00:00:00.000Z',
+    )
+
+    // Assert
+    expect(previous).toHaveLength(1)
+    expect(previous[0]?.weightKg).toBe(7)
   })
 })

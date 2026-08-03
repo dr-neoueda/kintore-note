@@ -6,7 +6,7 @@ import {
   listActiveExercises,
   listAllExercises,
   setExerciseArchived,
-  updateExercise,
+  updateExerciseSettings,
 } from './exerciseRepository'
 
 beforeEach(async () => {
@@ -91,21 +91,6 @@ describe('listAllExercises', () => {
   })
 })
 
-describe('updateExercise', () => {
-  test('指定した項目だけを更新する', async () => {
-    // Arrange
-    const id = await createExercise(inclinePress)
-
-    // Act
-    await updateExercise(id, { dumbbellCount: 1 })
-
-    // Assert
-    const updated = await getExercise(id)
-    expect(updated?.dumbbellCount).toBe(1)
-    expect(updated?.name).toBe('インクラインダンベルプレス')
-  })
-})
-
 describe('setExerciseArchived', () => {
   test('アーカイブ状態を戻せる', async () => {
     // Arrange
@@ -117,5 +102,80 @@ describe('setExerciseArchived', () => {
 
     // Assert
     expect((await getExercise(id))?.isArchived).toBe(false)
+  })
+})
+
+describe('updateExerciseSettings', () => {
+  test('筋の種類・目標・休憩・参考リンクを更新できる', async () => {
+    // Arrange
+    const id = await createExercise(inclinePress)
+
+    // Act
+    await updateExerciseSettings(id, {
+      muscleArchitecture: 'parallel',
+      target: { repsMin: 10, repsMax: 15, sets: 4 },
+      restSec: 200,
+      referenceUrl: 'https://www.youtube.com/watch?v=abc',
+    })
+
+    // Assert
+    const updated = await getExercise(id)
+    expect(updated?.muscleArchitecture).toBe('parallel')
+    expect(updated?.target).toEqual({ repsMin: 10, repsMax: 15, sets: 4 })
+    expect(updated?.restSec).toBe(200)
+    expect(updated?.referenceUrl).toBe('https://www.youtube.com/watch?v=abc')
+  })
+
+  test('指定した項目だけを更新する', async () => {
+    // Arrange
+    const id = await createExercise(inclinePress)
+    const before = await getExercise(id)
+
+    // Act
+    await updateExerciseSettings(id, { restSec: 200 })
+
+    // Assert
+    const after = await getExercise(id)
+    expect(after?.restSec).toBe(200)
+    expect(after?.target).toEqual(before?.target)
+    expect(after?.muscleArchitecture).toBe(before?.muscleArchitecture)
+  })
+
+  test('破綻した目標は整えて保存する', async () => {
+    // Arrange
+    const id = await createExercise(inclinePress)
+
+    // Act: 下限が上限を超えている
+    await updateExerciseSettings(id, { target: { repsMin: 20, repsMax: 12, sets: 0 } })
+
+    // Assert
+    expect((await getExercise(id))?.target).toEqual({ repsMin: 12, repsMax: 12, sets: 1 })
+  })
+
+  test('休憩秒数は0以上の整数に丸める', async () => {
+    const id = await createExercise(inclinePress)
+
+    await updateExerciseSettings(id, { restSec: -30.6 })
+
+    expect((await getExercise(id))?.restSec).toBe(0)
+  })
+
+  test('開けない URL は保存できない', async () => {
+    const id = await createExercise(inclinePress)
+
+    await expect(
+      updateExerciseSettings(id, { referenceUrl: 'javascript:alert(1)' }),
+    ).rejects.toThrow()
+  })
+
+  test('空文字の参考リンクは未設定にする', async () => {
+    // Arrange
+    const id = await createExercise({ ...inclinePress, referenceUrl: 'https://example.com' })
+
+    // Act
+    await updateExerciseSettings(id, { referenceUrl: '' })
+
+    // Assert
+    expect((await getExercise(id))?.referenceUrl).toBeNull()
   })
 })

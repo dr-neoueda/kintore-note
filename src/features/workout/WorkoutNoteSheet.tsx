@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Sheet } from '@/components/Sheet'
+import { useResetOnOpen } from '@/hooks/useResetOnOpen'
 
 interface WorkoutNoteValues {
   readonly note: string
@@ -27,14 +28,13 @@ export function WorkoutNoteSheet({
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
-  useEffect(() => {
-    if (!isOpen) return
+  useResetOnOpen(isOpen, () => {
     setNote(initialValues.note)
     setBodyWeightText(
       initialValues.bodyWeightKg === null ? '' : String(initialValues.bodyWeightKg),
     )
     setErrorMessage(null)
-  }, [isOpen, initialValues])
+  })
 
   const handleSubmit = async () => {
     const trimmed = bodyWeightText.trim()

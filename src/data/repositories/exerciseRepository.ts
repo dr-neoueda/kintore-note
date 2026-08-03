@@ -32,8 +32,6 @@ export interface NewExercise {
   readonly referenceUrl?: string | null
 }
 
-export type ExercisePatch = Partial<NewExercise>
-
 /** 種目ごとに変更できる設定。 */
 export interface ExerciseSettingsPatch {
   readonly muscleArchitecture?: MuscleArchitecture
@@ -82,14 +80,6 @@ export async function listActiveExercises(): Promise<Exercise[]> {
 /** アーカイブ済みも含めた全種目を名前の昇順で返す。 */
 export async function listAllExercises(): Promise<Exercise[]> {
   return db.exercises.orderBy('name').toArray()
-}
-
-export async function updateExercise(id: ExerciseId, patch: ExercisePatch): Promise<void> {
-  const changes: ExercisePatch = patch.name === undefined
-    ? patch
-    : { ...patch, name: requireNonEmpty(patch.name, '種目名') }
-
-  await db.exercises.update(id, changes)
 }
 
 /** 種目ごとの設定（筋構造・目標・休憩時間）を更新する。 */

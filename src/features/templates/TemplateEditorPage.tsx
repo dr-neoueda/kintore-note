@@ -47,6 +47,7 @@ export function TemplateEditorPage() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
+  const [isMissing, setIsMissing] = useState(false)
 
   useEffect(() => {
     if (isNew) {
@@ -56,7 +57,15 @@ export function TemplateEditorPage() {
 
     let isCancelled = false
     void getTemplate(numericId).then((template) => {
-      if (isCancelled || template === undefined) return
+      if (isCancelled) return
+
+      // 見つからない場合も読み込みを終える。放置すると「読み込み中」から進まなくなる
+      if (template === undefined) {
+        setIsMissing(true)
+        setIsLoaded(true)
+        return
+      }
+
       setName(template.name)
       setNote(template.note)
       setItems(template.items)
@@ -115,6 +124,15 @@ export function TemplateEditorPage() {
       <>
         <PageHeader title="メニュー" showBack />
         <p className="empty-state">読み込み中…</p>
+      </>
+    )
+  }
+
+  if (isMissing) {
+    return (
+      <>
+        <PageHeader title="メニュー" showBack />
+        <p className="empty-state">このメニューは見つかりませんでした。</p>
       </>
     )
   }
@@ -218,6 +236,7 @@ export function TemplateEditorPage() {
 
       {editingItem !== undefined && editingExercise !== undefined && (
         <TemplateItemSheet
+          key={editingIndex}
           isOpen
           exercise={editingExercise}
           initialItem={editingItem}

@@ -13,7 +13,7 @@ import {
   getWorkoutByDate,
   updateWorkout,
 } from '@/data/repositories/workoutRepository'
-import { buildRecordedAt, type DateKey } from '@/domain/date'
+import { buildRecordedAt, startOfDayIso, type DateKey } from '@/domain/date'
 import { suggestNextSession, type ProgressionSuggestion } from '@/domain/progression'
 import type { Exercise, ExerciseId, Workout, WorkoutSet } from '@/domain/types'
 import { summarizeWorkout, type ExerciseMap, type WorkoutSummary } from '@/domain/workoutStats'
@@ -130,16 +130,21 @@ export function useWorkoutEditor({
   }, [sets, pendingExerciseIds])
 
   const sectionKey = sectionExerciseIds.join(',')
+  // 編集している日より後の記録は「前回」ではない
+  const dayStartIso = startOfDayIso(dateKey)
   const loadedPrevious = useLiveQuery(async () => {
     const entries = await Promise.all(
       sectionExerciseIds.map(
         async (exerciseId) =>
-          [exerciseId, await findPreviousSessionSets(exerciseId, workoutId ?? -1)] as const,
+          [
+            exerciseId,
+            await findPreviousSessionSets(exerciseId, workoutId ?? -1, dayStartIso),
+          ] as const,
       ),
     )
     return new Map<ExerciseId, WorkoutSet[]>(entries)
     // sectionKey は sectionExerciseIds を安定した文字列にしたもの
-  }, [sectionKey, workoutId])
+  }, [sectionKey, workoutId, dayStartIso])
   const previousSetsByExercise = loadedPrevious ?? EMPTY_PREVIOUS
 
   const summary = useMemo(() => summarizeWorkout(sets, exerciseById), [sets, exerciseById])
@@ -235,6 +240,10 @@ export function useWorkoutEditor({
   }
 
   const saveNote = async (values: WorkoutNoteValues) => {
+    const hasContent = values.note !== '' || values.bodyWeightKg !== null
+    // 空のまま保存されたときに、記録の無い日を作ってしまわないようにする
+    if (!hasContent && workout === undefined) return
+
     const targetWorkout = await getOrCreateWorkoutByDate(dateKey, new Date().toISOString())
     if (targetWorkout.id === undefined) return
     await updateWorkout(targetWorkout.id, values)

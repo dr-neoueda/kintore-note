@@ -81,3 +81,14 @@ test.describe('メニューの作成', () => {
     await expect(sheet.getByRole('button', { name: '指定なし' })).toHaveCount(0)
   })
 })
+
+test.describe('存在しないメニュー', () => {
+  test('見つからない場合も読み込み中のまま止まらない', async ({ page }) => {
+    // Arrange & Act: 削除済みや不正な URL を想定
+    await page.goto('/templates/9999')
+
+    // Assert
+    await expect(page.getByRole('main')).toContainText('このメニューは見つかりませんでした')
+    await expect(page.getByRole('main')).not.toContainText('読み込み中')
+  })
+})
