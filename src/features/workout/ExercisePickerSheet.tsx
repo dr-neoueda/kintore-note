@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Sheet } from '@/components/Sheet'
-import { CheckIcon } from '@/components/icons'
+import { CheckIcon, PlusIcon } from '@/components/icons'
 import { formatShortDateLabel } from '@/domain/date'
 import type { ExerciseSessionSummary } from '@/domain/exerciseSessions'
 import type { Exercise, ExerciseId, MuscleGroup } from '@/domain/types'
@@ -17,6 +17,8 @@ interface ExercisePickerSheetProps {
   readonly lastSessionByExercise?: ReadonlyMap<ExerciseId, ExerciseSessionSummary>
   readonly onClose: () => void
   readonly onSelect: (exerciseId: ExerciseId) => void
+  /** 一覧に無い種目を、その場で作れるようにする。入力中の語を初期値として渡す。 */
+  readonly onRequestCreate?: (initialName: string) => void
 }
 
 const MUSCLE_GROUP_ORDER: readonly MuscleGroup[] = [
@@ -51,6 +53,7 @@ export function ExercisePickerSheet({
   lastSessionByExercise,
   onClose,
   onSelect,
+  onRequestCreate,
 }: ExercisePickerSheetProps) {
   const [keyword, setKeyword] = useState('')
 
@@ -73,6 +76,14 @@ export function ExercisePickerSheet({
     onClose()
   }
 
+  const handleRequestCreate = () => {
+    if (onRequestCreate === undefined) return
+    const initialName = keyword.trim()
+    setKeyword('')
+    onClose()
+    onRequestCreate(initialName)
+  }
+
   return (
     <Sheet isOpen={isOpen} title="種目を追加" onClose={onClose}>
       <input
@@ -86,7 +97,21 @@ export function ExercisePickerSheet({
       />
 
       {groups.length === 0 ? (
-        <p className="empty-state">該当する種目がありません</p>
+        <div className={styles.emptyState}>
+          <p className="empty-state">該当する種目がありません</p>
+          {onRequestCreate !== undefined && (
+            <button
+              type="button"
+              className="btn btn-primary btn-block"
+              onClick={handleRequestCreate}
+            >
+              <PlusIcon size={18} />
+              {keyword.trim() === ''
+                ? '新しい種目を作る'
+                : `「${keyword.trim()}」を作る`}
+            </button>
+          )}
+        </div>
       ) : (
         groups.map(({ muscleGroup, items }) => (
           <section key={muscleGroup} className={styles.group}>
@@ -128,6 +153,13 @@ export function ExercisePickerSheet({
             })}
           </section>
         ))
+      )}
+
+      {onRequestCreate !== undefined && groups.length > 0 && (
+        <button type="button" className="btn btn-block" onClick={handleRequestCreate}>
+          <PlusIcon size={18} />
+          新しい種目を作る
+        </button>
       )}
     </Sheet>
   )

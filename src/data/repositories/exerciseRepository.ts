@@ -15,13 +15,15 @@ import type {
   MuscleGroup,
   ProgressionTarget,
 } from '@/domain/types'
-import { requireNonEmpty } from '@/domain/validation'
+import { requireNonEmpty, ValidationError } from '@/domain/validation'
 
 export interface NewExercise {
   readonly name: string
   readonly muscleGroup: MuscleGroup
-  readonly equipment: EquipmentType
-  readonly dumbbellCount: DumbbellCount
+  /** 省略した場合はダンベル種目として扱う。あとから変更できる。 */
+  readonly equipment?: EquipmentType
+  /** 省略した場合は両手に1個ずつとして扱う。あとから変更できる。 */
+  readonly dumbbellCount?: DumbbellCount
   /** 省略した場合は種目名と部位から推定する。 */
   readonly muscleArchitecture?: MuscleArchitecture
   /** 省略した場合は筋構造から決まる既定のレンジを使う。 */
@@ -34,6 +36,9 @@ export interface NewExercise {
 
 /** 種目ごとに変更できる設定。 */
 export interface ExerciseSettingsPatch {
+  readonly equipment?: EquipmentType
+  /** ボリューム計算の倍率。作成後に直せないと記録がずれ続けるため変更できるようにする。 */
+  readonly dumbbellCount?: DumbbellCount
   readonly muscleArchitecture?: MuscleArchitecture
   readonly target?: ProgressionTarget
   readonly restSec?: number
@@ -47,14 +52,22 @@ export async function createExercise(
   nowIso: string = new Date().toISOString(),
 ): Promise<ExerciseId> {
   const name = requireNonEmpty(input.name, '種目名')
+
+  // 名前は一意なので add は失敗しうるが、失敗する書き込みを発行すると
+  // liveQuery の楽観更新が壊れて画面ごと落ちる。先に確認して弾く。
+  const existing = await db.exercises.where('name').equals(name).first()
+  if (existing !== undefined) {
+    throw new ValidationError('同じ名前の種目が既にあります')
+  }
+
   const muscleArchitecture =
     input.muscleArchitecture ?? resolveArchitecture(name, input.muscleGroup)
 
   return db.exercises.add({
     name,
     muscleGroup: input.muscleGroup,
-    equipment: input.equipment,
-    dumbbellCount: input.dumbbellCount,
+    equipment: input.equipment ?? 'dumbbell',
+    dumbbellCount: input.dumbbellCount ?? 2,
     muscleArchitecture,
     target: normalizeProgressionTarget(
       input.target ?? defaultTargetForArchitecture(muscleArchitecture),

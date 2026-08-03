@@ -60,3 +60,9 @@
 .added {
   opacity: 0.45;
 }
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}

@@ -69,6 +69,9 @@ export async function ensureSeeded(
 
       return {
         ...exercise,
+        // 初期種目はすべて明示しているが、型としては省略可能なため既定値で埋める
+        equipment: exercise.equipment ?? 'dumbbell',
+        dumbbellCount: exercise.dumbbellCount ?? 2,
         muscleArchitecture,
         target: defaultTargetForArchitecture(muscleArchitecture),
         restSec: defaultRestSecForMuscleGroup(exercise.muscleGroup),

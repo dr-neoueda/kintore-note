@@ -179,3 +179,94 @@ describe('updateExerciseSettings', () => {
     expect((await getExercise(id))?.referenceUrl).toBeNull()
   })
 })
+
+describe('updateExerciseSettings（器具とダンベル数）', () => {
+  test('作成後に器具と同時に使うダンベルの数を変更できる', async () => {
+    // Arrange: 作成時に間違えるとボリューム計算がずれ続けるため、後から直せる必要がある
+    const id = await createExercise(inclinePress)
+
+    // Act
+    await updateExerciseSettings(id, { equipment: 'bodyweight', dumbbellCount: 1 })
+
+    // Assert
+    const updated = await getExercise(id)
+    expect(updated?.equipment).toBe('bodyweight')
+    expect(updated?.dumbbellCount).toBe(1)
+  })
+
+  test('器具だけを変えても他の設定は残る', async () => {
+    // Arrange
+    const id = await createExercise(inclinePress)
+    const before = await getExercise(id)
+
+    // Act
+    await updateExerciseSettings(id, { dumbbellCount: 1 })
+
+    // Assert
+    const after = await getExercise(id)
+    expect(after?.dumbbellCount).toBe(1)
+    expect(after?.equipment).toBe(before?.equipment)
+    expect(after?.restSec).toBe(before?.restSec)
+  })
+})
+
+describe('名前と部位だけで種目を作る', () => {
+  test('器具とダンベル数を省略すると既定値になる', async () => {
+    // Act
+    const id = await createExercise({ name: 'インクラインリアレイズ', muscleGroup: 'shoulders' })
+
+    // Assert
+    const created = await getExercise(id)
+    expect(created?.equipment).toBe('dumbbell')
+    expect(created?.dumbbellCount).toBe(2)
+  })
+
+  test('部位から筋の種類・回数・休憩が自動で決まる', async () => {
+    // Act: 肩は三角筋（羽状筋）、休憩は120秒
+    const id = await createExercise({ name: '自作の肩種目', muscleGroup: 'shoulders' })
+
+    // Assert
+    const created = await getExercise(id)
+    expect(created?.muscleArchitecture).toBe('pennate')
+    expect(created?.target).toEqual({ repsMin: 8, repsMax: 12, sets: 3 })
+    expect(created?.restSec).toBe(120)
+  })
+
+  test('作った種目は一覧に残り、以後も選べる', async () => {
+    // Arrange
+    await createExercise({ name: '自作種目', muscleGroup: 'back' })
+
+    // Act & Assert
+    const active = await listActiveExercises()
+    expect(active.map((exercise) => exercise.name)).toContain('自作種目')
+  })
+})
+
+describe('重複した名前の扱い', () => {
+  test('分かりやすいエラーで弾き、失敗する書き込みを発行しない', async () => {
+    // Arrange: 失敗する add を投げると liveQuery の楽観更新が壊れて画面が落ちる
+    await createExercise(inclinePress)
+
+    // Act & Assert
+    await expect(createExercise(inclinePress)).rejects.toThrow('同じ名前の種目が既にあります')
+  })
+
+  test('前後の空白を除いた名前で重複を判定する', async () => {
+    await createExercise(inclinePress)
+
+    await expect(
+      createExercise({ ...inclinePress, name: '  インクラインダンベルプレス  ' }),
+    ).rejects.toThrow('同じ名前の種目が既にあります')
+  })
+
+  test('弾かれても既存の種目は1件のまま', async () => {
+    // Arrange
+    await createExercise(inclinePress)
+
+    // Act
+    await expect(createExercise(inclinePress)).rejects.toThrow()
+
+    // Assert
+    expect(await listAllExercises()).toHaveLength(1)
+  })
+})

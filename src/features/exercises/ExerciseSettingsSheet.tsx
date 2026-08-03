@@ -4,13 +4,21 @@ import { Stepper } from '@/components/Stepper'
 import { formatDuration } from '@/domain/duration'
 import { defaultTargetForArchitecture } from '@/domain/muscle'
 import { normalizeProgressionTarget } from '@/domain/progression'
-import type { MuscleArchitecture, ProgressionTarget } from '@/domain/types'
-import { MUSCLE_ARCHITECTURE_LABELS } from '@/domain/types'
+import type {
+  DumbbellCount,
+  EquipmentType,
+  MuscleArchitecture,
+  ProgressionTarget,
+} from '@/domain/types'
+import { EQUIPMENT_LABELS, MUSCLE_ARCHITECTURE_LABELS } from '@/domain/types'
 import { ValidationError } from '@/domain/validation'
 import { useResetOnOpen } from '@/hooks/useResetOnOpen'
 import styles from './ExerciseSettingsSheet.module.css'
 
 export interface ExerciseSettingsValues {
+  readonly equipment: EquipmentType
+  /** ボリューム計算の倍率。両手に1個ずつなら 2。 */
+  readonly dumbbellCount: DumbbellCount
   readonly muscleArchitecture: MuscleArchitecture
   readonly target: ProgressionTarget
   readonly restSec: number
@@ -32,6 +40,11 @@ const REST_STEP_SEC = 15
 const REST_LIMIT_SEC = 600
 
 const ARCHITECTURE_OPTIONS: readonly MuscleArchitecture[] = ['parallel', 'pennate']
+const EQUIPMENT_OPTIONS: readonly EquipmentType[] = ['dumbbell', 'bodyweight', 'other']
+const DUMBBELL_COUNT_OPTIONS: readonly { count: DumbbellCount; label: string }[] = [
+  { count: 2, label: '両手に1個ずつ' },
+  { count: 1, label: '片手ずつ・両手で1個' },
+]
 
 /**
  * 種目ごとの設定シート。
@@ -127,6 +140,55 @@ export function ExerciseSettingsSheet({
       }
     >
       <div className={styles.form}>
+        <div>
+          <span className={styles.fieldLabel}>使う器具</span>
+          <div className={styles.chips}>
+            {EQUIPMENT_OPTIONS.map((equipment) => (
+              <button
+                key={equipment}
+                type="button"
+                className={
+                  values.equipment === equipment
+                    ? `${styles.chip} ${styles.chipSelected}`
+                    : styles.chip
+                }
+                onClick={() => setValues((current) => ({ ...current, equipment }))}
+                aria-pressed={values.equipment === equipment}
+              >
+                {EQUIPMENT_LABELS[equipment]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {values.equipment === 'dumbbell' && (
+          <div>
+            <span className={styles.fieldLabel}>同時に使うダンベルの数</span>
+            <div className={styles.chips}>
+              {DUMBBELL_COUNT_OPTIONS.map(({ count, label }) => (
+                <button
+                  key={count}
+                  type="button"
+                  className={
+                    values.dumbbellCount === count
+                      ? `${styles.chip} ${styles.chipSelected}`
+                      : styles.chip
+                  }
+                  onClick={() =>
+                    setValues((current) => ({ ...current, dumbbellCount: count }))
+                  }
+                  aria-pressed={values.dumbbellCount === count}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className={styles.note}>
+              総ボリュームの計算に使います。ワンハンドロウやプルオーバーは「片手ずつ」です。
+            </p>
+          </div>
+        )}
+
         <div>
           <span className={styles.fieldLabel}>筋の種類</span>
           <div className={styles.chips}>

@@ -14,6 +14,7 @@ import { formatTemplateTarget } from '@/domain/templateFormat'
 import type { ExerciseId, TemplateItem } from '@/domain/types'
 import { ValidationError } from '@/domain/validation'
 import { useExercises } from '@/hooks/useExercises'
+import { CreateExerciseSheet } from '../exercises/CreateExerciseSheet'
 import { ExercisePickerSheet } from '../workout/ExercisePickerSheet'
 import { TemplateItemSheet } from './TemplateItemSheet'
 import styles from './TemplateEditorPage.module.css'
@@ -44,6 +45,7 @@ export function TemplateEditorPage() {
   const [note, setNote] = useState('')
   const [items, setItems] = useState<readonly TemplateItem[]>([])
   const [isPickerOpen, setIsPickerOpen] = useState(false)
+  const [creatingName, setCreatingName] = useState<string | null>(null)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
@@ -232,6 +234,14 @@ export function TemplateEditorPage() {
         addedExerciseIds={items.map((item) => item.exerciseId)}
         onClose={() => setIsPickerOpen(false)}
         onSelect={addItem}
+        onRequestCreate={(initialName) => setCreatingName(initialName)}
+      />
+
+      <CreateExerciseSheet
+        isOpen={creatingName !== null}
+        initialName={creatingName ?? ''}
+        onClose={() => setCreatingName(null)}
+        onCreated={addItem}
       />
 
       {editingItem !== undefined && editingExercise !== undefined && (

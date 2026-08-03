@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { PlusIcon } from '@/components/icons'
+import { CreateExerciseSheet } from '../exercises/CreateExerciseSheet'
 import { describeProgression } from '@/domain/progressionText'
 import type { ExerciseSessionSummary } from '@/domain/exerciseSessions'
 import type { Exercise, ExerciseId, WorkoutSet } from '@/domain/types'
@@ -34,6 +36,9 @@ export function WorkoutEditorBody({
   emptyMessage,
 }: WorkoutEditorBodyProps) {
   const hasSections = editor.sectionExerciseIds.length > 0
+
+  // 一覧に無い種目を、その場で作ってそのまま今日のメニューに入れられるようにする
+  const [creatingName, setCreatingName] = useState<string | null>(null)
 
   return (
     <>
@@ -84,6 +89,14 @@ export function WorkoutEditorBody({
         lastSessionByExercise={lastSessionByExercise}
         onClose={editor.closePicker}
         onSelect={editor.addExercise}
+        onRequestCreate={(initialName) => setCreatingName(initialName)}
+      />
+
+      <CreateExerciseSheet
+        isOpen={creatingName !== null}
+        initialName={creatingName ?? ''}
+        onClose={() => setCreatingName(null)}
+        onCreated={(exerciseId) => editor.addExercise(exerciseId)}
       />
 
       {editor.editorTarget !== null && editor.editorExercise !== undefined && (

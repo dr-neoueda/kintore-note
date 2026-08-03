@@ -14,7 +14,7 @@ import { suggestNextSession } from '@/domain/progression'
 import { describeProgression } from '@/domain/progressionText'
 import { resolveReferenceLink } from '@/domain/reference'
 import { formatSetSummary } from '@/domain/setFormat'
-import { MUSCLE_ARCHITECTURE_LABELS } from '@/domain/types'
+import { EQUIPMENT_LABELS, MUSCLE_ARCHITECTURE_LABELS } from '@/domain/types'
 import { formatWeightKg } from '@/domain/weight'
 import { useExercises } from '@/hooks/useExercises'
 import { useWorkoutHistory } from '@/hooks/useWorkoutHistory'
@@ -144,6 +144,14 @@ export function ExerciseDetailPage() {
 
           <dl className={styles.settingList}>
             <div className={styles.settingRow}>
+              <dt className={styles.settingLabel}>使う器具</dt>
+              <dd className={styles.settingValue}>
+                {EQUIPMENT_LABELS[exercise.equipment]}
+                {exercise.equipment === 'dumbbell' &&
+                  `（${exercise.dumbbellCount === 2 ? '両手に1個ずつ' : '片手ずつ'}）`}
+              </dd>
+            </div>
+            <div className={styles.settingRow}>
               <dt className={styles.settingLabel}>筋の種類</dt>
               <dd className={styles.settingValue}>
                 {MUSCLE_ARCHITECTURE_LABELS[exercise.muscleArchitecture]}
@@ -204,6 +212,8 @@ export function ExerciseDetailPage() {
         isOpen={isSettingsOpen}
         title={exercise.name}
         initialValues={{
+          equipment: exercise.equipment,
+          dumbbellCount: exercise.dumbbellCount,
           muscleArchitecture: exercise.muscleArchitecture,
           target: exercise.target,
           restSec: exercise.restSec,
