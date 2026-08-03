@@ -58,29 +58,34 @@ for (const { path, heading } of PAGES) {
   })
 }
 
-test('日付入力が枠の中に収まる', async ({ page }) => {
+test('日付の選択欄が枠の中に収まる', async ({ page }) => {
   // Arrange
   await page.goto('/history')
   await expect(page.getByRole('heading', { name: '履歴' })).toBeVisible()
 
   // Act
-  const fits = await page.evaluate(() => {
+  const measured = await page.evaluate(() => {
     const input = document.querySelector('#history-date')
-    const card = input?.parentElement
-    if (input === null || card === undefined || card === null) return null
+    const field = input?.parentElement
+    const card = field?.parentElement
+    if (!input || !field || !card) return null
 
     const inputRect = input.getBoundingClientRect()
+    const fieldRect = field.getBoundingClientRect()
     const cardRect = card.getBoundingClientRect()
+
     return {
-      withinRight: inputRect.right <= cardRect.right + 1,
-      withinLeft: inputRect.left >= cardRect.left - 1,
-      // 縮められる状態か（flex の最小幅で突っ張っていないか）
-      minWidth: getComputedStyle(input).minWidth,
+      fieldWithinCard:
+        fieldRect.right <= cardRect.right + 1 && fieldRect.left >= cardRect.left - 1,
+      inputWithinField:
+        inputRect.right <= fieldRect.right + 1 && inputRect.left >= fieldRect.left - 1,
+      // 流れから外れていれば、ネイティブの大きさが枠を押し広げることはない
+      inputPosition: getComputedStyle(input).position,
     }
   })
 
   // Assert
-  expect(fits?.withinRight).toBe(true)
-  expect(fits?.withinLeft).toBe(true)
-  expect(fits?.minWidth).toBe('0px')
+  expect(measured?.fieldWithinCard).toBe(true)
+  expect(measured?.inputWithinField).toBe(true)
+  expect(measured?.inputPosition).toBe('absolute')
 })

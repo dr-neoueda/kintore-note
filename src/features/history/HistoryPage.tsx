@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { PageHeader } from '@/components/PageHeader'
-import { ChevronRightIcon } from '@/components/icons'
+import { CalendarIcon, ChevronRightIcon } from '@/components/icons'
 import { formatDateLabelWithYear, isValidDateKey, toDateKey } from '@/domain/date'
 import { summarizeWorkout } from '@/domain/workoutStats'
 import { useExercises } from '@/hooks/useExercises'
@@ -26,15 +26,26 @@ export function HistoryPage() {
 
       <div className={styles.content}>
         <div className={styles.datePicker}>
-          <label className={styles.datePickerLabel} htmlFor="history-date">
-            記録し忘れた日を入力する
-          </label>
-          <input
-            id="history-date"
-            type="date"
-            max={toDateKey(new Date())}
-            onChange={(event) => openDate(event.target.value)}
-          />
+          <span className={styles.datePickerLabel}>記録し忘れた日を入力する</span>
+          {/*
+            日付入力は iOS Safari だと内部レイアウトが独自で、
+            幅を指定しても枠からはみ出してしまう。
+            見た目はこちらで描き、入力欄自体は透明にして重ねることで、
+            ネイティブの大きさに左右されないようにする。
+            タップすれば iOS のカレンダーはこれまで通り開く。
+          */}
+          <div className={styles.dateField}>
+            <span className={styles.dateFieldText}>日付を選ぶ</span>
+            <CalendarIcon size={18} />
+            <input
+              id="history-date"
+              className={styles.dateInput}
+              type="date"
+              max={toDateKey(new Date())}
+              aria-label="記録し忘れた日を入力する"
+              onChange={(event) => openDate(event.target.value)}
+            />
+          </div>
         </div>
 
         {isLoading && <p className="empty-state">読み込み中…</p>}

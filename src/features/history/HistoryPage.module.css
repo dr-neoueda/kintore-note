@@ -15,6 +15,48 @@
   color: var(--text-dim);
 }
 
+/* 見た目はこの枠で作る。中の入力欄は透明にして重ねるだけにする。 */
+.dateField {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  overflow: hidden;
+}
+
+.dateField:active {
+  opacity: 0.6;
+}
+
+.dateFieldText {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  color: var(--text);
+}
+
+/*
+ * 位置を絶対指定にして流れから外し、枠の大きさに影響を与えないようにする。
+ * 透明にしても、タップすればネイティブの日付選択が開く。
+ */
+.dateInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  opacity: 0;
+}
+
 .content {
   padding: var(--space-4);
   display: flex;
