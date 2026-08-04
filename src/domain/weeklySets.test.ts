@@ -45,6 +45,7 @@ const set = (overrides: Partial<WorkoutSet> = {}): WorkoutSet => ({
   reps: 10,
   rpe: null,
   restSec: null,
+  restTargetSec: null,
   isWarmup: false,
   recordedAt: '2026-08-03T10:00:00.000Z',
   ...overrides,

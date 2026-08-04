@@ -31,7 +31,12 @@ export function RestTimerBar({ seconds, targetSeconds, onDismiss }: RestTimerBar
 
       <div>
         <div className={styles.label}>休憩</div>
-        <div className={styles.time}>{formatDuration(seconds)}</div>
+        <div className={styles.time}>
+          {formatDuration(seconds)}
+          {targetSeconds > 0 && (
+            <span className={styles.target}> / {formatDuration(targetSeconds)}</span>
+          )}
+        </div>
       </div>
 
       <div className={styles.track}>

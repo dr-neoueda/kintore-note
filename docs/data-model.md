@@ -50,7 +50,8 @@
 | weightKg | number | **ダンベル片手あたり**の重量。自重種目は 0 |
 | reps | number | 回数（1 以上の整数） |
 | rpe | number \| null | 1〜10。未入力は null |
-| restSec | number \| null | 直前のセットからの休憩秒数 |
+| restSec | number \| null | 直前のセットからの休憩秒数（実測） |
+| restTargetSec | number \| null | このセットの後に取る休憩の目安。null なら種目の設定を使う |
 | isWarmup | boolean | ウォームアップか |
 | recordedAt | string | ISO 8601 |
 

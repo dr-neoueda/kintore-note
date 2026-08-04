@@ -1,4 +1,5 @@
 import type { ProgressionSuggestion } from '@/domain/progression'
+import { defaultRestTargetSec } from '@/domain/rest'
 import type { WorkoutSet } from '@/domain/types'
 
 export interface SetFormValues {
@@ -6,6 +7,8 @@ export interface SetFormValues {
   readonly reps: number
   readonly rpe: number | null
   readonly isWarmup: boolean
+  /** このセットの後に取る休憩の目安（秒）。 */
+  readonly restTargetSec: number
 }
 
 interface BuildInitialSetValuesParams {
@@ -15,15 +18,19 @@ interface BuildInitialSetValuesParams {
   readonly setsInSession: readonly WorkoutSet[]
   /** 前回の実績から導いた今回の提案。 */
   readonly suggestion: ProgressionSuggestion
+  /** 種目に設定された休憩の目安（秒）。 */
+  readonly exerciseRestSec: number
 }
 
 /** 保存済みのセットをフォームの値に変換する。編集時に使う。 */
-export function toSetFormValues(set: WorkoutSet): SetFormValues {
+export function toSetFormValues(set: WorkoutSet, exerciseRestSec: number): SetFormValues {
   return {
     weightKg: set.weightKg,
     reps: set.reps,
     rpe: set.rpe,
     isWarmup: set.isWarmup,
+    // 休憩の目安を持たない古いセットは、種目の設定で補う
+    restTargetSec: set.restTargetSec ?? exerciseRestSec,
   }
 }
 
@@ -32,17 +39,19 @@ export function toSetFormValues(set: WorkoutSet): SetFormValues {
  *
  * 「毎回同じ数字を入力し直す」手間を無くすことが目的で、
  * 直前のセット → 今回の提案（ダブルプログレッション）、の順に引き継ぐ。
- * RPE とウォームアップ指定はセットごとに変わるため引き継がない。
+ * RPE・ウォームアップ指定・休憩の目安はセットごとに変わるため引き継がない。
  */
 export function buildInitialSetValues({
   existingSet,
   setsInSession,
   suggestion,
+  exerciseRestSec,
 }: BuildInitialSetValuesParams): SetFormValues {
   if (existingSet !== null) {
-    return toSetFormValues(existingSet)
+    return toSetFormValues(existingSet, exerciseRestSec)
   }
 
+  const restTargetSec = defaultRestTargetSec(exerciseRestSec, false)
   const lastInSession = setsInSession[setsInSession.length - 1]
   if (lastInSession !== undefined) {
     return {
@@ -50,6 +59,7 @@ export function buildInitialSetValues({
       reps: lastInSession.reps,
       rpe: null,
       isWarmup: false,
+      restTargetSec,
     }
   }
 
@@ -58,5 +68,6 @@ export function buildInitialSetValues({
     reps: suggestion.repsHint,
     rpe: null,
     isWarmup: false,
+    restTargetSec,
   }
 }

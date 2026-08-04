@@ -107,6 +107,8 @@ export interface WorkoutSet {
   readonly rpe: number | null
   /** 直前のセットからの休憩秒数。未計測なら null。 */
   readonly restSec: number | null
+  /** このセットの後に取る休憩の目安（秒）。未設定なら種目の設定を使う。 */
+  readonly restTargetSec: number | null
   readonly isWarmup: boolean
   readonly recordedAt: string
 }

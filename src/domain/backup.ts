@@ -139,6 +139,7 @@ function normalizeSet(raw: WorkoutSet): WorkoutSet {
     ...raw,
     rpe: typeof source.rpe === 'number' ? source.rpe : null,
     restSec: typeof source.restSec === 'number' ? source.restSec : null,
+    restTargetSec: typeof source.restTargetSec === 'number' ? source.restTargetSec : null,
     isWarmup: source.isWarmup === true,
   }
 }

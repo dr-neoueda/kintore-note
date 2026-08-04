@@ -28,6 +28,11 @@ interface UpgradingExercise {
   referenceUrl?: string | null
 }
 
+/** 移行前のセットレコード。新しい項目を持っていない可能性がある。 */
+interface UpgradingSet {
+  restTargetSec?: number | null
+}
+
 /** v2 で一律に入れていた目標。利用者が変えていなければ v3 で筋構造別の値に置き換える。 */
 function isUntouchedV2Target(target: ProgressionTarget | undefined): boolean {
   if (target === undefined) return true
@@ -105,6 +110,17 @@ export class KintoreDatabase extends Dexie {
         .toCollection()
         .modify((exercise: UpgradingExercise) => {
           exercise.referenceUrl ??= null
+        })
+    })
+
+    // v5: セットごとの休憩の目安を追加。
+    // 既存のセットは null のままにし、表示時に種目の設定で補う。
+    this.version(5).upgrade(async (transaction) => {
+      await transaction
+        .table('sets')
+        .toCollection()
+        .modify((set: UpgradingSet) => {
+          set.restTargetSec ??= null
         })
     })
   }

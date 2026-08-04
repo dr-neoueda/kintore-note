@@ -105,6 +105,7 @@ describe('deleteWorkout', () => {
       reps: 10,
       rpe: null,
       restSec: null,
+      restTargetSec: null,
       isWarmup: false,
       recordedAt: NOW,
     })

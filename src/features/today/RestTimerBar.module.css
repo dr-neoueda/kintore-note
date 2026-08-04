@@ -37,6 +37,12 @@
   letter-spacing: -0.01em;
 }
 
+.target {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-dim);
+}
+
 .reached .time {
   color: var(--text);
 }

@@ -14,6 +14,7 @@ export interface NewWorkoutSet {
   readonly reps: number
   readonly rpe: number | null
   readonly restSec: number | null
+  readonly restTargetSec: number | null
   readonly isWarmup: boolean
   readonly recordedAt: string
 }
@@ -25,11 +26,13 @@ function validateSetValues(values: {
   reps?: number
   rpe?: number | null
   restSec?: number | null
+  restTargetSec?: number | null
 }): void {
   if (values.weightKg !== undefined) requireNonNegativeNumber(values.weightKg, '重量')
   if (values.reps !== undefined) requirePositiveInteger(values.reps, '回数')
   if (values.rpe !== undefined) requireValidRpe(values.rpe)
   if (values.restSec !== undefined) requireValidRestSec(values.restSec)
+  if (values.restTargetSec !== undefined) requireValidRestSec(values.restTargetSec)
 }
 
 /** セットを追加する。並び順はワークアウト内で自動採番する。 */

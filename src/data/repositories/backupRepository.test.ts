@@ -31,6 +31,7 @@ async function seedSampleData(): Promise<void> {
     reps: 10,
     rpe: 8,
     restSec: 90,
+    restTargetSec: 150,
     isWarmup: false,
     recordedAt: NOW,
   })
@@ -169,6 +170,7 @@ describe('古い形式のバックアップの取り込み', () => {
       reps: 10,
       rpe: null,
       restSec: null,
+      restTargetSec: null,
       recordedAt: NOW,
     }
 

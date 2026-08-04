@@ -82,6 +82,7 @@ const EMPTY_FORM_VALUES: SetFormValues = {
   reps: 0,
   rpe: null,
   isWarmup: false,
+  restTargetSec: 0,
 }
 
 /**
@@ -185,8 +186,9 @@ export function useWorkoutEditor({
       existingSet: editorTarget.set,
       setsInSession: setsByExercise.get(editorTarget.exerciseId) ?? EMPTY_SETS,
       suggestion,
+      exerciseRestSec: exerciseById.get(editorTarget.exerciseId)?.restSec ?? 0,
     })
-  }, [editorTarget, setsByExercise, suggestionByExercise])
+  }, [editorTarget, setsByExercise, suggestionByExercise, exerciseById])
 
   const addExercise = useCallback((exerciseId: ExerciseId) => {
     setPendingExerciseIds((current) =>
@@ -226,6 +228,7 @@ export function useWorkoutEditor({
       reps: values.reps,
       rpe: values.rpe,
       restSec: resolveRestSec?.() ?? null,
+      restTargetSec: values.restTargetSec,
       isWarmup: values.isWarmup,
       // 過去の日付を後から入力しても実施順が壊れないようにする
       recordedAt: buildRecordedAt(dateKey, now),

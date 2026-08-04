@@ -2,6 +2,13 @@ import { useState } from 'react'
 import { Sheet } from '@/components/Sheet'
 import { Stepper } from '@/components/Stepper'
 import { TrashIcon } from '@/components/icons'
+import { formatDuration } from '@/domain/duration'
+import {
+  MAX_REST_SEC,
+  MIN_REST_SEC,
+  defaultRestTargetSec,
+  stepRestTargetSec,
+} from '@/domain/rest'
 import { formatSetSummary } from '@/domain/setFormat'
 import type { Exercise, WorkoutSet } from '@/domain/types'
 import { RPE_MAX, RPE_MIN } from '@/domain/types'
@@ -73,8 +80,27 @@ export function SetEditorSheet({
     setValues((current) => ({ ...current, rpe: current.rpe === rpe ? null : rpe }))
   }
 
+  const changeRest = (direction: 'up' | 'down') => {
+    setValues((current) => ({
+      ...current,
+      restTargetSec: stepRestTargetSec(current.restTargetSec, direction),
+    }))
+  }
+
+  /**
+   * ウォームアップに切り替えたら休憩の目安も合わせて下げる。
+   * ウォームアップで本セットと同じ2〜3分待つのは長すぎるが、
+   * そのたびに手で縮めるのでは操作が増えるだけになる。
+   */
   const toggleWarmup = () => {
-    setValues((current) => ({ ...current, isWarmup: !current.isWarmup }))
+    setValues((current) => {
+      const isWarmup = !current.isWarmup
+      return {
+        ...current,
+        isWarmup,
+        restTargetSec: defaultRestTargetSec(exercise.restSec, isWarmup),
+      }
+    })
   }
 
   const handleSubmit = async () => {
@@ -175,6 +201,31 @@ export function SetEditorSheet({
         />
 
         <div>
+          <span className={styles.fieldLabel}>セットの種類</span>
+          <div className={styles.chips}>
+            <button
+              type="button"
+              className={
+                values.isWarmup ? `${styles.chip} ${styles.chipSelected}` : styles.chip
+              }
+              onClick={toggleWarmup}
+              aria-pressed={values.isWarmup}
+            >
+              ウォームアップ
+            </button>
+          </div>
+        </div>
+
+        <Stepper
+          label="次の休憩"
+          value={formatDuration(values.restTargetSec)}
+          onDecrement={() => changeRest('down')}
+          onIncrement={() => changeRest('up')}
+          canDecrement={values.restTargetSec > MIN_REST_SEC}
+          canIncrement={values.restTargetSec < MAX_REST_SEC}
+        />
+
+        <div>
           <span className={styles.fieldLabel}>RPE（きつさ・任意）</span>
           <div className={styles.chips}>
             {RPE_OPTIONS.map((rpe) => (
@@ -190,22 +241,6 @@ export function SetEditorSheet({
                 {rpe}
               </button>
             ))}
-          </div>
-        </div>
-
-        <div>
-          <span className={styles.fieldLabel}>セットの種類</span>
-          <div className={styles.chips}>
-            <button
-              type="button"
-              className={
-                values.isWarmup ? `${styles.chip} ${styles.chipSelected}` : styles.chip
-              }
-              onClick={toggleWarmup}
-              aria-pressed={values.isWarmup}
-            >
-              ウォームアップ
-            </button>
           </div>
         </div>
 

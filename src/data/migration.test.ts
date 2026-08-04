@@ -24,11 +24,13 @@ const V1_STORES = {
 
 async function createLegacyDatabase(
   exercises: readonly Record<string, unknown>[],
+  sets: readonly Record<string, unknown>[] = [],
 ): Promise<void> {
   const legacy = new Dexie(TEST_DATABASE_NAME)
   legacy.version(1).stores(V1_STORES)
   await legacy.open()
   await legacy.table('exercises').bulkAdd([...exercises])
+  if (sets.length > 0) await legacy.table('sets').bulkAdd([...sets])
   legacy.close()
 }
 
@@ -143,5 +145,34 @@ describe('v1 のデータベースを現在のスキーマへ移行する', () =
 
     // Assert
     expect(count).toBe(2)
+  })
+
+  test('休憩の目安を持たないセットは null のまま残す', async () => {
+    // Arrange: v5 より前に記録したセット。種目の設定で補うため、ここでは埋めない
+    await createLegacyDatabase(
+      [legacyExercise()],
+      [
+        {
+          workoutId: 1,
+          exerciseId: 1,
+          order: 1,
+          weightKg: 11.5,
+          reps: 10,
+          rpe: null,
+          restSec: null,
+          isWarmup: false,
+          recordedAt: '2026-07-01T10:00:00.000Z',
+        },
+      ],
+    )
+
+    // Act
+    const db = await openUpgraded()
+    const set = await db.sets.get(1)
+    db.close()
+
+    // Assert
+    expect(set?.restTargetSec).toBeNull()
+    expect(set?.weightKg).toBe(11.5)
   })
 })

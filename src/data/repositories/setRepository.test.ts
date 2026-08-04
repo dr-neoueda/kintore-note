@@ -30,6 +30,7 @@ function setInput(workoutId: WorkoutId, overrides: Record<string, unknown> = {})
     reps: 10,
     rpe: null,
     restSec: null,
+    restTargetSec: null,
     isWarmup: false,
     recordedAt: NOW,
     ...overrides,

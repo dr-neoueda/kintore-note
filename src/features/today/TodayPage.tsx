@@ -46,9 +46,12 @@ export function TodayPage() {
 
   const { lastSet, workout, summary } = editor
   const restSeconds = useRestTimer(lastSet?.recordedAt ?? null)
-  // 休憩の目安は「直前に行った種目」の設定に従う
+  // 休憩の目安は、直前のセットに記録した値。
+  // 持たない古いセットは「その種目」の設定で補う。
   const restTargetSec =
-    lastSet === undefined ? 0 : exerciseById.get(lastSet.exerciseId)?.restSec ?? 0
+    lastSet === undefined
+      ? 0
+      : lastSet.restTargetSec ?? exerciseById.get(lastSet.exerciseId)?.restSec ?? 0
 
   restSecondsRef.current =
     lastSet !== undefined && restSeconds < MAX_REST_SECONDS ? restSeconds : null
