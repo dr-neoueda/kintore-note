@@ -9,3 +9,10 @@
   /* タブバーと重ならないよう下部に余白を確保する */
   padding-bottom: calc(var(--tabbar-height) + var(--safe-bottom) + var(--space-5));
 }
+
+/* 休憩タイマーはタブバーの上に重なるため、その分だけ本文を押し上げる */
+.mainWithRestTimer {
+  padding-bottom: calc(
+    var(--tabbar-height) + var(--safe-bottom) + var(--space-5) + var(--resttimer-height)
+  );
+}

@@ -18,9 +18,30 @@ import { suggestNextSession, type ProgressionSuggestion } from '@/domain/progres
 import type { Exercise, ExerciseId, ExerciseMap, Workout, WorkoutSet } from '@/domain/types'
 import { summarizeWorkout, type WorkoutSummary } from '@/domain/workoutStats'
 import { useExercises } from '@/hooks/useExercises'
+import { usePendingExercises } from '@/hooks/usePendingExercises'
 import { buildInitialSetValues, type SetFormValues } from './setDefaults'
 
 const EMPTY_SETS: readonly WorkoutSet[] = []
+
+/** これを超えた間隔は休憩とみなさない（別のタイミングで記録し直した場合）。 */
+const MAX_REST_SEC = 30 * 60
+
+/**
+ * 直前のセットからの経過秒数。
+ * 画面のタイマーに頼らず記録時に求めるので、どの画面から記録しても同じ値になる。
+ */
+function elapsedSinceLastSet(sets: readonly WorkoutSet[], now: Date): number | null {
+  const lastSet = sets[sets.length - 1]
+  if (lastSet === undefined) return null
+
+  const previousMs = Date.parse(lastSet.recordedAt)
+  if (Number.isNaN(previousMs)) return null
+
+  const elapsedSec = Math.round((now.getTime() - previousMs) / 1000)
+  if (elapsedSec < 0 || elapsedSec > MAX_REST_SEC) return null
+
+  return elapsedSec
+}
 const EMPTY_STEPS: readonly number[] = []
 const EMPTY_PREVIOUS: ReadonlyMap<ExerciseId, WorkoutSet[]> = new Map()
 
@@ -36,10 +57,6 @@ export interface WorkoutNoteValues {
 export interface UseWorkoutEditorParams {
   /** 編集対象の日付。今日でも過去の日でもよい。 */
   readonly dateKey: DateKey
-  /** 新しいセットに記録する休憩秒数。ホーム画面のタイマーが渡す。 */
-  readonly resolveRestSec?: () => number | null
-  /** セットを新規に記録した直後に呼ばれる。 */
-  readonly onSetRecorded?: () => void
 }
 
 export interface WorkoutEditor {
@@ -91,11 +108,7 @@ const EMPTY_FORM_VALUES: SetFormValues = {
  * 日付を差し替えられる形で共通化している。
  * ワークアウトのレコードは、最初のセットを記録した時点で作る。
  */
-export function useWorkoutEditor({
-  dateKey,
-  resolveRestSec,
-  onSetRecorded,
-}: UseWorkoutEditorParams): WorkoutEditor {
+export function useWorkoutEditor({ dateKey }: UseWorkoutEditorParams): WorkoutEditor {
   const { exerciseById } = useExercises()
 
   const settings = useLiveQuery(() => getSettings(), [])
@@ -108,7 +121,7 @@ export function useWorkoutEditor({
   )
   const sets = loadedSets ?? EMPTY_SETS
 
-  const [pendingExerciseIds, setPendingExerciseIds] = useState<readonly ExerciseId[]>([])
+  const pending = usePendingExercises(dateKey)
   const [isPickerOpen, setIsPickerOpen] = useState(false)
   const [isNoteOpen, setIsNoteOpen] = useState(false)
   const [editorTarget, setEditorTarget] = useState<EditorTarget | null>(null)
@@ -125,9 +138,9 @@ export function useWorkoutEditor({
 
   const sectionExerciseIds = useMemo(() => {
     const recorded = [...new Set(sets.map((set) => set.exerciseId))]
-    const extra = pendingExerciseIds.filter((id) => !recorded.includes(id))
+    const extra = pending.exerciseIds.filter((id) => !recorded.includes(id))
     return [...recorded, ...extra]
-  }, [sets, pendingExerciseIds])
+  }, [sets, pending.exerciseIds])
 
   const sectionKey = sectionExerciseIds.join(',')
   // 編集している日より後の記録は「前回」ではない
@@ -189,22 +202,9 @@ export function useWorkoutEditor({
     })
   }, [editorTarget, setsByExercise, suggestionByExercise, exerciseById])
 
-  const addExercise = useCallback((exerciseId: ExerciseId) => {
-    setPendingExerciseIds((current) =>
-      current.includes(exerciseId) ? current : [...current, exerciseId],
-    )
-  }, [])
-
-  const addExercises = useCallback((exerciseIds: readonly ExerciseId[]) => {
-    setPendingExerciseIds((current) => [
-      ...current,
-      ...exerciseIds.filter((id) => !current.includes(id)),
-    ])
-  }, [])
-
-  const removeExercise = useCallback((exerciseId: ExerciseId) => {
-    setPendingExerciseIds((current) => current.filter((id) => id !== exerciseId))
-  }, [])
+  const addExercise = pending.add
+  const addExercises = pending.addMany
+  const removeExercise = pending.remove
 
   const submitSet = async (values: SetFormValues) => {
     if (editorTarget === null) return
@@ -226,14 +226,13 @@ export function useWorkoutEditor({
       weightKg: values.weightKg,
       reps: values.reps,
       rpe: values.rpe,
-      restSec: resolveRestSec?.() ?? null,
+      restSec: elapsedSinceLastSet(sets, now),
       restTargetSec: values.restTargetSec,
       isWarmup: values.isWarmup,
       // 過去の日付を後から入力しても実施順が壊れないようにする
       recordedAt: buildRecordedAt(dateKey, now),
     })
 
-    onSetRecorded?.()
   }
 
   const deleteEditingSet = async () => {

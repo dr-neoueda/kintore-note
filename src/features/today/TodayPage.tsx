@@ -1,88 +1,33 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { BackupReminderBanner } from '@/components/BackupReminderBanner'
 import { PageHeader } from '@/components/PageHeader'
 import { saveMeasurement } from '@/data/repositories/measurementRepository'
-import { getSettings } from '@/data/repositories/settingsRepository'
 import { listTemplates } from '@/data/repositories/templateRepository'
 import { formatDateLabel } from '@/domain/date'
-import { REST_ALARM_GRACE_SEC } from '@/domain/restAlarm'
 import { formatWeightKg } from '@/domain/weight'
 import { useExercises } from '@/hooks/useExercises'
 import { useLastSessions } from '@/hooks/useLastSessions'
-import { useRestTimer } from '@/hooks/useRestTimer'
 import { useTodayKey } from '@/hooks/useTodayKey'
-import { useWakeLock } from '@/hooks/useWakeLock'
 import { BodyMeasurementSheet } from '../body/BodyMeasurementSheet'
 import { CardioSection } from '../cardio/CardioSection'
 import { WorkoutEditorBody } from '../workout/WorkoutEditorBody'
 import { useWorkoutEditor } from '../workout/useWorkoutEditor'
-import { RestTimerBar } from './RestTimerBar'
 import { useDailyEnergy } from './useDailyEnergy'
-import { useRestAlarm } from './useRestAlarm'
 import styles from './TodayPage.module.css'
-
-/** これを超えて経過した休憩は、記録・表示ともに意味を持たないため打ち切る。 */
-const MAX_REST_SECONDS = 30 * 60
 
 export function TodayPage() {
   const todayKey = useTodayKey()
-  const { activeExercises, exerciseById } = useExercises()
+  const { activeExercises } = useExercises()
   const lastSessionByExercise = useLastSessions()
 
-  const settings = useLiveQuery(() => getSettings(), [])
   const templates = useLiveQuery(() => listTemplates(), [])
 
-  const [isRestVisible, setIsRestVisible] = useState(true)
-
-  /**
-   * 記録時に残す休憩秒数。
-   * 経過時間は編集フックの結果（直前のセット）から決まるため、
-   * フックの引数に直接は渡せない。描画のたびに最新値を入れておく。
-   */
-  const restSecondsRef = useRef<number | null>(null)
-
-  const editor = useWorkoutEditor({
-    dateKey: todayKey,
-    resolveRestSec: () => restSecondsRef.current,
-    onSetRecorded: () => setIsRestVisible(true),
-  })
-
-  const { lastSet, workout, summary } = editor
+  const editor = useWorkoutEditor({ dateKey: todayKey })
+  const { workout, summary } = editor
 
   const energy = useDailyEnergy(todayKey, editor.sets)
   const [isMeasurementOpen, setIsMeasurementOpen] = useState(false)
-  const restSeconds = useRestTimer(lastSet?.recordedAt ?? null)
-  // 休憩の目安は、直前のセットに記録した値。
-  // 持たない古いセットは「その種目」の設定で補う。
-  const restTargetSec =
-    lastSet === undefined
-      ? 0
-      : lastSet.restTargetSec ?? exerciseById.get(lastSet.exerciseId)?.restSec ?? 0
-
-  restSecondsRef.current =
-    lastSet !== undefined && restSeconds < MAX_REST_SECONDS ? restSeconds : null
-
-  const shouldShowRestTimer =
-    isRestVisible && lastSet !== undefined && restSeconds < MAX_REST_SECONDS
-
-  const isRestAlarmEnabled = settings?.isRestAlarmEnabled ?? false
-
-  useRestAlarm({
-    restStartedAt: lastSet?.recordedAt ?? null,
-    elapsedSeconds: restSeconds,
-    targetSeconds: restTargetSec,
-    isEnabled: isRestAlarmEnabled,
-  })
-
-  // 目標に達するまでは画面を消させない。到達後は解放して電池の消費を抑える。
-  useWakeLock(
-    shouldShowRestTimer &&
-      isRestAlarmEnabled &&
-      restTargetSec > 0 &&
-      restSeconds < restTargetSec + REST_ALARM_GRACE_SEC,
-  )
-
   const hasSections = editor.sectionExerciseIds.length > 0
   const hasTemplates = templates !== undefined && templates.length > 0
 
@@ -90,13 +35,7 @@ export function TodayPage() {
     <>
       <PageHeader title="ホーム" subtitle={formatDateLabel(todayKey)} />
 
-      <div
-        className={
-          shouldShowRestTimer
-            ? `${styles.content} ${styles.contentWithRestTimer}`
-            : styles.content
-        }
-      >
+      <div className={styles.content}>
         <BackupReminderBanner />
 
         <div className={styles.summary}>
@@ -189,13 +128,6 @@ export function TodayPage() {
         onSubmit={(values) => saveMeasurement(todayKey, values, new Date().toISOString())}
       />
 
-      {shouldShowRestTimer && (
-        <RestTimerBar
-          seconds={restSeconds}
-          targetSeconds={restTargetSec}
-          onDismiss={() => setIsRestVisible(false)}
-        />
-      )}
     </>
   )
 }

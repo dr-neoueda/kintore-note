@@ -10,10 +10,6 @@
  * 何もしないと最後のボタンが隠れてタップできなくなる。
  * バーの高さぶんだけ余白を足して重なりを避ける。
  */
-.contentWithRestTimer {
-  padding-bottom: calc(var(--space-4) + var(--resttimer-height));
-}
-
 .summary {
   display: flex;
   align-items: center;
