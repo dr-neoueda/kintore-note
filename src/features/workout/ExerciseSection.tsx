@@ -41,7 +41,7 @@ export function ExerciseSection({
   const referenceLink = resolveReferenceLink(exercise)
 
   return (
-    <section className={styles.section}>
+    <section data-testid="exercise-section" className={styles.section}>
       <div className={styles.header}>
         <Link to={`/exercises/${exercise.id}`} className={styles.name}>
           {exercise.name}

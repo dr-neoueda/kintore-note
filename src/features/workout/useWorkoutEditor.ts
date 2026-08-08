@@ -31,7 +31,6 @@ export interface EditorTarget {
 
 export interface WorkoutNoteValues {
   readonly note: string
-  readonly bodyWeightKg: number | null
 }
 
 export interface UseWorkoutEditorParams {
@@ -243,7 +242,7 @@ export function useWorkoutEditor({
   }
 
   const saveNote = async (values: WorkoutNoteValues) => {
-    const hasContent = values.note !== '' || values.bodyWeightKg !== null
+    const hasContent = values.note !== ''
     // 空のまま保存されたときに、記録の無い日を作ってしまわないようにする
     if (!hasContent && workout === undefined) return
 

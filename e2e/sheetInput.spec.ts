@@ -24,33 +24,43 @@ test.describe('シートの入力', () => {
     await expect(page.getByRole('status')).toContainText('休憩')
 
     // Act
-    await page.getByRole('button', { name: /体重・メモを記録する/ }).click()
+    await page.getByRole('button', { name: 'メモを記録' }).click()
     await page.getByRole('textbox', { name: 'メモ', exact: true }).fill('肘の角度を意識した')
-    await page.getByRole('spinbutton', { name: '体重（kg）' }).fill('68.4')
 
     // タイマーが2回以上進むまで待つ
     await page.waitForTimeout(2500)
 
     // Assert
     await expect(page.getByRole('textbox', { name: 'メモ', exact: true })).toHaveValue('肘の角度を意識した')
-    await expect(page.getByRole('spinbutton', { name: '体重（kg）' })).toHaveValue('68.4')
   })
 
-  test('入力したメモと体重を保存できる', async ({ page }) => {
+  test('入力したメモを保存できる', async ({ page }) => {
     // Arrange
     await recordOneSet(page)
 
     // Act
-    await page.getByRole('button', { name: /体重・メモを記録する/ }).click()
+    await page.getByRole('button', { name: 'メモを記録' }).click()
     await page.getByRole('textbox', { name: 'メモ', exact: true }).fill('調子が良い')
-    await page.getByRole('spinbutton', { name: '体重（kg）' }).fill('68.4')
     await page.waitForTimeout(2500)
     await page.getByRole('button', { name: '保存する' }).click()
 
     // Assert
     await expect(page.getByRole('dialog')).toHaveCount(0)
     await expect(page.getByRole('main')).toContainText('調子が良い')
-    await expect(page.getByRole('main')).toContainText('68.4')
+  })
+
+  test('体組成のシートでも入力が消えない', async ({ page }) => {
+    // Arrange: 休憩タイマーが毎秒動いている状態で開く
+    await recordOneSet(page)
+    await expect(page.getByRole('status')).toContainText('休憩')
+
+    // Act
+    await page.getByRole('button', { name: '体組成を記録' }).click()
+    await page.getByRole('spinbutton', { name: '体重' }).fill('68.4')
+    await page.waitForTimeout(2500)
+
+    // Assert
+    await expect(page.getByRole('spinbutton', { name: '体重' })).toHaveValue('68.4')
   })
 
   test('種目の設定シートでも入力が消えない', async ({ page }) => {

@@ -25,12 +25,14 @@ const V1_STORES = {
 async function createLegacyDatabase(
   exercises: readonly Record<string, unknown>[],
   sets: readonly Record<string, unknown>[] = [],
+  workouts: readonly Record<string, unknown>[] = [],
 ): Promise<void> {
   const legacy = new Dexie(TEST_DATABASE_NAME)
   legacy.version(1).stores(V1_STORES)
   await legacy.open()
   await legacy.table('exercises').bulkAdd([...exercises])
   if (sets.length > 0) await legacy.table('sets').bulkAdd([...sets])
+  if (workouts.length > 0) await legacy.table('workouts').bulkAdd([...workouts])
   legacy.close()
 }
 
@@ -174,5 +176,40 @@ describe('v1 のデータベースを現在のスキーマへ移行する', () =
     // Assert
     expect(set?.restTargetSec).toBeNull()
     expect(set?.weightKg).toBe(11.5)
+  })
+
+  test('ワークアウトに載せていた体重を体組成へ移す', async () => {
+    // Arrange: v8 より前は体重をワークアウトに持っていた
+    await createLegacyDatabase(
+      [legacyExercise()],
+      [],
+      [
+        {
+          date: '2026-07-01',
+          note: '',
+          bodyWeightKg: 68.4,
+          startedAt: '2026-07-01T10:00:00.000Z',
+          finishedAt: null,
+        },
+        {
+          date: '2026-07-02',
+          note: 'メモだけの日',
+          bodyWeightKg: null,
+          startedAt: '2026-07-02T10:00:00.000Z',
+          finishedAt: null,
+        },
+      ],
+    )
+
+    // Act
+    const db = await openUpgraded()
+    const measurements = await db.measurements.toArray()
+    db.close()
+
+    // Assert: 体重があった日だけが移る
+    expect(measurements).toHaveLength(1)
+    expect(measurements[0]?.date).toBe('2026-07-01')
+    expect(measurements[0]?.weightKg).toBe(68.4)
+    expect(measurements[0]?.bodyFatPercent).toBeNull()
   })
 })

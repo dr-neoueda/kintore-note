@@ -4,7 +4,6 @@ import { useResetOnOpen } from '@/hooks/useResetOnOpen'
 
 interface WorkoutNoteValues {
   readonly note: string
-  readonly bodyWeightKg: number | null
 }
 
 interface WorkoutNoteSheetProps {
@@ -14,7 +13,7 @@ interface WorkoutNoteSheetProps {
   readonly onSubmit: (values: WorkoutNoteValues) => Promise<void>
 }
 
-/** 体重とその日のメモを記録するシート。 */
+/** その日のメモを記録するシート。体重や体脂肪率は体組成の記録として別に持つ。 */
 export function WorkoutNoteSheet({
   isOpen,
   initialValues,
@@ -22,37 +21,19 @@ export function WorkoutNoteSheet({
   onSubmit,
 }: WorkoutNoteSheetProps) {
   const [note, setNote] = useState(initialValues.note)
-  const [bodyWeightText, setBodyWeightText] = useState(
-    initialValues.bodyWeightKg === null ? '' : String(initialValues.bodyWeightKg),
-  )
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
   useResetOnOpen(isOpen, () => {
     setNote(initialValues.note)
-    setBodyWeightText(
-      initialValues.bodyWeightKg === null ? '' : String(initialValues.bodyWeightKg),
-    )
     setErrorMessage(null)
   })
 
   const handleSubmit = async () => {
-    const trimmed = bodyWeightText.trim()
-    let bodyWeightKg: number | null = null
-
-    if (trimmed !== '') {
-      const parsed = Number(trimmed)
-      if (!Number.isFinite(parsed) || parsed <= 0) {
-        setErrorMessage('体重は正の数値で入力してください')
-        return
-      }
-      bodyWeightKg = parsed
-    }
-
     setIsSaving(true)
     setErrorMessage(null)
     try {
-      await onSubmit({ note: note.trim(), bodyWeightKg })
+      await onSubmit({ note: note.trim() })
       onClose()
     } catch {
       setErrorMessage('保存できませんでした')
@@ -64,7 +45,7 @@ export function WorkoutNoteSheet({
   return (
     <Sheet
       isOpen={isOpen}
-      title="体重とメモ"
+      title="メモ"
       onClose={onClose}
       footer={
         <button
@@ -78,22 +59,6 @@ export function WorkoutNoteSheet({
       }
     >
       <div className="stack">
-        <div>
-          <label className="text-sm text-dim" htmlFor="body-weight">
-            体重（kg）
-          </label>
-          <input
-            id="body-weight"
-            type="number"
-            inputMode="decimal"
-            step="0.1"
-            min="0"
-            placeholder="例: 68.4"
-            value={bodyWeightText}
-            onChange={(event) => setBodyWeightText(event.target.value)}
-          />
-        </div>
-
         <div>
           <label className="text-sm text-dim" htmlFor="workout-note">
             メモ

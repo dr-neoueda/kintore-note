@@ -6,6 +6,8 @@ import {
 } from '@/domain/muscle'
 import { DEFAULT_PROGRESSION_TARGET } from '@/domain/progression'
 import type {
+  BodyMeasurement,
+  CardioSession,
   CustomFood,
   MealEntry,
   MealTemplate,
@@ -29,6 +31,13 @@ interface UpgradingExercise {
   target?: ProgressionTarget
   restSec?: number
   referenceUrl?: string | null
+}
+
+/** 移行前のワークアウト。v8 より前は体重をここに持っていた。 */
+interface UpgradingWorkout {
+  date: string
+  bodyWeightKg?: number | null
+  startedAt?: string
 }
 
 /** 移行前のセットレコード。新しい項目を持っていない可能性がある。 */
@@ -63,6 +72,8 @@ export class KintoreDatabase extends Dexie {
   declare meals: Table<MealEntry, number>
   declare customFoods: Table<CustomFood, number>
   declare mealTemplates: Table<MealTemplate, number>
+  declare measurements: Table<BodyMeasurement, number>
+  declare cardioSessions: Table<CardioSession, number>
 
   /** データベース名を差し替えられるようにしているのは、移行のテストのため。 */
   constructor(databaseName: string = DATABASE_NAME) {
@@ -140,6 +151,33 @@ export class KintoreDatabase extends Dexie {
     this.version(7).stores({
       mealTemplates: '++id, order',
     })
+
+    // v8: 体組成と有酸素運動を追加。
+    this.version(8)
+      .stores({
+        measurements: '++id, &date',
+        cardioSessions: '++id, date',
+      })
+      .upgrade(async (transaction) => {
+        // 体重はワークアウトに載せていたが、トレーニングの有無と体組成は別の話。
+        // 記録済みの体重を体組成へ移し、以後はこちらを唯一の置き場にする。
+        const workouts = await transaction.table('workouts').toArray()
+        const moved = workouts
+          .filter((workout: UpgradingWorkout) => typeof workout.bodyWeightKg === 'number')
+          .map((workout: UpgradingWorkout) => ({
+            date: workout.date,
+            weightKg: workout.bodyWeightKg as number,
+            bodyFatPercent: null,
+            muscleMassKg: null,
+            visceralFatLevel: null,
+            basalMetabolicRateKcal: null,
+            recordedAt: workout.startedAt ?? `${workout.date}T12:00:00.000Z`,
+          }))
+
+        if (moved.length > 0) {
+          await transaction.table('measurements').bulkAdd(moved)
+        }
+      })
   }
 }
 

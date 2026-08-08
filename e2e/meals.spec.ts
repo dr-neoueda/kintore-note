@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { waitForPersisted } from './helpers/persistence'
 
 /** 食事の記録と栄養計算を、実機と同じ画面幅で確認する。 */
 
@@ -100,6 +101,7 @@ test.describe('食事の記録', () => {
     await addFood(page, '朝食', 'バナナ')
     await page.getByRole('button', { name: '記録する' }).click()
     await expect(page.getByRole('main')).toContainText('バナナ 生')
+    await waitForPersisted(page, 'meals', 1)
 
     // Act
     await page.reload()

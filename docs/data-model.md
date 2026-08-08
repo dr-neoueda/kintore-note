@@ -31,7 +31,7 @@
 | id | number | 自動採番 |
 | date | string | `YYYY-MM-DD`（ローカル日付）。**重複不可** |
 | note | string | その日のメモ |
-| bodyWeightKg | number \| null | その日の体重 |
+| bodyWeightKg | number \| null | v8 より前の体重。以後は measurements に持つ（互換のため残置）|
 | startedAt | string | ISO 8601 |
 | finishedAt | string \| null | 現状は未使用（将来の拡張用） |
 
@@ -101,6 +101,35 @@
 | createdAt | string | ISO 8601 |
 
 索引: `++id, &name`
+
+### measurements（体組成）
+
+| 項目 | 型 | 説明 |
+|---|---|---|
+| id | number | 自動採番 |
+| date | string | 'YYYY-MM-DD'。**重複不可**（1日1件） |
+| weightKg | number | 体重 |
+| bodyFatPercent | number \| null | 体脂肪率 |
+| muscleMassKg | number \| null | 筋肉量 |
+| visceralFatLevel | number \| null | 内臓脂肪レベル |
+| basalMetabolicRateKcal | number \| null | 基礎代謝量。収支の計算に使う |
+| recordedAt | string | ISO 8601 |
+
+索引: `++id, &date`
+
+### cardioSessions（有酸素運動）
+
+| 項目 | 型 | 説明 |
+|---|---|---|
+| id | number | 自動採番 |
+| date | string | 'YYYY-MM-DD' |
+| activity | CardioActivity | running / walking / cycling |
+| distanceKm | number | 距離 |
+| durationSec | number | 所要時間 |
+| note | string | メモ |
+| recordedAt | string | ISO 8601 |
+
+索引: `++id, date`
 
 ### mealTemplates（献立）
 

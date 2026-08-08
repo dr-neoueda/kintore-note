@@ -11,6 +11,9 @@ import {
   updateMealEntry,
 } from '@/data/repositories/mealRepository'
 import { listMealTemplates } from '@/data/repositories/mealTemplateRepository'
+import { listSetsByWorkout } from '@/data/repositories/setRepository'
+import { getWorkoutByDate } from '@/data/repositories/workoutRepository'
+import { useDailyEnergy } from '../today/useDailyEnergy'
 import { addDaysToDateKey as shiftDate } from '@/domain/date'
 import { addDaysToDateKey, isValidDateKey, formatDateLabel } from '@/domain/date'
 import type { Food } from '@/domain/food'
@@ -58,6 +61,11 @@ export function MealsPage() {
 
   const settings = useLiveQuery(() => getSettings(), [])
   const entries = useLiveQuery(() => listMealEntriesByDate(date), [date])
+  // 消費エネルギーの計算にその日のセットが要る
+  const workoutSets = useLiveQuery(async () => {
+    const workout = await getWorkoutByDate(date)
+    return workout?.id === undefined ? [] : listSetsByWorkout(workout.id)
+  }, [date])
   const { foods } = useFoodCatalog()
 
   const [pickerMealType, setPickerMealType] = useState<MealType | null>(null)
@@ -65,6 +73,7 @@ export function MealsPage() {
   const [creatingName, setCreatingName] = useState<string | null>(null)
   const [pendingMealType, setPendingMealType] = useState<MealType>('breakfast')
 
+  const energy = useDailyEnergy(date, workoutSets ?? [])
   const templates = useLiveQuery(() => listMealTemplates(), [])
   const yesterday = shiftDate(date, -1)
   const yesterdayEntries = useLiveQuery(() => listMealEntriesByDate(yesterday), [yesterday])
@@ -202,7 +211,12 @@ export function MealsPage() {
           </button>
         </div>
 
-        <NutritionSummary total={total} target={target} />
+        <NutritionSummary
+          total={total}
+          target={target}
+          basalMetabolicRateKcal={energy.measurement?.basalMetabolicRateKcal ?? null}
+          activeKcal={energy.activeKcal}
+        />
 
         {canCopyYesterday && (
           <button type="button" className="btn btn-block" onClick={copyYesterday}>

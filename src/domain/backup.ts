@@ -5,6 +5,8 @@ import {
 } from './muscle'
 import { normalizeProgressionTarget } from './progression'
 import type {
+  BodyMeasurement,
+  CardioSession,
   CustomFood,
   MealEntry,
   MealTemplate,
@@ -21,6 +23,7 @@ import type {
   WorkoutTemplate,
 } from './types'
 import { MUSCLE_GROUPS } from './types'
+import { CARDIO_ACTIVITIES, type CardioActivity } from './cardio'
 import type { Nutrition } from './nutrition'
 import { MEAL_TYPES } from './types'
 import { ValidationError } from './validation'
@@ -39,6 +42,8 @@ export interface BackupData {
   readonly meals: readonly MealEntry[]
   readonly customFoods: readonly CustomFood[]
   readonly mealTemplates: readonly MealTemplate[]
+  readonly measurements: readonly BodyMeasurement[]
+  readonly cardioSessions: readonly CardioSession[]
   readonly settings: AppSettings | null
 }
 
@@ -48,11 +53,13 @@ export interface BackupData {
  */
 export type IncomingBackupData = Omit<
   BackupData,
-  'meals' | 'customFoods' | 'mealTemplates'
+  'meals' | 'customFoods' | 'mealTemplates' | 'measurements' | 'cardioSessions'
 > & {
   readonly meals?: readonly MealEntry[]
   readonly customFoods?: readonly CustomFood[]
   readonly mealTemplates?: readonly MealTemplate[]
+  readonly measurements?: readonly BodyMeasurement[]
+  readonly cardioSessions?: readonly CardioSession[]
 }
 
 export interface BackupFile {
@@ -215,6 +222,40 @@ function normalizeCustomFood(raw: CustomFood): CustomFood {
   }
 }
 
+function toNumberOrNull(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null
+}
+
+function normalizeMeasurement(raw: BodyMeasurement): BodyMeasurement {
+  const source = raw as unknown as Record<string, unknown>
+
+  return {
+    ...raw,
+    weightKg: Math.max(0, toNumber(source.weightKg)),
+    bodyFatPercent: toNumberOrNull(source.bodyFatPercent),
+    muscleMassKg: toNumberOrNull(source.muscleMassKg),
+    visceralFatLevel: toNumberOrNull(source.visceralFatLevel),
+    basalMetabolicRateKcal: toNumberOrNull(source.basalMetabolicRateKcal),
+    recordedAt: typeof source.recordedAt === 'string' ? source.recordedAt : '',
+  }
+}
+
+function normalizeCardioSession(raw: CardioSession): CardioSession {
+  const source = raw as unknown as Record<string, unknown>
+  const activity = CARDIO_ACTIVITIES.includes(source.activity as CardioActivity)
+    ? (source.activity as CardioActivity)
+    : 'running'
+
+  return {
+    ...raw,
+    activity,
+    distanceKm: Math.max(0, toNumber(source.distanceKm)),
+    durationSec: Math.max(0, toNumber(source.durationSec)),
+    note: typeof source.note === 'string' ? source.note : '',
+    recordedAt: typeof source.recordedAt === 'string' ? source.recordedAt : '',
+  }
+}
+
 function normalizeMealTemplate(raw: MealTemplate): MealTemplate {
   const source = raw as unknown as Record<string, unknown>
   const mealType = MEAL_TYPES.includes(source.mealType as MealType)
@@ -261,6 +302,8 @@ export function normalizeBackupData(data: IncomingBackupData): BackupData {
     meals: (data.meals ?? []).map(normalizeMealEntry),
     customFoods: (data.customFoods ?? []).map(normalizeCustomFood),
     mealTemplates: (data.mealTemplates ?? []).map(normalizeMealTemplate),
+    measurements: (data.measurements ?? []).map(normalizeMeasurement),
+    cardioSessions: (data.cardioSessions ?? []).map(normalizeCardioSession),
     settings: data.settings,
   }
 }

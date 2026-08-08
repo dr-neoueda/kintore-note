@@ -121,10 +121,7 @@ export function WorkoutEditorBody({
 
       <WorkoutNoteSheet
         isOpen={editor.isNoteOpen}
-        initialValues={{
-          note: editor.workout?.note ?? '',
-          bodyWeightKg: editor.workout?.bodyWeightKg ?? null,
-        }}
+        initialValues={{ note: editor.workout?.note ?? '' }}
         onClose={editor.closeNote}
         onSubmit={editor.saveNote}
       />

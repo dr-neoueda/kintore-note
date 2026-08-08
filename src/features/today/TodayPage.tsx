@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { BackupReminderBanner } from '@/components/BackupReminderBanner'
 import { PageHeader } from '@/components/PageHeader'
+import { saveMeasurement } from '@/data/repositories/measurementRepository'
 import { getSettings } from '@/data/repositories/settingsRepository'
 import { listTemplates } from '@/data/repositories/templateRepository'
 import { formatDateLabel } from '@/domain/date'
@@ -12,9 +13,12 @@ import { useLastSessions } from '@/hooks/useLastSessions'
 import { useRestTimer } from '@/hooks/useRestTimer'
 import { useTodayKey } from '@/hooks/useTodayKey'
 import { useWakeLock } from '@/hooks/useWakeLock'
+import { BodyMeasurementSheet } from '../body/BodyMeasurementSheet'
+import { CardioSection } from '../cardio/CardioSection'
 import { WorkoutEditorBody } from '../workout/WorkoutEditorBody'
 import { useWorkoutEditor } from '../workout/useWorkoutEditor'
 import { RestTimerBar } from './RestTimerBar'
+import { useDailyEnergy } from './useDailyEnergy'
 import { useRestAlarm } from './useRestAlarm'
 import styles from './TodayPage.module.css'
 
@@ -45,6 +49,9 @@ export function TodayPage() {
   })
 
   const { lastSet, workout, summary } = editor
+
+  const energy = useDailyEnergy(todayKey, editor.sets)
+  const [isMeasurementOpen, setIsMeasurementOpen] = useState(false)
   const restSeconds = useRestTimer(lastSet?.recordedAt ?? null)
   // 休憩の目安は、直前のセットに記録した値。
   // 持たない古いセットは「その種目」の設定で補う。
@@ -105,20 +112,44 @@ export function TodayPage() {
             </span>
             <span className={styles.metricLabel}>セット</span>
           </div>
+          {energy.activeKcal > 0 && (
+            <div className={styles.metric}>
+              <span className={styles.metricValue} data-testid="active-kcal">
+                {energy.activeKcal}
+              </span>
+              <span className={styles.metricLabel}>kcal</span>
+            </div>
+          )}
         </div>
 
-        <button type="button" className={styles.noteButton} onClick={editor.openNote}>
-          {workout?.bodyWeightKg != null && (
-            <span className={styles.noteValue}>
-              体重 {formatWeightKg(workout.bodyWeightKg)} kg
+        <div className={styles.dailyButtons}>
+          <button
+            type="button"
+            className={styles.noteButton}
+            aria-label="体組成を記録"
+            onClick={() => setIsMeasurementOpen(true)}
+          >
+            {energy.measurement === undefined ? (
+              '体組成を記録'
+            ) : (
+              <span className={styles.noteValue}>
+                {formatWeightKg(energy.measurement.weightKg)} kg
+                {energy.measurement.bodyFatPercent !== null &&
+                  ` · ${energy.measurement.bodyFatPercent}%`}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            className={styles.noteButton}
+            aria-label="メモを記録"
+            onClick={editor.openNote}
+          >
+            <span className={workout?.note ? styles.noteValue : undefined}>
+              {workout?.note !== undefined && workout.note !== '' ? workout.note : 'メモ'}
             </span>
-          )}
-          <span className={workout?.note ? styles.noteValue : undefined}>
-            {workout?.note !== undefined && workout.note !== ''
-              ? workout.note
-              : '体重・メモを記録する'}
-          </span>
-        </button>
+          </button>
+        </div>
 
         {!hasSections && hasTemplates && (
           <>
@@ -147,7 +178,16 @@ export function TodayPage() {
           lastSessionByExercise={lastSessionByExercise}
           emptyMessage="種目を追加して、今日のトレーニングを記録しましょう。"
         />
+
+        <CardioSection date={todayKey} weightKg={energy.weightKg} />
       </div>
+
+      <BodyMeasurementSheet
+        isOpen={isMeasurementOpen}
+        measurement={energy.measurement}
+        onClose={() => setIsMeasurementOpen(false)}
+        onSubmit={(values) => saveMeasurement(todayKey, values, new Date().toISOString())}
+      />
 
       {shouldShowRestTimer && (
         <RestTimerBar

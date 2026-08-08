@@ -9,8 +9,18 @@ import { SETTINGS_ID } from '@/domain/types'
 
 /** 全テーブルを読み出してバックアップ用のデータにまとめる。 */
 export async function collectBackupData(): Promise<BackupData> {
-  const [exercises, workouts, sets, templates, meals, customFoods, mealTemplates, settings] =
-    await Promise.all([
+  const [
+    exercises,
+    workouts,
+    sets,
+    templates,
+    meals,
+    customFoods,
+    mealTemplates,
+    measurements,
+    cardioSessions,
+    settings,
+  ] = await Promise.all([
       db.exercises.toArray(),
       db.workouts.toArray(),
       db.sets.toArray(),
@@ -18,6 +28,8 @@ export async function collectBackupData(): Promise<BackupData> {
       db.meals.toArray(),
       db.customFoods.toArray(),
       db.mealTemplates.toArray(),
+      db.measurements.toArray(),
+      db.cardioSessions.toArray(),
       db.settings.get(SETTINGS_ID),
     ])
 
@@ -29,6 +41,8 @@ export async function collectBackupData(): Promise<BackupData> {
     meals,
     customFoods,
     mealTemplates,
+    measurements,
+    cardioSessions,
     settings: settings ?? null,
   }
 }
@@ -51,6 +65,8 @@ export async function replaceAllData(input: IncomingBackupData): Promise<void> {
       db.meals,
       db.customFoods,
       db.mealTemplates,
+      db.measurements,
+      db.cardioSessions,
       db.settings,
     ],
     async () => {
@@ -62,6 +78,8 @@ export async function replaceAllData(input: IncomingBackupData): Promise<void> {
         db.meals.clear(),
         db.customFoods.clear(),
         db.mealTemplates.clear(),
+        db.measurements.clear(),
+        db.cardioSessions.clear(),
         db.settings.clear(),
       ])
 
@@ -72,6 +90,8 @@ export async function replaceAllData(input: IncomingBackupData): Promise<void> {
       await db.meals.bulkAdd([...data.meals])
       await db.customFoods.bulkAdd([...data.customFoods])
       await db.mealTemplates.bulkAdd([...data.mealTemplates])
+      await db.measurements.bulkAdd([...data.measurements])
+      await db.cardioSessions.bulkAdd([...data.cardioSessions])
       // 設定を持たないバックアップでも、レコードが無い状態にはしない
       await db.settings.put(
         data.settings === null

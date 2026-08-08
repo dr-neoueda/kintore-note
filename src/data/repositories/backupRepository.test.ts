@@ -108,6 +108,8 @@ describe('replaceAllData', () => {
       meals: [],
       customFoods: [],
       mealTemplates: [],
+      measurements: [],
+      cardioSessions: [],
       settings: null,
     })
 
@@ -154,6 +156,8 @@ describe('古い形式のバックアップの取り込み', () => {
       meals: [],
       customFoods: [],
       mealTemplates: [],
+      measurements: [],
+      cardioSessions: [],
       settings: null,
     })
 
@@ -198,6 +202,8 @@ describe('古い形式のバックアップの取り込み', () => {
       meals: [],
       customFoods: [],
       mealTemplates: [],
+      measurements: [],
+      cardioSessions: [],
       settings: null,
     })
 
@@ -236,6 +242,8 @@ describe('取り込みが失敗した場合', () => {
         meals: [],
         customFoods: [],
         mealTemplates: [],
+        measurements: [],
+        cardioSessions: [],
         settings: null,
       }),
     ).rejects.toThrow()

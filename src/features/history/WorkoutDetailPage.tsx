@@ -1,10 +1,16 @@
+import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate, useParams } from 'react-router-dom'
 import { PageHeader } from '@/components/PageHeader'
+import {
+  findLatestWeightKg,
+  getMeasurementByDate,
+} from '@/data/repositories/measurementRepository'
 import { deleteWorkout } from '@/data/repositories/workoutRepository'
 import { formatDateLabelWithYear, isValidDateKey } from '@/domain/date'
 import { formatWeightKg } from '@/domain/weight'
 import { useExercises } from '@/hooks/useExercises'
 import { useLastSessions } from '@/hooks/useLastSessions'
+import { CardioSection } from '../cardio/CardioSection'
 import { WorkoutEditorBody } from '../workout/WorkoutEditorBody'
 import { useWorkoutEditor } from '../workout/useWorkoutEditor'
 import styles from './WorkoutDetailPage.module.css'
@@ -17,6 +23,16 @@ export function WorkoutDetailPage() {
 
   const editor = useWorkoutEditor({ dateKey: date })
   const { workout, summary } = editor
+
+  const measurement = useLiveQuery(
+    () => (isValidDateKey(date) ? getMeasurementByDate(date) : Promise.resolve(undefined)),
+    [date],
+  )
+  // その日に測っていなくても、直近の体重があれば消費を出せる
+  const weightKg = useLiveQuery(
+    () => (isValidDateKey(date) ? findLatestWeightKg(date) : Promise.resolve(null)),
+    [date],
+  )
 
   const handleDeleteWorkout = async () => {
     if (workout?.id === undefined) return
@@ -53,21 +69,26 @@ export function WorkoutDetailPage() {
             <div className={styles.metricValue}>{summary.workingSetCount}</div>
             <div className={styles.metricLabel}>セット</div>
           </div>
-          {workout?.bodyWeightKg != null && (
+          {measurement !== undefined && (
             <div className={styles.metric}>
               <div className={styles.metricValue}>
-                {formatWeightKg(workout.bodyWeightKg)} kg
+                {formatWeightKg(measurement.weightKg)} kg
               </div>
               <div className={styles.metricLabel}>体重</div>
             </div>
           )}
         </div>
 
-        <button type="button" className={styles.noteButton} onClick={editor.openNote}>
-          {workout?.note !== undefined && workout.note !== ''
-            ? workout.note
-            : '体重・メモを記録する'}
+        <button
+          type="button"
+          className={styles.noteButton}
+          aria-label="メモを記録"
+          onClick={editor.openNote}
+        >
+          {workout?.note !== undefined && workout.note !== '' ? workout.note : 'メモを記録'}
         </button>
+
+        <CardioSection date={date} weightKg={weightKg ?? null} />
 
         <WorkoutEditorBody
           editor={editor}

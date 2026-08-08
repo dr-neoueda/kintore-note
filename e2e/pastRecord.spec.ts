@@ -23,7 +23,7 @@ async function submitSetAndWait(page: Page, expectedSetCount: number): Promise<v
   // 種目が複数あると同名のボタンが並ぶため、いま記録した種目（末尾）に絞る
   await expect(
     page
-      .locator('section')
+      .getByTestId('exercise-section')
       .last()
       .getByRole('button', { name: `${expectedSetCount}セット目を編集` }),
   ).toBeVisible()

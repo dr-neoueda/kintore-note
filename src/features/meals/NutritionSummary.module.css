@@ -99,3 +99,33 @@
   color: var(--text-faint);
   font-variant-numeric: tabular-nums;
 }
+
+.balance {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.balanceRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: 12px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.balanceTotal {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.balanceNote {
+  margin-top: 2px;
+  font-size: 10px;
+  color: var(--text-faint);
+  line-height: 1.5;
+}

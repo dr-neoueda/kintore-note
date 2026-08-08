@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { waitForPersisted } from './helpers/persistence'
 
 /** 運動と食事の切り替え、および食事側の各画面。 */
 
@@ -123,6 +124,7 @@ test.describe('食事の履歴とグラフ', () => {
     await page.getByRole('dialog').getByRole('button', { name: /^バナナ 生/ }).click()
     await page.getByRole('button', { name: '記録する' }).click()
     await expect(page.getByRole('main')).toContainText('バナナ 生')
+    await waitForPersisted(page, 'meals', 1)
   }
 
   test('履歴からその日の記録を開ける', async ({ page }) => {

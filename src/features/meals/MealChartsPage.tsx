@@ -15,7 +15,8 @@ import {
 import { PageHeader } from '@/components/PageHeader'
 import { listAllMealEntries } from '@/data/repositories/mealRepository'
 import { getSettings } from '@/data/repositories/settingsRepository'
-import { listRecentWorkouts } from '@/data/repositories/workoutRepository'
+import { listMeasurements } from '@/data/repositories/measurementRepository'
+import { calcLeanBodyMassKg } from '@/domain/bodyComposition'
 import { formatShortDateLabel } from '@/domain/date'
 import { DEFAULT_NUTRITION_TARGET } from '@/domain/nutritionTarget'
 import { useColorScheme } from '@/hooks/useColorScheme'
@@ -34,7 +35,7 @@ const WEIGHT_DAYS = 60
 export function MealChartsPage() {
   const entries = useLiveQuery(() => listAllMealEntries(), [])
   const settings = useLiveQuery(() => getSettings(), [])
-  const workouts = useLiveQuery(() => listRecentWorkouts(WEIGHT_DAYS), [])
+  const measurements = useLiveQuery(() => listMeasurements(), [])
   const palette = CHART_PALETTES[useColorScheme()]
 
   const days = useMemo(() => summarizeMealDays(entries ?? []), [entries])
@@ -56,16 +57,19 @@ export function MealChartsPage() {
   /** 体重は記録がある日だけを線でつなぐ。欠測日を0にすると急落して見える。 */
   const weightData = useMemo(
     () =>
-      (workouts ?? [])
-        .filter((workout) => workout.bodyWeightKg != null)
-        .map((workout) => ({
-          label: formatShortDateLabel(workout.date),
-          date: workout.date,
-          体重: workout.bodyWeightKg as number,
+      (measurements ?? [])
+        .slice(0, WEIGHT_DAYS)
+        .map((measurement) => ({
+          label: formatShortDateLabel(measurement.date),
+          date: measurement.date,
+          体重: measurement.weightKg,
+          除脂肪体重: calcLeanBodyMassKg(measurement.weightKg, measurement.bodyFatPercent),
         }))
         .sort((a, b) => a.date.localeCompare(b.date)),
-    [workouts],
+    [measurements],
   )
+
+  const hasLeanBodyMass = weightData.some((point) => point.除脂肪体重 !== null)
 
   const axisStyle = { fill: palette.axisText, fontSize: AXIS_FONT_SIZE }
   const tooltipStyle = {
@@ -172,7 +176,8 @@ export function MealChartsPage() {
         <section className={styles.card}>
           <h2 className={styles.cardTitle}>体重の推移</h2>
           <p className={styles.cardNote}>
-            食べた量の結果が出るのは体重です。ホームの「体重・メモ」で記録した値を出しています。
+            食べた量の結果が出るのは体重です。ホームの「体組成を記録」で入れた値を出しています。
+            {hasLeanBodyMass && ' 除脂肪体重は体重から脂肪を除いた重さで、筋量の増減を読み取れます。'}
           </p>
           {weightData.length === 0 ? (
             <p className="empty-state">体重の記録がまだありません。</p>
@@ -199,6 +204,17 @@ export function MealChartsPage() {
                     strokeWidth={2}
                     dot={{ r: 3, fill: palette.maxWeight, stroke: palette.maxWeight }}
                   />
+                  {hasLeanBodyMass && (
+                    <Line
+                      type="monotone"
+                      dataKey="除脂肪体重"
+                      stroke={palette.oneRepMax}
+                      strokeWidth={2}
+                      strokeDasharray="4 3"
+                      dot={{ r: 2, fill: palette.oneRepMax, stroke: palette.oneRepMax }}
+                      connectNulls
+                    />
+                  )}
                 </LineChart>
               </ResponsiveContainer>
             </div>

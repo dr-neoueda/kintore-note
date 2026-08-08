@@ -2,6 +2,7 @@
  * アプリ全体で共有するドメイン型。
  * 保存は IndexedDB (Dexie) だが、この層は永続化の詳細を知らない。
  */
+import type { CardioActivity } from './cardio'
 import type { Nutrition } from './nutrition'
 
 export type ExerciseId = number
@@ -117,6 +118,7 @@ export interface Workout {
   /** 'YYYY-MM-DD' 形式のローカル日付。 */
   readonly date: string
   readonly note: string
+  /** v8 より前に記録した体重。以後は measurements に持つ。古いデータの互換のために残す。 */
   readonly bodyWeightKg: number | null
   readonly startedAt: string
   readonly finishedAt: string | null
@@ -186,6 +188,40 @@ export interface CustomFood {
   readonly nutrition: Nutrition
   readonly isArchived: boolean
   readonly createdAt: string
+}
+
+export type MeasurementId = number
+export type CardioSessionId = number
+
+/**
+ * 体組成計で測った記録。1日1件。
+ *
+ * Bluetooth 連携はできないため、表示された数字を手で入れる前提。
+ * 測っていない項目は null にでき、その項目だけグラフから外れる。
+ */
+export interface BodyMeasurement {
+  readonly id?: MeasurementId
+  /** 'YYYY-MM-DD' 形式のローカル日付。 */
+  readonly date: string
+  readonly weightKg: number
+  readonly bodyFatPercent: number | null
+  readonly muscleMassKg: number | null
+  readonly visceralFatLevel: number | null
+  /** 体組成計が出す基礎代謝量（kcal/日）。 */
+  readonly basalMetabolicRateKcal: number | null
+  readonly recordedAt: string
+}
+
+/** 有酸素運動1回の記録。 */
+export interface CardioSession {
+  readonly id?: CardioSessionId
+  /** 'YYYY-MM-DD' 形式のローカル日付。 */
+  readonly date: string
+  readonly activity: CardioActivity
+  readonly distanceKm: number
+  readonly durationSec: number
+  readonly note: string
+  readonly recordedAt: string
 }
 
 export type MealTemplateId = number

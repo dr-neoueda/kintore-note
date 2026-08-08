@@ -6,6 +6,10 @@ import styles from './NutritionSummary.module.css'
 interface NutritionSummaryProps {
   readonly total: Nutrition
   readonly target: NutritionTarget
+  /** 体組成計で測った基礎代謝量。無ければ収支は出さない。 */
+  readonly basalMetabolicRateKcal: number | null
+  /** その日の運動による推定消費。 */
+  readonly activeKcal: number
 }
 
 interface MacroRow {
@@ -17,7 +21,12 @@ interface MacroRow {
 /** 帯が振り切れて見えなくならないよう、表示上の上限を設ける。 */
 const MAX_BAR_PERCENT = 100
 
-export function NutritionSummary({ total, target }: NutritionSummaryProps) {
+export function NutritionSummary({
+  total,
+  target,
+  basalMetabolicRateKcal,
+  activeKcal,
+}: NutritionSummaryProps) {
   const kcalPercent = calcAchievementPercent(total.kcal, target.kcal)
   const remaining = target.kcal - total.kcal
 
@@ -67,6 +76,31 @@ export function NutritionSummary({ total, target }: NutritionSummaryProps) {
           </div>
         ))}
       </dl>
+
+      {basalMetabolicRateKcal !== null && (
+        <div className={styles.balance}>
+          <div className={styles.balanceRow}>
+            <span>摂取</span>
+            <span>{total.kcal} kcal</span>
+          </div>
+          <div className={styles.balanceRow}>
+            <span>消費（基礎代謝 + 運動）</span>
+            <span>
+              {basalMetabolicRateKcal + activeKcal} kcal
+            </span>
+          </div>
+          <div className={`${styles.balanceRow} ${styles.balanceTotal}`}>
+            <span>収支</span>
+            <span data-testid="energy-balance">
+              {total.kcal - basalMetabolicRateKcal - activeKcal > 0 ? '+' : ''}
+              {total.kcal - basalMetabolicRateKcal - activeKcal} kcal
+            </span>
+          </div>
+          <p className={styles.balanceNote}>
+            日常生活の活動量は含んでいません。目安として見てください。
+          </p>
+        </div>
+      )}
 
       <p className={styles.salt}>食塩相当量 {total.salt} g</p>
     </section>
