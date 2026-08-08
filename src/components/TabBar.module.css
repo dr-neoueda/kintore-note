@@ -5,6 +5,7 @@
   right: 0;
   z-index: 40;
   display: flex;
+  align-items: stretch;
   background: var(--overlay-bg);
   backdrop-filter: blur(12px);
   border-top: 1px solid var(--border);
@@ -13,6 +14,7 @@
 
 .tab {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -33,4 +35,37 @@
 .active {
   color: var(--text);
   font-weight: 700;
+}
+
+/*
+ * 系統の切り替えは移動先が変わるだけのタブとは性質が違う。
+ * 枠で囲って「押すと切り替わる」ことを見た目でも分ける。
+ */
+.switch {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  height: var(--tabbar-height);
+  margin: var(--space-1) 0 var(--space-1) var(--space-1);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.switch:active {
+  opacity: 0.6;
+}
+
+.switchIcons {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  color: var(--text-dim);
 }

@@ -129,3 +129,21 @@ export const UtensilsIcon = (props: IconProps) => (
     <path d="M17 2c-1.7 1.5-2.5 3.6-2.5 6 0 1.7.7 3 2.5 3.5V22" />
   </Icon>
 )
+
+/** 切り替え。上下の矢印。 */
+export const SwitchIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M7 4v16" />
+    <path d="m3 8 4-4 4 4" />
+    <path d="M17 20V4" />
+    <path d="m13 16 4 4 4-4" />
+  </Icon>
+)
+
+/** 複製。重なった2枚の紙。 */
+export const CopyIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <rect x="9" y="9" width="12" height="12" rx="2" />
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+  </Icon>
+)

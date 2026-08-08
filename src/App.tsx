@@ -4,6 +4,9 @@ import { AppShell } from './components/AppShell'
 import { useBootstrap } from './hooks/useBootstrap'
 import { HistoryPage } from './features/history/HistoryPage'
 import { CustomFoodManagerPage } from './features/meals/CustomFoodManagerPage'
+import { MealHistoryPage } from './features/meals/MealHistoryPage'
+import { MealTemplateEditorPage } from './features/meals/MealTemplateEditorPage'
+import { MealTemplatesPage } from './features/meals/MealTemplatesPage'
 import { MealsPage } from './features/meals/MealsPage'
 import { WorkoutDetailPage } from './features/history/WorkoutDetailPage'
 import { ExerciseManagerPage } from './features/settings/ExerciseManagerPage'
@@ -19,6 +22,13 @@ import styles from './App.module.css'
  */
 const ChartsPage = lazy(() =>
   import('./features/charts/ChartsPage').then((module) => ({ default: module.ChartsPage })),
+)
+
+// 食事のグラフも同じライブラリを使う
+const MealChartsPage = lazy(() =>
+  import('./features/meals/MealChartsPage').then((module) => ({
+    default: module.MealChartsPage,
+  })),
 )
 
 // カルテ画面も推移グラフを描くため、同じく遅延読み込みにする
@@ -56,6 +66,17 @@ export function App() {
       <Route element={<AppShell />}>
         <Route path="/" element={<TodayPage />} />
         <Route path="/meals" element={<MealsPage />} />
+        <Route path="/meals/history" element={<MealHistoryPage />} />
+        <Route
+          path="/meals/charts"
+          element={
+            <Suspense fallback={<p className="empty-state">読み込み中…</p>}>
+              <MealChartsPage />
+            </Suspense>
+          }
+        />
+        <Route path="/meals/templates" element={<MealTemplatesPage />} />
+        <Route path="/meals/templates/:templateId" element={<MealTemplateEditorPage />} />
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/history/:date" element={<WorkoutDetailPage />} />
         <Route

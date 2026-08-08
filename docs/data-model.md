@@ -102,6 +102,18 @@
 
 索引: `++id, &name`
 
+### mealTemplates（献立）
+
+| 項目 | 型 | 説明 |
+|---|---|---|
+| id | number | 自動採番 |
+| name | string | 献立の名前 |
+| mealType | MealType | 既定で入れる区分 |
+| order | number | 並び順 |
+| items | MealTemplateItem[] | `{ foodId, foodName, grams, nutrition }`。件数が少ないため埋め込む |
+
+索引: `++id, order`
+
 ### settings（設定・単一レコード）
 
 | 項目 | 型 | 説明 |

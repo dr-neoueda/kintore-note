@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { useSearchParams } from 'react-router-dom'
 import { PageHeader } from '@/components/PageHeader'
-import { ChevronRightIcon, PlusIcon } from '@/components/icons'
+import { ChevronRightIcon, CopyIcon, PlusIcon } from '@/components/icons'
 import { getSettings } from '@/data/repositories/settingsRepository'
 import {
   addMealEntry,
@@ -9,11 +10,19 @@ import {
   listMealEntriesByDate,
   updateMealEntry,
 } from '@/data/repositories/mealRepository'
-import { addDaysToDateKey, formatDateLabel } from '@/domain/date'
+import { listMealTemplates } from '@/data/repositories/mealTemplateRepository'
+import { addDaysToDateKey as shiftDate } from '@/domain/date'
+import { addDaysToDateKey, isValidDateKey, formatDateLabel } from '@/domain/date'
 import type { Food } from '@/domain/food'
 import { sumNutrition, type Nutrition } from '@/domain/nutrition'
 import { DEFAULT_NUTRITION_TARGET } from '@/domain/nutritionTarget'
-import { MEAL_TYPES, MEAL_TYPE_LABELS, type MealEntry, type MealType } from '@/domain/types'
+import {
+  MEAL_TYPES,
+  MEAL_TYPE_LABELS,
+  type MealEntry,
+  type MealTemplate,
+  type MealType,
+} from '@/domain/types'
 import { useTodayKey } from '@/hooks/useTodayKey'
 import { CreateCustomFoodSheet } from './CreateCustomFoodSheet'
 import { FoodPickerSheet } from './FoodPickerSheet'
@@ -33,8 +42,19 @@ const DEFAULT_GRAMS = 100
 
 export function MealsPage() {
   const todayKey = useTodayKey()
-  const [dateKey, setDateKey] = useState<string | null>(null)
-  const date = dateKey ?? todayKey
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const requestedDate = searchParams.get('date')
+  const date =
+    requestedDate !== null && isValidDateKey(requestedDate) && requestedDate <= todayKey
+      ? requestedDate
+      : todayKey
+
+  /** 今日なら URL を汚さない。履歴から開いた日だけ ?date= を残す。 */
+  const setDateKey = (next: string | null) => {
+    if (next === null || next === todayKey) setSearchParams({}, { replace: true })
+    else setSearchParams({ date: next }, { replace: true })
+  }
 
   const settings = useLiveQuery(() => getSettings(), [])
   const entries = useLiveQuery(() => listMealEntriesByDate(date), [date])
@@ -44,6 +64,10 @@ export function MealsPage() {
   const [entryTarget, setEntryTarget] = useState<EntryTarget | null>(null)
   const [creatingName, setCreatingName] = useState<string | null>(null)
   const [pendingMealType, setPendingMealType] = useState<MealType>('breakfast')
+
+  const templates = useLiveQuery(() => listMealTemplates(), [])
+  const yesterday = shiftDate(date, -1)
+  const yesterdayEntries = useLiveQuery(() => listMealEntriesByDate(yesterday), [yesterday])
 
   const entriesByType = useMemo(() => {
     const grouped = new Map<MealType, MealEntry[]>()
@@ -106,6 +130,43 @@ export function MealsPage() {
     await deleteMealEntry(entryTarget.entry.id)
   }
 
+  /** 献立をまとめて入れる。栄養価は献立に保存された値をそのまま使う。 */
+  const applyTemplate = async (template: MealTemplate) => {
+    const recordedAt = new Date().toISOString()
+
+    for (const item of template.items) {
+      await addMealEntry({
+        date,
+        mealType: template.mealType,
+        foodId: item.foodId,
+        foodName: item.foodName,
+        grams: item.grams,
+        nutrition: item.nutrition,
+        recordedAt,
+      })
+    }
+  }
+
+  /** 前の日と同じ内容にする。毎日ほぼ同じものを食べる日の入力を省く。 */
+  const copyYesterday = async () => {
+    const recordedAt = new Date().toISOString()
+
+    for (const entry of yesterdayEntries ?? []) {
+      await addMealEntry({
+        date,
+        mealType: entry.mealType,
+        foodId: entry.foodId,
+        foodName: entry.foodName,
+        grams: entry.grams,
+        nutrition: entry.nutrition,
+        recordedAt,
+      })
+    }
+  }
+
+  const hasEntries = (entries ?? []).length > 0
+  const canCopyYesterday = !hasEntries && (yesterdayEntries ?? []).length > 0
+
   return (
     <>
       <PageHeader title="食事" subtitle={formatDateLabel(date)} />
@@ -142,6 +203,34 @@ export function MealsPage() {
         </div>
 
         <NutritionSummary total={total} target={target} />
+
+        {canCopyYesterday && (
+          <button type="button" className="btn btn-block" onClick={copyYesterday}>
+            <CopyIcon size={18} />
+            前の日と同じにする
+          </button>
+        )}
+
+        {!hasEntries && (templates ?? []).length > 0 && (
+          <div className={styles.templates}>
+            <span className={styles.templatesLabel}>献立から入れる</span>
+            <div className={styles.templateButtons}>
+              {(templates ?? []).map((template) => (
+                <button
+                  key={template.id}
+                  type="button"
+                  className={styles.templateButton}
+                  onClick={() => void applyTemplate(template)}
+                >
+                  <span className={styles.templateName}>{template.name}</span>
+                  <span className={styles.templateMeta}>
+                    {MEAL_TYPE_LABELS[template.mealType]}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {MEAL_TYPES.map((mealType) => {
           const items = entriesByType.get(mealType) ?? []

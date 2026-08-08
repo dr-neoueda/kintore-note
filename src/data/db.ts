@@ -8,6 +8,7 @@ import { DEFAULT_PROGRESSION_TARGET } from '@/domain/progression'
 import type {
   CustomFood,
   MealEntry,
+  MealTemplate,
   AppSettings,
   Exercise,
   MuscleArchitecture,
@@ -61,6 +62,7 @@ export class KintoreDatabase extends Dexie {
   declare settings: Table<AppSettings, number>
   declare meals: Table<MealEntry, number>
   declare customFoods: Table<CustomFood, number>
+  declare mealTemplates: Table<MealTemplate, number>
 
   /** データベース名を差し替えられるようにしているのは、移行のテストのため。 */
   constructor(databaseName: string = DATABASE_NAME) {
@@ -132,6 +134,11 @@ export class KintoreDatabase extends Dexie {
     this.version(6).stores({
       meals: '++id, date, [date+mealType]',
       customFoods: '++id, &name',
+    })
+
+    // v7: 献立テンプレートを追加。
+    this.version(7).stores({
+      mealTemplates: '++id, order',
     })
   }
 }

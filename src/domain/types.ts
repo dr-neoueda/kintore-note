@@ -188,6 +188,27 @@ export interface CustomFood {
   readonly createdAt: string
 }
 
+export type MealTemplateId = number
+
+/** 献立テンプレートに含まれる1品。 */
+export interface MealTemplateItem {
+  readonly foodId: string
+  readonly foodName: string
+  readonly grams: number
+  /** この分量ぶんの栄養価。作った時点の値を持つ。 */
+  readonly nutrition: Nutrition
+}
+
+/** よく食べる組み合わせ。まとめて1日の記録へ入れられる。 */
+export interface MealTemplate {
+  readonly id?: MealTemplateId
+  readonly name: string
+  /** 既定で入れる区分。入れるときに変えられる。 */
+  readonly mealType: MealType
+  readonly order: number
+  readonly items: readonly MealTemplateItem[]
+}
+
 /** 1日の栄養の目標。 */
 export interface NutritionTarget {
   readonly kcal: number

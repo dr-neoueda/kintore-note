@@ -9,7 +9,7 @@ import { SETTINGS_ID } from '@/domain/types'
 
 /** 全テーブルを読み出してバックアップ用のデータにまとめる。 */
 export async function collectBackupData(): Promise<BackupData> {
-  const [exercises, workouts, sets, templates, meals, customFoods, settings] =
+  const [exercises, workouts, sets, templates, meals, customFoods, mealTemplates, settings] =
     await Promise.all([
       db.exercises.toArray(),
       db.workouts.toArray(),
@@ -17,6 +17,7 @@ export async function collectBackupData(): Promise<BackupData> {
       db.templates.toArray(),
       db.meals.toArray(),
       db.customFoods.toArray(),
+      db.mealTemplates.toArray(),
       db.settings.get(SETTINGS_ID),
     ])
 
@@ -27,6 +28,7 @@ export async function collectBackupData(): Promise<BackupData> {
     templates,
     meals,
     customFoods,
+    mealTemplates,
     settings: settings ?? null,
   }
 }
@@ -41,7 +43,16 @@ export async function replaceAllData(input: IncomingBackupData): Promise<void> {
 
   await db.transaction(
     'rw',
-    [db.exercises, db.workouts, db.sets, db.templates, db.meals, db.customFoods, db.settings],
+    [
+      db.exercises,
+      db.workouts,
+      db.sets,
+      db.templates,
+      db.meals,
+      db.customFoods,
+      db.mealTemplates,
+      db.settings,
+    ],
     async () => {
       await Promise.all([
         db.exercises.clear(),
@@ -50,6 +61,7 @@ export async function replaceAllData(input: IncomingBackupData): Promise<void> {
         db.templates.clear(),
         db.meals.clear(),
         db.customFoods.clear(),
+        db.mealTemplates.clear(),
         db.settings.clear(),
       ])
 
@@ -59,6 +71,7 @@ export async function replaceAllData(input: IncomingBackupData): Promise<void> {
       await db.templates.bulkAdd([...data.templates])
       await db.meals.bulkAdd([...data.meals])
       await db.customFoods.bulkAdd([...data.customFoods])
+      await db.mealTemplates.bulkAdd([...data.mealTemplates])
       // 設定を持たないバックアップでも、レコードが無い状態にはしない
       await db.settings.put(
         data.settings === null

@@ -107,6 +107,7 @@ describe('replaceAllData', () => {
       templates: [],
       meals: [],
       customFoods: [],
+      mealTemplates: [],
       settings: null,
     })
 
@@ -152,6 +153,7 @@ describe('古い形式のバックアップの取り込み', () => {
       templates: [],
       meals: [],
       customFoods: [],
+      mealTemplates: [],
       settings: null,
     })
 
@@ -195,6 +197,7 @@ describe('古い形式のバックアップの取り込み', () => {
       templates: [],
       meals: [],
       customFoods: [],
+      mealTemplates: [],
       settings: null,
     })
 
@@ -232,6 +235,7 @@ describe('取り込みが失敗した場合', () => {
         templates: [],
         meals: [],
         customFoods: [],
+        mealTemplates: [],
         settings: null,
       }),
     ).rejects.toThrow()

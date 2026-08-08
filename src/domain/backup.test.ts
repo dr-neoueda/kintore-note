@@ -18,6 +18,7 @@ const emptyData: BackupData = {
   templates: [],
   meals: [],
   customFoods: [],
+  mealTemplates: [],
   settings: null,
 }
 

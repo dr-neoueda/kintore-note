@@ -7,6 +7,7 @@ import { normalizeProgressionTarget } from './progression'
 import type {
   CustomFood,
   MealEntry,
+  MealTemplate,
   MealType,
   AppSettings,
   DumbbellCount,
@@ -37,6 +38,7 @@ export interface BackupData {
   readonly templates: readonly WorkoutTemplate[]
   readonly meals: readonly MealEntry[]
   readonly customFoods: readonly CustomFood[]
+  readonly mealTemplates: readonly MealTemplate[]
   readonly settings: AppSettings | null
 }
 
@@ -44,9 +46,13 @@ export interface BackupData {
  * 取り込む側のデータ。
  * 食事とマイ食品は後から足した項目なので、古いバックアップには入っていない。
  */
-export type IncomingBackupData = Omit<BackupData, 'meals' | 'customFoods'> & {
+export type IncomingBackupData = Omit<
+  BackupData,
+  'meals' | 'customFoods' | 'mealTemplates'
+> & {
   readonly meals?: readonly MealEntry[]
   readonly customFoods?: readonly CustomFood[]
+  readonly mealTemplates?: readonly MealTemplate[]
 }
 
 export interface BackupFile {
@@ -209,6 +215,28 @@ function normalizeCustomFood(raw: CustomFood): CustomFood {
   }
 }
 
+function normalizeMealTemplate(raw: MealTemplate): MealTemplate {
+  const source = raw as unknown as Record<string, unknown>
+  const mealType = MEAL_TYPES.includes(source.mealType as MealType)
+    ? (source.mealType as MealType)
+    : 'breakfast'
+
+  return {
+    ...raw,
+    name: typeof source.name === 'string' ? source.name : '',
+    mealType,
+    order: Math.max(0, toNumber(source.order)),
+    items: Array.isArray(source.items)
+      ? raw.items.map((item) => ({
+          foodId: typeof item.foodId === 'string' ? item.foodId : '',
+          foodName: typeof item.foodName === 'string' ? item.foodName : '（不明な食品）',
+          grams: Math.max(0, toNumber(item.grams)),
+          nutrition: normalizeNutrition(item.nutrition),
+        }))
+      : [],
+  }
+}
+
 function normalizeTemplate(raw: WorkoutTemplate): WorkoutTemplate {
   const source = raw as unknown as Record<string, unknown>
 
@@ -232,6 +260,7 @@ export function normalizeBackupData(data: IncomingBackupData): BackupData {
     // 食事の記録は後から足した項目のため、持たないバックアップがある
     meals: (data.meals ?? []).map(normalizeMealEntry),
     customFoods: (data.customFoods ?? []).map(normalizeCustomFood),
+    mealTemplates: (data.mealTemplates ?? []).map(normalizeMealTemplate),
     settings: data.settings,
   }
 }
