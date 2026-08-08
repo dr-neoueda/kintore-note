@@ -3,8 +3,8 @@ import { Sheet } from '@/components/Sheet'
 import { CheckIcon, PlusIcon } from '@/components/icons'
 import { formatShortDateLabel } from '@/domain/date'
 import type { ExerciseSessionSummary } from '@/domain/exerciseSessions'
-import type { Exercise, ExerciseId, MuscleGroup } from '@/domain/types'
-import { MUSCLE_GROUP_LABELS } from '@/domain/types'
+import type { Exercise, ExerciseId } from '@/domain/types'
+import { DISPLAYED_MUSCLE_GROUPS, MUSCLE_GROUP_LABELS } from '@/domain/types'
 import { formatWeightKg } from '@/domain/weight'
 import styles from './ExercisePickerSheet.module.css'
 
@@ -20,16 +20,6 @@ interface ExercisePickerSheetProps {
   /** 一覧に無い種目を、その場で作れるようにする。入力中の語を初期値として渡す。 */
   readonly onRequestCreate?: (initialName: string) => void
 }
-
-const MUSCLE_GROUP_ORDER: readonly MuscleGroup[] = [
-  'chest',
-  'back',
-  'shoulders',
-  'arms',
-  'legs',
-  'core',
-  'other',
-]
 
 /** 「前回 11.5kg（8/2）」のような補足を作る。 */
 function formatLastSession(
@@ -64,7 +54,7 @@ export function ExercisePickerSheet({
         ? exercises
         : exercises.filter((exercise) => exercise.name.includes(normalized))
 
-    return MUSCLE_GROUP_ORDER.map((muscleGroup) => ({
+    return DISPLAYED_MUSCLE_GROUPS.map((muscleGroup) => ({
       muscleGroup,
       items: matched.filter((exercise) => exercise.muscleGroup === muscleGroup),
     })).filter((group) => group.items.length > 0)

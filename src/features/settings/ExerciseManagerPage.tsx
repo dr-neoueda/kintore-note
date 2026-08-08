@@ -3,21 +3,14 @@ import { Link } from 'react-router-dom'
 import { PageHeader } from '@/components/PageHeader'
 import { ChevronRightIcon, PlusIcon } from '@/components/icons'
 import { setExerciseArchived } from '@/data/repositories/exerciseRepository'
-import type { MuscleGroup } from '@/domain/types'
-import { EQUIPMENT_LABELS, MUSCLE_GROUP_LABELS } from '@/domain/types'
+import {
+  DISPLAYED_MUSCLE_GROUPS,
+  EQUIPMENT_LABELS,
+  MUSCLE_GROUP_LABELS,
+} from '@/domain/types'
 import { useExercises } from '@/hooks/useExercises'
 import { CreateExerciseSheet } from '../exercises/CreateExerciseSheet'
 import styles from './ExerciseManagerPage.module.css'
-
-const MUSCLE_GROUP_ORDER: readonly MuscleGroup[] = [
-  'chest',
-  'back',
-  'shoulders',
-  'arms',
-  'legs',
-  'core',
-  'other',
-]
 
 export function ExerciseManagerPage() {
   const { allExercises } = useExercises()
@@ -26,7 +19,7 @@ export function ExerciseManagerPage() {
 
   const groups = useMemo(
     () =>
-      MUSCLE_GROUP_ORDER.map((group) => ({
+      DISPLAYED_MUSCLE_GROUPS.map((group) => ({
         muscleGroup: group,
         items: allExercises.filter((exercise) => exercise.muscleGroup === group),
       })).filter((group) => group.items.length > 0),

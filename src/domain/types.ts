@@ -37,6 +37,33 @@ export const MUSCLE_GROUP_LABELS: Readonly<Record<MuscleGroup, string>> = {
   other: 'その他',
 }
 
+/** 保存できる部位。過去の記録が参照するため、使わなくなった部位もここには残す。 */
+export const MUSCLE_GROUPS: readonly MuscleGroup[] = [
+  'chest',
+  'back',
+  'shoulders',
+  'arms',
+  'legs',
+  'core',
+  'other',
+]
+
+/**
+ * 画面に出す部位と、その並び。
+ *
+ * 鍛えていない部位を並べても、選ぶときの邪魔になり、
+ * 週間セット数では常に0の行が居座るだけになる。
+ * MuscleGroup 自体からは外さない。外すと過去の記録の部位が解決できなくなる。
+ */
+export const DISPLAYED_MUSCLE_GROUPS: readonly MuscleGroup[] = [
+  'chest',
+  'back',
+  'shoulders',
+  'arms',
+  'legs',
+  'other',
+]
+
 export const MUSCLE_ARCHITECTURE_LABELS: Readonly<Record<MuscleArchitecture, string>> = {
   parallel: '平行筋',
   pennate: '羽状筋',

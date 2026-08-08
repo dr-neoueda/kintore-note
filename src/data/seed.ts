@@ -47,10 +47,6 @@ export const SEED_EXERCISES: readonly NewExercise[] = [
   { name: 'ダンベルルーマニアンデッドリフト', muscleGroup: 'legs', equipment: 'dumbbell', dumbbellCount: 2 },
   { name: 'カーフレイズ', muscleGroup: 'legs', equipment: 'dumbbell', dumbbellCount: 2 },
 
-  // 体幹
-  { name: 'プランク', muscleGroup: 'core', equipment: 'bodyweight', dumbbellCount: 1 },
-  { name: 'クランチ', muscleGroup: 'core', equipment: 'bodyweight', dumbbellCount: 1 },
-  { name: 'ダンベルサイドベンド', muscleGroup: 'core', equipment: 'dumbbell', dumbbellCount: 1 },
 ]
 
 /**

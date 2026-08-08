@@ -18,20 +18,11 @@ import {
 } from '@/domain/backup'
 import { toDateKey } from '@/domain/date'
 import { DEFAULT_REST_SEC_BY_MUSCLE_GROUP } from '@/domain/muscle'
-import { MUSCLE_GROUP_LABELS, type MuscleGroup } from '@/domain/types'
+import { DISPLAYED_MUSCLE_GROUPS, MUSCLE_GROUP_LABELS } from '@/domain/types'
 import { ValidationError } from '@/domain/validation'
 import { formatWeightKg } from '@/domain/weight'
 import { downloadTextFile } from './downloadFile'
 
-const MUSCLE_GROUP_ORDER: readonly MuscleGroup[] = [
-  'chest',
-  'back',
-  'shoulders',
-  'arms',
-  'legs',
-  'core',
-  'other',
-]
 import styles from './SettingsPage.module.css'
 
 type StatusKind = 'success' | 'error'
@@ -68,7 +59,7 @@ export function SettingsPage() {
     setStepsText(stepsToText(settings.dumbbellStepsKg))
     setRestTexts(
       Object.fromEntries(
-        MUSCLE_GROUP_ORDER.map((group) => [
+        DISPLAYED_MUSCLE_GROUPS.map((group) => [
           group,
           String(settings.restSecByMuscleGroup[group]),
         ]),
@@ -98,9 +89,10 @@ export function SettingsPage() {
   }
 
   const handleSaveRest = async () => {
-    const parsed = { ...DEFAULT_REST_SEC_BY_MUSCLE_GROUP }
+    // 画面に出していない部位の値も、保存のたびに既定へ戻さないよう引き継ぐ
+    const parsed = { ...(settings?.restSecByMuscleGroup ?? DEFAULT_REST_SEC_BY_MUSCLE_GROUP) }
 
-    for (const group of MUSCLE_GROUP_ORDER) {
+    for (const group of DISPLAYED_MUSCLE_GROUPS) {
       const text = (restTexts[group] ?? '').trim()
       const seconds = Number(text)
       // 空欄は 0 と解釈されてしまうため、明示的に弾く
@@ -226,7 +218,7 @@ export function SettingsPage() {
           </p>
 
           <div className={styles.restGrid}>
-            {MUSCLE_GROUP_ORDER.map((group) => (
+            {DISPLAYED_MUSCLE_GROUPS.map((group) => (
               <div key={group} className={styles.restRow}>
                 <label className={styles.restLabel} htmlFor={`rest-${group}`}>
                   {MUSCLE_GROUP_LABELS[group]}

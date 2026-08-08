@@ -4,7 +4,7 @@ import { createExercise } from '@/data/repositories/exerciseRepository'
 import { defaultRestSecForMuscleGroup } from '@/domain/muscle'
 import { formatDuration } from '@/domain/duration'
 import type { ExerciseId, MuscleGroup } from '@/domain/types'
-import { MUSCLE_GROUP_LABELS } from '@/domain/types'
+import { DISPLAYED_MUSCLE_GROUPS, MUSCLE_GROUP_LABELS } from '@/domain/types'
 import { ValidationError } from '@/domain/validation'
 import { useResetOnOpen } from '@/hooks/useResetOnOpen'
 import styles from './CreateExerciseSheet.module.css'
@@ -16,16 +16,6 @@ interface CreateExerciseSheetProps {
   readonly onClose: () => void
   readonly onCreated: (exerciseId: ExerciseId) => void
 }
-
-const MUSCLE_GROUP_ORDER: readonly MuscleGroup[] = [
-  'chest',
-  'back',
-  'shoulders',
-  'arms',
-  'legs',
-  'core',
-  'other',
-]
 
 /**
  * 種目を作るシート。
@@ -100,7 +90,7 @@ export function CreateExerciseSheet({
         <div className={styles.field}>
           <span className={styles.label}>部位</span>
           <div className={styles.chips}>
-            {MUSCLE_GROUP_ORDER.map((group) => (
+            {DISPLAYED_MUSCLE_GROUPS.map((group) => (
               <button
                 key={group}
                 type="button"

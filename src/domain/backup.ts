@@ -16,17 +16,9 @@ import type {
   WorkoutSet,
   WorkoutTemplate,
 } from './types'
+import { MUSCLE_GROUPS } from './types'
 import { ValidationError } from './validation'
 
-const MUSCLE_GROUPS: readonly MuscleGroup[] = [
-  'chest',
-  'back',
-  'shoulders',
-  'arms',
-  'legs',
-  'core',
-  'other',
-]
 const EQUIPMENT_TYPES: readonly EquipmentType[] = ['dumbbell', 'bodyweight', 'other']
 const ARCHITECTURES: readonly MuscleArchitecture[] = ['parallel', 'pennate']
 

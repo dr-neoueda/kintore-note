@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { formatShortDateLabel, getWeekRange } from '@/domain/date'
 import type { MuscleGroup } from '@/domain/types'
-import { MUSCLE_GROUP_LABELS } from '@/domain/types'
+import { DISPLAYED_MUSCLE_GROUPS, MUSCLE_GROUP_LABELS } from '@/domain/types'
 import {
   WEEKLY_SET_TARGET_MAX,
   WEEKLY_SET_TARGET_MIN,
@@ -13,14 +13,9 @@ import { useWorkoutHistory } from '@/hooks/useWorkoutHistory'
 import styles from './WeeklySetsCard.module.css'
 
 /** その他は記録がある場合だけ出す。常に並べても判断材料にならないため。 */
-const ALWAYS_SHOWN_GROUPS: readonly MuscleGroup[] = [
-  'chest',
-  'back',
-  'shoulders',
-  'arms',
-  'legs',
-  'core',
-]
+const ALWAYS_SHOWN_GROUPS: readonly MuscleGroup[] = DISPLAYED_MUSCLE_GROUPS.filter(
+  (group) => group !== 'other',
+)
 
 /** 目盛りの上限。目安の上限を超えても棒が振り切れないよう少し余裕を持たせる。 */
 const SCALE_HEADROOM = 4
