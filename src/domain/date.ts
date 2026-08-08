@@ -12,6 +12,13 @@ export function toDateKey(date: Date): DateKey {
 }
 
 /** 'YYYY-MM-DD' 形式かどうかを判定する。 */
+/** 日付キーを日数分だけ前後に動かす。月またぎ・年またぎは Date に任せる。 */
+export function addDaysToDateKey(dateKey: DateKey, days: number): DateKey {
+  const [year, month, day] = dateKey.split('-').map(Number)
+  const moved = new Date(year ?? 1970, (month ?? 1) - 1, (day ?? 1) + days)
+  return toDateKey(moved)
+}
+
 export function isValidDateKey(value: string): boolean {
   if (!DATE_KEY_PATTERN.test(value)) return false
   return !Number.isNaN(parseISO(value).getTime())

@@ -73,6 +73,35 @@
 
 索引: `++id, order`
 
+### meals（食事の記録）
+
+| 項目 | 型 | 説明 |
+|---|---|---|
+| id | number | 自動採番 |
+| date | string | 'YYYY-MM-DD' |
+| mealType | MealType | breakfast / lunch / dinner / snack |
+| foodId | string | 成分表の食品番号、または 'custom:&lt;id&gt;' |
+| foodName | string | 記録時点の食品名 |
+| grams | number | 食べた量 |
+| nutrition | Nutrition | **食べた量ぶんの栄養価**。記録時点の値を焼き付ける |
+| order | number | 同じ日・同じ区分での並び順 |
+| recordedAt | string | ISO 8601 |
+
+索引: `++id, date, [date+mealType]`
+
+### customFoods（マイ食品）
+
+| 項目 | 型 | 説明 |
+|---|---|---|
+| id | number | 自動採番 |
+| name | string | 食品名。**重複不可** |
+| basisGrams | number | nutrition が何 g 分の値か（例: 1食30g当たりなら 30） |
+| nutrition | Nutrition | 基準量あたりの栄養価 |
+| isArchived | boolean | 一覧から隠しているか |
+| createdAt | string | ISO 8601 |
+
+索引: `++id, &name`
+
 ### settings（設定・単一レコード）
 
 | 項目 | 型 | 説明 |
@@ -83,6 +112,7 @@
 | backupReminderDays | number | この日数を超えたら警告する |
 | restSecByMuscleGroup | Record<MuscleGroup, number> | 部位ごとの既定の休憩秒数。新規種目の初期値 |
 | isRestAlarmEnabled | boolean | 休憩終了を音で知らせるか。有効な間は休憩中の画面点灯も行う |
+| nutritionTarget | NutritionTarget | 1日の目標（kcal / P / F / C） |
 
 索引: `id`
 

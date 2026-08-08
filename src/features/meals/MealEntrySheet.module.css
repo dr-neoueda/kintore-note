@@ -1,0 +1,136 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.amountField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.amountRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.stepButton {
+  flex: none;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.stepButton:active {
+  opacity: 0.6;
+}
+
+.amountInput {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.unit {
+  flex: none;
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.quickRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.quickButton {
+  min-height: 34px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+}
+
+.kcal {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+
+.kcalValue {
+  font-size: 28px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.kcalUnit {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.macros {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.macros div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: 12px;
+}
+
+.macros dt {
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.macros dd {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.footerActions {
+  display: flex;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.deleteButton {
+  flex: none;
+  width: var(--tap-min);
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

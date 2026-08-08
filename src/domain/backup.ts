@@ -5,6 +5,9 @@ import {
 } from './muscle'
 import { normalizeProgressionTarget } from './progression'
 import type {
+  CustomFood,
+  MealEntry,
+  MealType,
   AppSettings,
   DumbbellCount,
   EquipmentType,
@@ -17,6 +20,8 @@ import type {
   WorkoutTemplate,
 } from './types'
 import { MUSCLE_GROUPS } from './types'
+import type { Nutrition } from './nutrition'
+import { MEAL_TYPES } from './types'
 import { ValidationError } from './validation'
 
 const EQUIPMENT_TYPES: readonly EquipmentType[] = ['dumbbell', 'bodyweight', 'other']
@@ -30,7 +35,18 @@ export interface BackupData {
   readonly workouts: readonly Workout[]
   readonly sets: readonly WorkoutSet[]
   readonly templates: readonly WorkoutTemplate[]
+  readonly meals: readonly MealEntry[]
+  readonly customFoods: readonly CustomFood[]
   readonly settings: AppSettings | null
+}
+
+/**
+ * 取り込む側のデータ。
+ * 食事とマイ食品は後から足した項目なので、古いバックアップには入っていない。
+ */
+export type IncomingBackupData = Omit<BackupData, 'meals' | 'customFoods'> & {
+  readonly meals?: readonly MealEntry[]
+  readonly customFoods?: readonly CustomFood[]
 }
 
 export interface BackupFile {
@@ -136,6 +152,63 @@ function normalizeSet(raw: WorkoutSet): WorkoutSet {
   }
 }
 
+const EMPTY_NUTRITION_FALLBACK: Nutrition = {
+  kcal: 0,
+  protein: 0,
+  fat: 0,
+  carb: 0,
+  fiber: 0,
+  salt: 0,
+}
+
+function toNumber(value: unknown, fallback = 0): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback
+}
+
+function normalizeNutrition(source: unknown): Nutrition {
+  if (source === null || typeof source !== 'object') return EMPTY_NUTRITION_FALLBACK
+  const raw = source as Record<string, unknown>
+
+  return {
+    kcal: toNumber(raw.kcal),
+    protein: toNumber(raw.protein),
+    fat: toNumber(raw.fat),
+    carb: toNumber(raw.carb),
+    fiber: toNumber(raw.fiber),
+    salt: toNumber(raw.salt),
+  }
+}
+
+function normalizeMealEntry(raw: MealEntry): MealEntry {
+  const source = raw as unknown as Record<string, unknown>
+  const mealType = MEAL_TYPES.includes(source.mealType as MealType)
+    ? (source.mealType as MealType)
+    : 'snack'
+
+  return {
+    ...raw,
+    mealType,
+    foodId: typeof source.foodId === 'string' ? source.foodId : '',
+    foodName: typeof source.foodName === 'string' ? source.foodName : '（不明な食品）',
+    grams: Math.max(0, toNumber(source.grams)),
+    nutrition: normalizeNutrition(source.nutrition),
+    order: Math.max(0, toNumber(source.order)),
+  }
+}
+
+function normalizeCustomFood(raw: CustomFood): CustomFood {
+  const source = raw as unknown as Record<string, unknown>
+
+  return {
+    ...raw,
+    name: typeof source.name === 'string' ? source.name : '',
+    basisGrams: Math.max(1, toNumber(source.basisGrams, 100)),
+    nutrition: normalizeNutrition(source.nutrition),
+    isArchived: source.isArchived === true,
+    createdAt: typeof source.createdAt === 'string' ? source.createdAt : '',
+  }
+}
+
 function normalizeTemplate(raw: WorkoutTemplate): WorkoutTemplate {
   const source = raw as unknown as Record<string, unknown>
 
@@ -150,12 +223,15 @@ function normalizeTemplate(raw: WorkoutTemplate): WorkoutTemplate {
  * 取り込んだデータを現在の形に整える。
  * 古い形式のバックアップや手で編集されたファイルでも、そのまま保存できる状態にする。
  */
-export function normalizeBackupData(data: BackupData): BackupData {
+export function normalizeBackupData(data: IncomingBackupData): BackupData {
   return {
     exercises: data.exercises.map(normalizeExercise),
     workouts: data.workouts.map(normalizeWorkout),
     sets: data.sets.map(normalizeSet),
     templates: data.templates.map(normalizeTemplate),
+    // 食事の記録は後から足した項目のため、持たないバックアップがある
+    meals: (data.meals ?? []).map(normalizeMealEntry),
+    customFoods: (data.customFoods ?? []).map(normalizeCustomFood),
     settings: data.settings,
   }
 }

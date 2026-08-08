@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 
 /**
  * シートが閉じた状態から開いた瞬間だけ初期化する。
@@ -7,13 +7,17 @@ import { useEffect, useRef } from 'react'
  * 入力中の内容が初期値で上書きされてしまう。
  * ホーム画面は休憩タイマーのために毎秒再描画されるため、
  * その間は入力が一切できなくなる。
+ *
+ * useEffect ではなく useLayoutEffect を使うのは、描画されてから初期化までの間に
+ * 入力できてしまうと、その入力が初期値で消されるため。
+ * シートが見えた時点で初期化は済んでいる状態にする。
  */
 export function useResetOnOpen(isOpen: boolean, reset: () => void): void {
   const wasOpenRef = useRef(false)
   const resetRef = useRef(reset)
   resetRef.current = reset
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (isOpen && !wasOpenRef.current) {
       resetRef.current()
     }

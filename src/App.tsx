@@ -3,6 +3,8 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from './components/AppShell'
 import { useBootstrap } from './hooks/useBootstrap'
 import { HistoryPage } from './features/history/HistoryPage'
+import { CustomFoodManagerPage } from './features/meals/CustomFoodManagerPage'
+import { MealsPage } from './features/meals/MealsPage'
 import { WorkoutDetailPage } from './features/history/WorkoutDetailPage'
 import { ExerciseManagerPage } from './features/settings/ExerciseManagerPage'
 import { SettingsPage } from './features/settings/SettingsPage'
@@ -53,6 +55,7 @@ export function App() {
     <Routes>
       <Route element={<AppShell />}>
         <Route path="/" element={<TodayPage />} />
+        <Route path="/meals" element={<MealsPage />} />
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/history/:date" element={<WorkoutDetailPage />} />
         <Route
@@ -75,6 +78,7 @@ export function App() {
         <Route path="/templates/:templateId" element={<TemplateEditorPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/settings/exercises" element={<ExerciseManagerPage />} />
+        <Route path="/settings/custom-foods" element={<CustomFoodManagerPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

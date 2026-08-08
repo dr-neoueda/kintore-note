@@ -2,6 +2,7 @@
  * アプリ全体で共有するドメイン型。
  * 保存は IndexedDB (Dexie) だが、この層は永続化の詳細を知らない。
  */
+import type { Nutrition } from './nutrition'
 
 export type ExerciseId = number
 export type WorkoutId = number
@@ -140,6 +141,61 @@ export interface WorkoutSet {
   readonly recordedAt: string
 }
 
+export type MealEntryId = number
+export type CustomFoodId = number
+
+/** 1日の食事の区分。 */
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack'
+
+export const MEAL_TYPES: readonly MealType[] = ['breakfast', 'lunch', 'dinner', 'snack']
+
+export const MEAL_TYPE_LABELS: Readonly<Record<MealType, string>> = {
+  breakfast: '朝食',
+  lunch: '昼食',
+  dinner: '夕食',
+  snack: '間食',
+}
+
+/** 食べたもの1件。 */
+export interface MealEntry {
+  readonly id?: MealEntryId
+  /** 'YYYY-MM-DD' 形式のローカル日付。 */
+  readonly date: string
+  readonly mealType: MealType
+  /** 成分表の食品番号、またはマイ食品の 'custom:<id>'。 */
+  readonly foodId: string
+  /** 記録した時点の食品名。あとで食品を消しても記録が読めるようにする。 */
+  readonly foodName: string
+  readonly grams: number
+  /**
+   * 食べた量ぶんの栄養価。
+   * 成分表の改訂やマイ食品の修正で、過去の記録が書き換わらないようにする。
+   */
+  readonly nutrition: Nutrition
+  /** 同じ日・同じ区分の中での並び順。 */
+  readonly order: number
+  readonly recordedAt: string
+}
+
+/** 成分表に無い食品（市販品・プロテインなど）を自分で登録したもの。 */
+export interface CustomFood {
+  readonly id?: CustomFoodId
+  readonly name: string
+  /** nutrition が何 g 分の値か。パッケージの「1食30g当たり」をそのまま入れられる。 */
+  readonly basisGrams: number
+  readonly nutrition: Nutrition
+  readonly isArchived: boolean
+  readonly createdAt: string
+}
+
+/** 1日の栄養の目標。 */
+export interface NutritionTarget {
+  readonly kcal: number
+  readonly protein: number
+  readonly fat: number
+  readonly carb: number
+}
+
 /** テンプレートに含まれる1種目分の予定。 */
 export interface TemplateItem {
   readonly exerciseId: ExerciseId
@@ -171,6 +227,8 @@ export interface AppSettings {
   readonly restSecByMuscleGroup: Readonly<Record<MuscleGroup, number>>
   /** 休憩が目標時間に達したら音で知らせる。有効な間は画面を点けたままにする。 */
   readonly isRestAlarmEnabled: boolean
+  /** 1日の栄養の目標。 */
+  readonly nutritionTarget: NutritionTarget
 }
 
 export const RPE_MIN = 1

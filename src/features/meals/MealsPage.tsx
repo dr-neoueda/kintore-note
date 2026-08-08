@@ -1,0 +1,212 @@
+import { useMemo, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { PageHeader } from '@/components/PageHeader'
+import { ChevronRightIcon, PlusIcon } from '@/components/icons'
+import { getSettings } from '@/data/repositories/settingsRepository'
+import {
+  addMealEntry,
+  deleteMealEntry,
+  listMealEntriesByDate,
+  updateMealEntry,
+} from '@/data/repositories/mealRepository'
+import { addDaysToDateKey, formatDateLabel } from '@/domain/date'
+import type { Food } from '@/domain/food'
+import { sumNutrition, type Nutrition } from '@/domain/nutrition'
+import { DEFAULT_NUTRITION_TARGET } from '@/domain/nutritionTarget'
+import { MEAL_TYPES, MEAL_TYPE_LABELS, type MealEntry, type MealType } from '@/domain/types'
+import { useTodayKey } from '@/hooks/useTodayKey'
+import { CreateCustomFoodSheet } from './CreateCustomFoodSheet'
+import { FoodPickerSheet } from './FoodPickerSheet'
+import { MealEntrySheet } from './MealEntrySheet'
+import { NutritionSummary } from './NutritionSummary'
+import { useFoodCatalog } from './useFoodCatalog'
+import styles from './MealsPage.module.css'
+
+/** 記録の追加・編集で開いているシートの対象。 */
+interface EntryTarget {
+  readonly mealType: MealType
+  readonly food: Food
+  readonly entry: MealEntry | null
+}
+
+const DEFAULT_GRAMS = 100
+
+export function MealsPage() {
+  const todayKey = useTodayKey()
+  const [dateKey, setDateKey] = useState<string | null>(null)
+  const date = dateKey ?? todayKey
+
+  const settings = useLiveQuery(() => getSettings(), [])
+  const entries = useLiveQuery(() => listMealEntriesByDate(date), [date])
+  const { foods } = useFoodCatalog()
+
+  const [pickerMealType, setPickerMealType] = useState<MealType | null>(null)
+  const [entryTarget, setEntryTarget] = useState<EntryTarget | null>(null)
+  const [creatingName, setCreatingName] = useState<string | null>(null)
+  const [pendingMealType, setPendingMealType] = useState<MealType>('breakfast')
+
+  const entriesByType = useMemo(() => {
+    const grouped = new Map<MealType, MealEntry[]>()
+    for (const type of MEAL_TYPES) grouped.set(type, [])
+    for (const entry of entries ?? []) grouped.get(entry.mealType)?.push(entry)
+    return grouped
+  }, [entries])
+
+  const total = useMemo(
+    () => sumNutrition((entries ?? []).map((entry) => entry.nutrition)),
+    [entries],
+  )
+
+  const target = settings?.nutritionTarget ?? DEFAULT_NUTRITION_TARGET
+
+  const openPicker = (mealType: MealType) => {
+    setPendingMealType(mealType)
+    setPickerMealType(mealType)
+  }
+
+  const handleSelectFood = (food: Food) => {
+    setPickerMealType(null)
+    setEntryTarget({ mealType: pendingMealType, food, entry: null })
+  }
+
+  /** 記録済みの1件を開く。元の食品が消えていても、記録した値で編集できるようにする。 */
+  const openEntry = (entry: MealEntry) => {
+    const food: Food = foods.find((item) => item.id === entry.foodId) ?? {
+      id: entry.foodId,
+      name: entry.foodName,
+      group: '',
+      basisGrams: entry.grams,
+      nutrition: entry.nutrition,
+      isCustom: false,
+    }
+    setEntryTarget({ mealType: entry.mealType, food, entry })
+  }
+
+  const submitEntry = async (grams: number, nutrition: Nutrition) => {
+    if (entryTarget === null) return
+
+    if (entryTarget.entry?.id !== undefined) {
+      await updateMealEntry(entryTarget.entry.id, { grams, nutrition })
+      return
+    }
+
+    await addMealEntry({
+      date,
+      mealType: entryTarget.mealType,
+      foodId: entryTarget.food.id,
+      foodName: entryTarget.food.name,
+      grams,
+      nutrition,
+      recordedAt: new Date().toISOString(),
+    })
+  }
+
+  const deleteEntry = async () => {
+    if (entryTarget?.entry?.id === undefined) return
+    await deleteMealEntry(entryTarget.entry.id)
+  }
+
+  return (
+    <>
+      <PageHeader title="食事" subtitle={formatDateLabel(date)} />
+
+      <div className={styles.content}>
+        <div className={styles.dateNav}>
+          <button
+            type="button"
+            className={styles.dateButton}
+            onClick={() => setDateKey(addDaysToDateKey(date, -1))}
+            aria-label="前の日"
+          >
+            <span className={styles.chevronLeft}>
+              <ChevronRightIcon size={18} />
+            </span>
+          </button>
+          <button
+            type="button"
+            className={styles.todayButton}
+            onClick={() => setDateKey(null)}
+            disabled={date === todayKey}
+          >
+            今日
+          </button>
+          <button
+            type="button"
+            className={styles.dateButton}
+            onClick={() => setDateKey(addDaysToDateKey(date, 1))}
+            disabled={date >= todayKey}
+            aria-label="次の日"
+          >
+            <ChevronRightIcon size={18} />
+          </button>
+        </div>
+
+        <NutritionSummary total={total} target={target} />
+
+        {MEAL_TYPES.map((mealType) => {
+          const items = entriesByType.get(mealType) ?? []
+          const sectionTotal = sumNutrition(items.map((entry) => entry.nutrition))
+
+          return (
+            <section key={mealType} className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <h2 className={styles.sectionTitle}>{MEAL_TYPE_LABELS[mealType]}</h2>
+                <span className={styles.sectionKcal}>{sectionTotal.kcal} kcal</span>
+              </div>
+
+              {items.map((entry) => (
+                <button
+                  key={entry.id}
+                  type="button"
+                  className={styles.entry}
+                  onClick={() => openEntry(entry)}
+                  aria-label={`${entry.foodName}の記録を編集`}
+                >
+                  <span className={styles.entryName}>{entry.foodName}</span>
+                  <span className={styles.entryMeta}>
+                    {entry.grams} g · {entry.nutrition.kcal} kcal
+                  </span>
+                </button>
+              ))}
+
+              <button
+                type="button"
+                className={styles.addButton}
+                onClick={() => openPicker(mealType)}
+              >
+                <PlusIcon size={18} />
+                {MEAL_TYPE_LABELS[mealType]}に追加
+              </button>
+            </section>
+          )
+        })}
+      </div>
+
+      <FoodPickerSheet
+        isOpen={pickerMealType !== null}
+        onClose={() => setPickerMealType(null)}
+        onSelect={handleSelectFood}
+        onRequestCreate={(initialName) => setCreatingName(initialName)}
+      />
+
+      {entryTarget !== null && (
+        <MealEntrySheet
+          isOpen
+          food={entryTarget.food}
+          initialGrams={entryTarget.entry?.grams ?? DEFAULT_GRAMS}
+          isEditing={entryTarget.entry !== null}
+          onClose={() => setEntryTarget(null)}
+          onSubmit={submitEntry}
+          {...(entryTarget.entry !== null ? { onDelete: deleteEntry } : {})}
+        />
+      )}
+
+      <CreateCustomFoodSheet
+        isOpen={creatingName !== null}
+        initialName={creatingName ?? ''}
+        onClose={() => setCreatingName(null)}
+        onCreated={(food) => setEntryTarget({ mealType: pendingMealType, food, entry: null })}
+      />
+    </>
+  )
+}

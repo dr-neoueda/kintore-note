@@ -1,0 +1,42 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.inlineField {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.inlineField input {
+  flex: 1;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.unit {
+  flex: none;
+  width: 34px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.note {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}

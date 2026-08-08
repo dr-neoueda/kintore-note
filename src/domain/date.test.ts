@@ -1,5 +1,6 @@
 import { describe, test, expect } from 'vitest'
 import {
+  addDaysToDateKey,
   formatDateLabel,
   formatDateLabelWithYear,
   formatShortDateLabel,
@@ -165,5 +166,25 @@ describe('startOfDayIso', () => {
 
   test('不正な日付キーなら比較に影響しない古い時刻を返す', () => {
     expect(startOfDayIso('bad') < '2000-01-01T00:00:00.000Z').toBe(true)
+  })
+})
+
+describe('addDaysToDateKey', () => {
+  test('前後に動かせる', () => {
+    expect(addDaysToDateKey('2026-08-04', 1)).toBe('2026-08-05')
+    expect(addDaysToDateKey('2026-08-04', -1)).toBe('2026-08-03')
+  })
+
+  test('月をまたぐ', () => {
+    expect(addDaysToDateKey('2026-08-31', 1)).toBe('2026-09-01')
+    expect(addDaysToDateKey('2026-09-01', -1)).toBe('2026-08-31')
+  })
+
+  test('年をまたぐ', () => {
+    expect(addDaysToDateKey('2026-12-31', 1)).toBe('2027-01-01')
+  })
+
+  test('うるう日を飛ばさない', () => {
+    expect(addDaysToDateKey('2028-02-28', 1)).toBe('2028-02-29')
   })
 })

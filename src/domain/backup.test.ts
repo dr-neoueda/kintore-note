@@ -16,6 +16,8 @@ const emptyData: BackupData = {
   workouts: [],
   sets: [],
   templates: [],
+  meals: [],
+  customFoods: [],
   settings: null,
 }
 

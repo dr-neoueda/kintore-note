@@ -1,5 +1,12 @@
 import { NavLink } from 'react-router-dom'
-import { CalendarIcon, ChartIcon, DumbbellIcon, ListIcon, SlidersIcon } from './icons'
+import {
+  CalendarIcon,
+  ChartIcon,
+  DumbbellIcon,
+  ListIcon,
+  SlidersIcon,
+  UtensilsIcon,
+} from './icons'
 import styles from './TabBar.module.css'
 
 interface TabDefinition {
@@ -10,6 +17,7 @@ interface TabDefinition {
 
 const TABS: readonly TabDefinition[] = [
   { to: '/', label: 'ホーム', Icon: DumbbellIcon },
+  { to: '/meals', label: '食事', Icon: UtensilsIcon },
   { to: '/history', label: '履歴', Icon: CalendarIcon },
   { to: '/charts', label: 'グラフ', Icon: ChartIcon },
   { to: '/templates', label: 'メニュー', Icon: ListIcon },

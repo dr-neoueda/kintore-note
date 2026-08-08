@@ -6,6 +6,8 @@ import {
 } from '@/domain/muscle'
 import { DEFAULT_PROGRESSION_TARGET } from '@/domain/progression'
 import type {
+  CustomFood,
+  MealEntry,
   AppSettings,
   Exercise,
   MuscleArchitecture,
@@ -57,6 +59,8 @@ export class KintoreDatabase extends Dexie {
   declare sets: Table<WorkoutSet, number>
   declare templates: Table<WorkoutTemplate, number>
   declare settings: Table<AppSettings, number>
+  declare meals: Table<MealEntry, number>
+  declare customFoods: Table<CustomFood, number>
 
   /** データベース名を差し替えられるようにしているのは、移行のテストのため。 */
   constructor(databaseName: string = DATABASE_NAME) {
@@ -122,6 +126,12 @@ export class KintoreDatabase extends Dexie {
         .modify((set: UpgradingSet) => {
           set.restTargetSec ??= null
         })
+    })
+
+    // v6: 食事の記録とマイ食品を追加。既存のテーブルは変えていない。
+    this.version(6).stores({
+      meals: '++id, date, [date+mealType]',
+      customFoods: '++id, &name',
     })
   }
 }

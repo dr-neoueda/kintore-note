@@ -120,3 +120,12 @@ export const WarningIcon = (props: IconProps) => (
     <path d="M12 3l9 16H3l9-16zM12 10v4M12 17h.01" />
   </Icon>
 )
+
+/** 食事。フォークとスプーン。 */
+export const UtensilsIcon = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M7 2v20" />
+    <path d="M4 2v6a3 3 0 0 0 6 0V2" />
+    <path d="M17 2c-1.7 1.5-2.5 3.6-2.5 6 0 1.7.7 3 2.5 3.5V22" />
+  </Icon>
+)

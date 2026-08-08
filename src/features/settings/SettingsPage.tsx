@@ -18,7 +18,15 @@ import {
 } from '@/domain/backup'
 import { toDateKey } from '@/domain/date'
 import { DEFAULT_REST_SEC_BY_MUSCLE_GROUP } from '@/domain/muscle'
-import { DISPLAYED_MUSCLE_GROUPS, MUSCLE_GROUP_LABELS } from '@/domain/types'
+import {
+  DEFAULT_NUTRITION_TARGET,
+  normalizeNutritionTarget,
+} from '@/domain/nutritionTarget'
+import {
+  DISPLAYED_MUSCLE_GROUPS,
+  MUSCLE_GROUP_LABELS,
+  type NutritionTarget,
+} from '@/domain/types'
 import { ValidationError } from '@/domain/validation'
 import { formatWeightKg } from '@/domain/weight'
 import { downloadTextFile } from './downloadFile'
@@ -30,6 +38,28 @@ type StatusKind = 'success' | 'error'
 interface StatusMessage {
   readonly kind: StatusKind
   readonly text: string
+}
+
+type NutritionTargetTexts = Readonly<Record<keyof NutritionTarget, string>>
+
+const NUTRITION_TARGET_FIELDS: readonly {
+  readonly key: keyof NutritionTarget
+  readonly label: string
+  readonly unit: string
+}[] = [
+  { key: 'kcal', label: 'エネルギー', unit: 'kcal' },
+  { key: 'protein', label: 'たんぱく質', unit: 'g' },
+  { key: 'fat', label: '脂質', unit: 'g' },
+  { key: 'carb', label: '炭水化物', unit: 'g' },
+]
+
+function toTargetTexts(target: NutritionTarget): NutritionTargetTexts {
+  return {
+    kcal: String(target.kcal),
+    protein: String(target.protein),
+    fat: String(target.fat),
+    carb: String(target.carb),
+  }
 }
 
 /** 段階リストを編集用のテキストに変換する。 */
@@ -52,11 +82,15 @@ export function SettingsPage() {
 
   const [stepsText, setStepsText] = useState('')
   const [restTexts, setRestTexts] = useState<Record<string, string>>({})
+  const [targetTexts, setTargetTexts] = useState<NutritionTargetTexts>(
+    toTargetTexts(DEFAULT_NUTRITION_TARGET),
+  )
   const [status, setStatus] = useState<StatusMessage | null>(null)
 
   useEffect(() => {
     if (settings === undefined) return
     setStepsText(stepsToText(settings.dumbbellStepsKg))
+    setTargetTexts(toTargetTexts(settings.nutritionTarget))
     setRestTexts(
       Object.fromEntries(
         DISPLAYED_MUSCLE_GROUPS.map((group) => [
@@ -105,6 +139,27 @@ export function SettingsPage() {
 
     await updateSettings({ restSecByMuscleGroup: parsed })
     setStatus({ kind: 'success', text: '部位ごとの休憩時間を保存しました' })
+  }
+
+  const handleSaveNutritionTarget = async () => {
+    const parsed = {
+      kcal: Number(targetTexts.kcal),
+      protein: Number(targetTexts.protein),
+      fat: Number(targetTexts.fat),
+      carb: Number(targetTexts.carb),
+    }
+
+    const hasInvalidValue = Object.values(parsed).some(
+      (value) => !Number.isFinite(value) || value < 0,
+    )
+    if (hasInvalidValue) {
+      setStatus({ kind: 'error', text: '栄養の目標は0以上の数値で入力してください' })
+      return
+    }
+
+    const saved = await updateSettings({ nutritionTarget: normalizeNutritionTarget(parsed) })
+    setTargetTexts(toTargetTexts(saved.nutritionTarget))
+    setStatus({ kind: 'success', text: '栄養の目標を保存しました' })
   }
 
   const handleExport = async () => {
@@ -243,6 +298,56 @@ export function SettingsPage() {
           <button type="button" className="btn btn-block" onClick={handleSaveRest}>
             休憩時間を保存
           </button>
+        </section>
+
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>栄養の目標</h2>
+          <p className={styles.hint}>
+            食事タブで、その日の合計と比べる値です。
+            体格も活動量も人によって違うため、既定値はあくまで出発点です。
+          </p>
+
+          <div className={styles.restGrid}>
+            {NUTRITION_TARGET_FIELDS.map(({ key, label, unit }) => (
+              <div key={key} className={styles.restRow}>
+                <label className={styles.restLabel} htmlFor={`target-${key}`}>
+                  {label}
+                </label>
+                <input
+                  id={`target-${key}`}
+                  className={styles.restInput}
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  value={targetTexts[key]}
+                  onChange={(event) =>
+                    setTargetTexts((current) => ({ ...current, [key]: event.target.value }))
+                  }
+                />
+                <span className={styles.restUnit}>{unit}</span>
+              </div>
+            ))}
+          </div>
+
+          <button type="button" className="btn btn-block" onClick={handleSaveNutritionTarget}>
+            栄養の目標を保存
+          </button>
+
+          <Link to="/settings/custom-foods" className={styles.link}>
+            マイ食品を管理する
+            <span className={styles.linkChevron}>
+              <ChevronRightIcon size={18} />
+            </span>
+          </Link>
+        </section>
+
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>食品成分データについて</h2>
+          <p className={styles.hint}>
+            食品の栄養価は「日本食品標準成分表（八訂）増補2023年」（文部科学省）から引用しています。
+            可食部100gあたりの値で、未測定・微量の成分は0として扱います。
+            市販品や外食は収載されていないため、パッケージの表示を見てマイ食品として登録してください。
+          </p>
         </section>
 
         <section className={styles.section}>
