@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { selectDateInCalendar } from './helpers/calendar'
 
 /**
  * 記録し忘れた日を後から入力できることの検証。
@@ -45,7 +46,7 @@ test.describe('過去の日付の記録', () => {
     await expect(page.getByRole('heading', { name: '履歴' })).toBeVisible()
 
     // Act
-    await page.getByLabel('記録し忘れた日を入力する').fill(targetDate)
+    await selectDateInCalendar(page, targetDate)
     await expect(page.getByRole('main')).toContainText(
       'この日の記録はまだありません',
     )
@@ -58,7 +59,7 @@ test.describe('過去の日付の記録', () => {
   test('作った過去の記録が履歴一覧に並ぶ', async ({ page }) => {
     // Arrange
     await page.goto('/history')
-    await page.getByLabel('記録し忘れた日を入力する').fill(pastDateKey(3))
+    await selectDateInCalendar(page, pastDateKey(3))
     await addExerciseAndRecordSet(page, /^サイドレイズ/)
 
     // Act
@@ -90,11 +91,11 @@ test.describe('過去の日付の記録', () => {
   test('過去の日付でも前回の記録として扱われる順序が保たれる', async ({ page }) => {
     // Arrange: 5日前に 2.5kg、3日前に 3.5kg を記録する
     await page.goto('/history')
-    await page.getByLabel('記録し忘れた日を入力する').fill(pastDateKey(5))
+    await selectDateInCalendar(page, pastDateKey(5))
     await addExerciseAndRecordSet(page, /^インクラインダンベルプレス/)
 
     await page.goto('/history')
-    await page.getByLabel('記録し忘れた日を入力する').fill(pastDateKey(3))
+    await selectDateInCalendar(page, pastDateKey(3))
     await page.getByRole('button', { name: '種目を追加' }).click()
     await page.getByRole('dialog').getByRole('button', { name: /^インクラインダンベルプレス/ }).click()
     await page.getByRole('button', { name: 'セットを追加' }).last().click()
@@ -179,7 +180,7 @@ test.describe('履歴画面の種目選択', () => {
 
     // Act: 別の日を開いて種目を選ぶ
     await page.goto('/history')
-    await page.getByLabel('記録し忘れた日を入力する').fill(pastDateKey(2))
+    await selectDateInCalendar(page, pastDateKey(2))
     await page.getByRole('button', { name: '種目を追加' }).click()
 
     // Assert: どの種目も「記録なし」になってしまっていた

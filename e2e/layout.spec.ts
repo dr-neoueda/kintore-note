@@ -58,34 +58,27 @@ for (const { path, heading } of PAGES) {
   })
 }
 
-test('日付の選択欄が枠の中に収まる', async ({ page }) => {
+test('履歴のカレンダーが枠の中に収まる', async ({ page }) => {
   // Arrange
   await page.goto('/history')
   await expect(page.getByRole('heading', { name: '履歴' })).toBeVisible()
 
   // Act
   const measured = await page.evaluate(() => {
-    const input = document.querySelector('#history-date')
-    const field = input?.parentElement
-    const card = field?.parentElement
-    if (!input || !field || !card) return null
+    const calendar = document.querySelector('section[aria-label="日付を選ぶ"]')
+    const days = calendar?.querySelectorAll('button')
+    if (!calendar || days === undefined || days.length === 0) return null
 
-    const inputRect = input.getBoundingClientRect()
-    const fieldRect = field.getBoundingClientRect()
-    const cardRect = card.getBoundingClientRect()
+    const cardRect = calendar.getBoundingClientRect()
+    const overflow = [...days].reduce((max, day) => {
+      const rect = day.getBoundingClientRect()
+      return Math.max(max, rect.right - cardRect.right, cardRect.left - rect.left)
+    }, 0)
 
-    return {
-      fieldWithinCard:
-        fieldRect.right <= cardRect.right + 1 && fieldRect.left >= cardRect.left - 1,
-      inputWithinField:
-        inputRect.right <= fieldRect.right + 1 && inputRect.left >= fieldRect.left - 1,
-      // 流れから外れていれば、ネイティブの大きさが枠を押し広げることはない
-      inputPosition: getComputedStyle(input).position,
-    }
+    return { overflow, dayCount: days.length }
   })
 
-  // Assert
-  expect(measured?.fieldWithinCard).toBe(true)
-  expect(measured?.inputWithinField).toBe(true)
-  expect(measured?.inputPosition).toBe('absolute')
+  // Assert: 7列が枠に収まっている（小数の丸め誤差は1pxまで許容）
+  expect(measured?.dayCount ?? 0).toBeGreaterThan(28)
+  expect(measured?.overflow ?? 999).toBeLessThanOrEqual(1)
 })
