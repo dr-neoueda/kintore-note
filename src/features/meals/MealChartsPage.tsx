@@ -4,6 +4,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  ComposedChart,
   Line,
   LineChart,
   ReferenceLine,
@@ -15,12 +16,15 @@ import {
 import { PageHeader } from '@/components/PageHeader'
 import { listAllMealEntries } from '@/data/repositories/mealRepository'
 import { getSettings } from '@/data/repositories/settingsRepository'
+import { listAllCardioSessions } from '@/data/repositories/cardioRepository'
 import { listMeasurements } from '@/data/repositories/measurementRepository'
 import { calcLeanBodyMassKg } from '@/domain/bodyComposition'
 import { formatShortDateLabel } from '@/domain/date'
 import { DEFAULT_NUTRITION_TARGET } from '@/domain/nutritionTarget'
 import { useColorScheme } from '@/hooks/useColorScheme'
+import { useWorkoutHistory } from '@/hooks/useWorkoutHistory'
 import { CHART_PALETTES } from '../charts/chartPalette'
+import { buildDailyExpenditure } from './dailyExpenditure'
 import { averageNutrition, summarizeMealDays, takeRecentDays } from './mealDays'
 import styles from './MealChartsPage.module.css'
 
@@ -36,6 +40,20 @@ export function MealChartsPage() {
   const entries = useLiveQuery(() => listAllMealEntries(), [])
   const settings = useLiveQuery(() => getSettings(), [])
   const measurements = useLiveQuery(() => listMeasurements(), [])
+  const cardioSessions = useLiveQuery(() => listAllCardioSessions(), [])
+  const { workouts, setsByWorkoutId } = useWorkoutHistory()
+
+  /** 日ごとの消費エネルギー。摂取と並べて収支を読み取れるようにする。 */
+  const expenditureByDate = useMemo(
+    () =>
+      buildDailyExpenditure({
+        workouts,
+        setsByWorkoutId,
+        cardioSessions: cardioSessions ?? [],
+        measurements: measurements ?? [],
+      }),
+    [workouts, setsByWorkoutId, cardioSessions, measurements],
+  )
   const palette = CHART_PALETTES[useColorScheme()]
 
   const days = useMemo(() => summarizeMealDays(entries ?? []), [entries])
@@ -46,8 +64,26 @@ export function MealChartsPage() {
 
   const energyData = recent.map((day) => ({
     label: formatShortDateLabel(day.date),
-    エネルギー: day.nutrition.kcal,
+    摂取: day.nutrition.kcal,
+    // 消費が出せない日は線を飛ばす。0 にすると急落して見える
+    消費: expenditureByDate.get(day.date)?.totalKcal || null,
   }))
+
+  const hasExpenditure = energyData.some((point) => point.消費 !== null)
+
+  /** 収支を出せる日だけの平均。基礎代謝を測っていない日は混ぜない。 */
+  const averageBalance = useMemo(() => {
+    const balances = recent
+      .map((day) => {
+        const expenditure = expenditureByDate.get(day.date)
+        if (expenditure === undefined || !expenditure.hasBasal) return null
+        return day.nutrition.kcal - expenditure.totalKcal
+      })
+      .filter((balance): balance is number => balance !== null)
+
+    if (balances.length === 0) return null
+    return Math.round(balances.reduce((sum, value) => sum + value, 0) / balances.length)
+  }, [recent, expenditureByDate])
 
   const proteinData = recent.map((day) => ({
     label: formatShortDateLabel(day.date),
@@ -125,14 +161,30 @@ export function MealChartsPage() {
               <div className={styles.averageLabel}>炭水化物 g</div>
             </div>
           </div>
+
+          {averageBalance !== null && (
+            <p className={styles.balance} data-testid="average-balance">
+              平均の収支 {averageBalance > 0 ? '+' : ''}
+              {averageBalance} kcal / 日
+              <span className={styles.balanceNote}>
+                摂取 −（基礎代謝 + 運動）。基礎代謝を測った日だけで平均しています。
+              </span>
+            </p>
+          )}
         </section>
 
         <section className={styles.card}>
-          <h2 className={styles.cardTitle}>エネルギーの推移</h2>
-          <p className={styles.cardNote}>横線は目標の {target.kcal} kcal です。</p>
+          <h2 className={styles.cardTitle}>
+            {hasExpenditure ? '摂取と消費の推移' : 'エネルギーの推移'}
+          </h2>
+          <p className={styles.cardNote}>
+            棒が摂取、横線は目標の {target.kcal} kcal です。
+            {hasExpenditure &&
+              ' 折れ線は消費（基礎代謝 + 運動）です。日常生活の活動量は含んでいません。'}
+          </p>
           <div className={styles.chart}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={energyData} margin={{ top: 8, right: 12, bottom: 0, left: -8 }}>
+              <ComposedChart data={energyData} margin={{ top: 8, right: 12, bottom: 0, left: -8 }}>
                 <CartesianGrid stroke={palette.grid} strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="label" tick={axisStyle} stroke={palette.axis} />
                 <YAxis tick={axisStyle} stroke={palette.axis} width={40} />
@@ -141,9 +193,19 @@ export function MealChartsPage() {
                   labelStyle={{ color: palette.tooltipLabel }}
                   cursor={{ fill: palette.cursorFill }}
                 />
-                <ReferenceLine y={target.kcal} stroke={palette.oneRepMax} strokeDasharray="4 4" />
-                <Bar dataKey="エネルギー" fill={palette.maxWeight} radius={[4, 4, 0, 0]} />
-              </BarChart>
+                <ReferenceLine y={target.kcal} stroke={palette.grid} strokeDasharray="4 4" />
+                <Bar dataKey="摂取" fill={palette.maxWeight} radius={[4, 4, 0, 0]} />
+                {hasExpenditure && (
+                  <Line
+                    type="monotone"
+                    dataKey="消費"
+                    stroke={palette.oneRepMax}
+                    strokeWidth={2}
+                    dot={{ r: 3, fill: palette.oneRepMax, stroke: palette.oneRepMax }}
+                    connectNulls
+                  />
+                )}
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
         </section>

@@ -1,16 +1,14 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate, useParams } from 'react-router-dom'
 import { PageHeader } from '@/components/PageHeader'
-import {
-  findLatestWeightKg,
-  getMeasurementByDate,
-} from '@/data/repositories/measurementRepository'
+import { getMeasurementByDate } from '@/data/repositories/measurementRepository'
 import { deleteWorkout } from '@/data/repositories/workoutRepository'
 import { formatDateLabelWithYear, isValidDateKey } from '@/domain/date'
 import { formatWeightKg } from '@/domain/weight'
 import { useExercises } from '@/hooks/useExercises'
 import { useLastSessions } from '@/hooks/useLastSessions'
 import { CardioSection } from '../cardio/CardioSection'
+import { useDailyEnergy } from '../today/useDailyEnergy'
 import { WorkoutEditorBody } from '../workout/WorkoutEditorBody'
 import { useWorkoutEditor } from '../workout/useWorkoutEditor'
 import styles from './WorkoutDetailPage.module.css'
@@ -29,10 +27,8 @@ export function WorkoutDetailPage() {
     [date],
   )
   // その日に測っていなくても、直近の体重があれば消費を出せる
-  const weightKg = useLiveQuery(
-    () => (isValidDateKey(date) ? findLatestWeightKg(date) : Promise.resolve(null)),
-    [date],
-  )
+  const energy = useDailyEnergy(date, editor.sets)
+  const weightKg = energy.weightKg
 
   const handleDeleteWorkout = async () => {
     if (workout?.id === undefined) return
@@ -65,6 +61,14 @@ export function WorkoutDetailPage() {
             <div className={styles.metricValue}>{summary.exerciseCount}</div>
             <div className={styles.metricLabel}>種目</div>
           </div>
+          {energy.activeKcal > 0 && (
+            <div className={styles.metric}>
+              <div className={styles.metricValue} data-testid="active-kcal">
+                {energy.activeKcal}
+              </div>
+              <div className={styles.metricLabel}>kcal</div>
+            </div>
+          )}
           <div className={styles.metric}>
             <div className={styles.metricValue}>{summary.workingSetCount}</div>
             <div className={styles.metricLabel}>セット</div>
