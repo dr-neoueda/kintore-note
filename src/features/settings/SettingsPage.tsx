@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Link } from 'react-router-dom'
 import { PageHeader } from '@/components/PageHeader'
@@ -35,11 +35,14 @@ import {
 import { ValidationError } from '@/domain/validation'
 import { formatWeightKg } from '@/domain/weight'
 import {
+  canShareFiles,
   chooseBackupTarget,
   detectBackupExportMode,
   exportBackup,
   getRememberedTargetName,
+  shareBackupFile,
 } from './backupExport'
+import { downloadTextFile } from './downloadFile'
 
 import styles from './SettingsPage.module.css'
 
@@ -96,6 +99,54 @@ export function SettingsPage() {
     toTargetTexts(DEFAULT_NUTRITION_TARGET),
   )
   const exportMode = useMemo(() => detectBackupExportMode(), [])
+  const isShareAvailable = useMemo(() => canShareFiles(), [])
+
+  /**
+   * 共有シート用に、書き出す中身を先に用意しておく。
+   *
+   * iOS は「押したその場」でしか共有を許さない。押してからデータを集めると
+   * 権限が切れて断られるため、画面を開いた時点で作っておく。
+   */
+  const [preparedBackup, setPreparedBackup] = useState<{
+    fileName: string
+    text: string
+  } | null>(null)
+
+  const prepareBackup = useCallback(async () => {
+    try {
+      const data = await collectBackupData()
+      const nowIso = new Date().toISOString()
+      setPreparedBackup({
+        fileName: `kintore-note-${toDateKey(new Date())}.json`,
+        text: serializeBackup(createBackupFile(data, nowIso)),
+      })
+    } catch {
+      setPreparedBackup(null)
+    }
+  }, [])
+
+  useEffect(() => {
+    void prepareBackup()
+  }, [prepareBackup])
+
+  /** 共有シートを開く。await を挟まずに呼ぶ必要がある。 */
+  const handleShare = () => {
+    if (preparedBackup === null) {
+      setStatus({ kind: 'error', text: 'バックアップを用意できませんでした' })
+      return
+    }
+
+    const { fileName, text } = preparedBackup
+    void shareBackupFile(fileName, text).then(async (isShared) => {
+      if (!isShared) {
+        // 共有を断られた場合でも、書き出せないままにはしない
+        downloadTextFile(fileName, text)
+      }
+      await markBackedUp(new Date().toISOString())
+      await prepareBackup()
+      setStatus({ kind: 'success', text: 'バックアップを書き出しました' })
+    })
+  }
   const [targetName, setTargetName] = useState<string | null>(null)
 
   useEffect(() => {
@@ -474,8 +525,7 @@ export function SettingsPage() {
 
           {exportMode === 'share' && (
             <p className={styles.hint}>
-              このブラウザは保存先を覚えられないため、共有シートを開きます。
-              保存先を1回選べば書き出せます。
+              このブラウザは保存先を覚えられないため、「書き出す」を押すと共有シートが開きます。
             </p>
           )}
 
@@ -484,6 +534,17 @@ export function SettingsPage() {
               ? '書き出す（保存先は選ばずに済みます）'
               : 'バックアップを書き出す'}
           </button>
+
+          {isShareAvailable && (
+            <button
+              type="button"
+              className="btn btn-block"
+              onClick={handleShare}
+              disabled={preparedBackup === null}
+            >
+              共有して保存（Google Drive など）
+            </button>
+          )}
 
           {exportMode === 'remembered' && targetName !== null && (
             <button type="button" className="btn btn-block" onClick={handleChangeTarget}>

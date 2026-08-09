@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest'
-import { detectBackupExportMode } from './backupExport'
+import { canShareFiles, detectBackupExportMode } from './backupExport'
 
 /**
  * 書き出し方の判定。
@@ -46,6 +46,16 @@ describe('detectBackupExportMode', () => {
     setShareSupport(true)
 
     // Act & Assert
+    expect(detectBackupExportMode()).toBe('share')
+  })
+
+  test('canShare が無くても、share があれば共有を選べる', () => {
+    // Arrange: canShare は控えめに false を返すことがあるため、参考にとどめる
+    Object.defineProperty(navigator, 'share', { value: () => {}, configurable: true })
+    Object.defineProperty(navigator, 'canShare', { value: undefined, configurable: true })
+
+    // Act & Assert
+    expect(canShareFiles()).toBe(true)
     expect(detectBackupExportMode()).toBe('share')
   })
 

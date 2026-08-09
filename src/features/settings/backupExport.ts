@@ -34,17 +34,15 @@ function getSaveFilePicker(): SaveFilePickerWindow['showSaveFilePicker'] {
   return (window as unknown as SaveFilePickerWindow).showSaveFilePicker
 }
 
-function canShareFiles(): boolean {
+/**
+ * 共有できるか。
+ *
+ * canShare は控えめに false を返すことがあるため、参考にとどめる。
+ * share があるなら選択肢としては出し、実際に断られたらダウンロードへ落とす。
+ */
+export function canShareFiles(): boolean {
   if (typeof navigator === 'undefined') return false
-  if (typeof navigator.share !== 'function') return false
-  if (typeof navigator.canShare !== 'function') return false
-
-  try {
-    const probe = new File(['{}'], 'probe.json', { type: MIME_TYPE })
-    return navigator.canShare({ files: [probe] })
-  } catch {
-    return false
-  }
+  return typeof navigator.share === 'function'
 }
 
 export function detectBackupExportMode(): BackupExportMode {
@@ -161,11 +159,37 @@ export async function exportBackup(
   }
 
   if (mode === 'share') {
-    const file = new File([text], suggestedName, { type: MIME_TYPE })
-    await navigator.share({ files: [file], title: suggestedName })
-    return { mode, fileName: suggestedName, isRemembered: false }
+    const shared = await shareBackupFile(suggestedName, text)
+    if (shared) return { mode, fileName: suggestedName, isRemembered: false }
   }
 
   downloadTextFile(suggestedName, text)
   return { mode: 'download', fileName: suggestedName, isRemembered: false }
+}
+
+/**
+ * 共有シートを開く。
+ *
+ * iOS は「利用者の操作を起点にしたその場」でしか共有を許さない。
+ * 押してから await を挟むと権限が切れて断られるため、
+ * 呼び出し側は中身を先に用意し、押した直後にこれを呼ぶ。
+ *
+ * 断られた場合は false を返し、呼び出し側でダウンロードに落とす。
+ */
+export function shareBackupFile(fileName: string, text: string): Promise<boolean> {
+  if (!canShareFiles()) return Promise.resolve(false)
+
+  try {
+    const file = new File([text], fileName, { type: MIME_TYPE })
+    return navigator
+      .share({ files: [file], title: fileName })
+      .then(() => true)
+      .catch((cause: unknown) => {
+        // 利用者が閉じた場合は、失敗ではないので落とさない
+        if (cause instanceof DOMException && cause.name === 'AbortError') return true
+        return false
+      })
+  } catch {
+    return Promise.resolve(false)
+  }
 }

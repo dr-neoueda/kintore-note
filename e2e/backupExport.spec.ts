@@ -130,4 +130,65 @@ test.describe('バックアップの書き出し', () => {
     const download = await downloadPromise
     expect(download.suggestedFilename()).toMatch(/^kintore-note-\d{4}-\d{2}-\d{2}\.json$/)
   })
+
+  test('共有できる環境では、共有ボタンも出す', async ({ page }) => {
+    // Arrange: 共有シートを差し替える
+    await page.addInitScript(() => {
+      const shared: string[] = []
+      ;(window as unknown as Record<string, unknown>).__shared = shared
+      Object.defineProperty(navigator, 'share', {
+        value: (data: { files?: File[] }) => {
+          shared.push(data.files?.[0]?.name ?? '')
+          return Promise.resolve()
+        },
+        configurable: true,
+      })
+    })
+    await page.goto('/settings')
+
+    // Act
+    const shareButton = page.getByRole('button', { name: '共有して保存（Google Drive など）' })
+    await expect(shareButton).toBeEnabled()
+    await shareButton.click()
+
+    // Assert
+    await expect(page.getByRole('main')).toContainText('バックアップを書き出しました')
+    const shared = await page.evaluate(
+      () => (window as unknown as { __shared: string[] }).__shared ?? [],
+    )
+    expect(shared[0]).toMatch(/^kintore-note-\d{4}-\d{2}-\d{2}\.json$/)
+  })
+
+  test('共有を断られたら、ダウンロードに落とす', async ({ page }) => {
+    // Arrange: iOS は操作から離れた共有を断る
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'share', {
+        value: () => Promise.reject(new DOMException('denied', 'NotAllowedError')),
+        configurable: true,
+      })
+    })
+    await page.goto('/settings')
+
+    // Act
+    const downloadPromise = page.waitForEvent('download')
+    await page.getByRole('button', { name: '共有して保存（Google Drive など）' }).click()
+
+    // Assert: 書き出せないままにはしない
+    const download = await downloadPromise
+    expect(download.suggestedFilename()).toMatch(/^kintore-note-\d{4}-\d{2}-\d{2}\.json$/)
+  })
+
+  test('共有できない環境では、共有ボタンを出さない', async ({ page }) => {
+    // Arrange
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'share', { value: undefined, configurable: true })
+    })
+    await page.goto('/settings')
+    await expect(page.getByRole('heading', { name: 'バックアップ' })).toBeVisible()
+
+    // Assert
+    await expect(
+      page.getByRole('button', { name: '共有して保存（Google Drive など）' }),
+    ).toHaveCount(0)
+  })
 })
