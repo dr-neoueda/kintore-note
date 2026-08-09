@@ -192,3 +192,93 @@ test.describe('バックアップの書き出し', () => {
     ).toHaveCount(0)
   })
 })
+
+test.describe('古いバックアップの復元', () => {
+  /** v8 より前の形。体重はワークアウトに載っていて、食事の項目そのものが無い。 */
+  const OLD_BACKUP = {
+    app: 'kintore-note',
+    version: 1,
+    exportedAt: '2026-07-20T10:00:00.000Z',
+    data: {
+      exercises: [
+        {
+          id: 1,
+          name: 'インクラインダンベルプレス',
+          muscleGroup: 'chest',
+          equipment: 'dumbbell',
+          dumbbellCount: 2,
+          isArchived: false,
+          createdAt: '2026-07-01T00:00:00.000Z',
+        },
+      ],
+      workouts: [
+        {
+          id: 1,
+          date: '2026-07-20',
+          note: '旧バージョンの記録',
+          bodyWeightKg: 68.4,
+          startedAt: '2026-07-20T10:00:00.000Z',
+          finishedAt: null,
+        },
+      ],
+      sets: [
+        {
+          id: 1,
+          workoutId: 1,
+          exerciseId: 1,
+          order: 1,
+          weightKg: 11.5,
+          reps: 10,
+          rpe: 8,
+          restSec: 90,
+          isWarmup: false,
+          recordedAt: '2026-07-20T10:05:00.000Z',
+        },
+      ],
+      templates: [{ id: 1, name: '胸の日', note: '', order: 1, items: [] }],
+      settings: { id: 1, dumbbellStepsKg: [2.5, 5, 10], lastBackupAt: null, backupReminderDays: 7 },
+    },
+  }
+
+  async function restoreOldBackup(page: Page): Promise<void> {
+    await page.goto('/settings')
+    await expect(page.getByRole('heading', { name: 'バックアップ' })).toBeVisible()
+
+    page.once('dialog', (dialog) => void dialog.accept())
+    await page.setInputFiles('input[type=file]', {
+      name: 'old.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify(OLD_BACKUP)),
+    })
+    await expect(page.getByRole('main')).toContainText('読み込みました')
+  }
+
+  test('記録が取り込める', async ({ page }) => {
+    // Arrange & Act
+    await restoreOldBackup(page)
+
+    // Assert
+    await page.goto('/history/2026-07-20')
+    await expect(page.getByRole('main')).toContainText('11.5')
+    await expect(page.getByRole('main')).toContainText('旧バージョンの記録')
+  })
+
+  test('ワークアウトに載っていた体重が、体組成として残る', async ({ page }) => {
+    // Arrange & Act
+    await restoreOldBackup(page)
+
+    // Assert: 移さないとアプリが読む先に何も入らず、体重が消えたように見える
+    await page.goto('/history/2026-07-20')
+    await expect(page.getByRole('main')).toContainText('68.4')
+  })
+
+  test('食事の項目が無くても、食事タブが開ける', async ({ page }) => {
+    // Arrange & Act
+    await restoreOldBackup(page)
+
+    // Assert
+    await page.goto('/meals')
+    await expect(page.getByRole('heading', { name: '食事' })).toBeVisible()
+    await expect(page.getByTestId('total-kcal')).toHaveText('0')
+  })
+})

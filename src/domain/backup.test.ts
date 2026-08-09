@@ -258,3 +258,90 @@ describe('normalizeBackupData', () => {
     expect(parseBackup(json).data.exercises[0]?.restSec).toBe(90)
   })
 })
+
+describe('古いバックアップの取り込み', () => {
+  const oldWorkout = {
+    id: 1,
+    date: '2026-07-20',
+    note: '',
+    bodyWeightKg: 68.4,
+    startedAt: '2026-07-20T10:00:00.000Z',
+    finishedAt: null,
+  }
+
+  const oldData = {
+    exercises: [],
+    workouts: [oldWorkout],
+    sets: [],
+    templates: [],
+    settings: null,
+  } as unknown as Parameters<typeof normalizeBackupData>[0]
+
+  test('ワークアウトに載っていた体重を体組成へ移す', () => {
+    // Arrange & Act: v8 より前は体重をワークアウトに持っていた
+    const normalized = normalizeBackupData(oldData)
+
+    // Assert: 移さないと、アプリが読む先に何も入らず記録が消えたように見える
+    expect(normalized.measurements).toHaveLength(1)
+    expect(normalized.measurements[0]?.date).toBe('2026-07-20')
+    expect(normalized.measurements[0]?.weightKg).toBe(68.4)
+  })
+
+  test('同じ日の体組成が既にあれば、上書きしない', () => {
+    // Arrange
+    const withMeasurement = {
+      ...oldData,
+      measurements: [
+        {
+          date: '2026-07-20',
+          weightKg: 70,
+          bodyFatPercent: 15,
+          muscleMassKg: null,
+          visceralFatLevel: null,
+          basalMetabolicRateKcal: null,
+          recordedAt: '2026-07-20T07:00:00.000Z',
+        },
+      ],
+    } as unknown as Parameters<typeof normalizeBackupData>[0]
+
+    // Act
+    const normalized = normalizeBackupData(withMeasurement)
+
+    // Assert: 体脂肪率まで入っている方を残す
+    expect(normalized.measurements).toHaveLength(1)
+    expect(normalized.measurements[0]?.weightKg).toBe(70)
+  })
+
+  test('体重が無いワークアウトからは作らない', () => {
+    const withoutWeight = {
+      ...oldData,
+      workouts: [{ ...oldWorkout, bodyWeightKg: null }],
+    } as unknown as Parameters<typeof normalizeBackupData>[0]
+
+    expect(normalizeBackupData(withoutWeight).measurements).toEqual([])
+  })
+
+  test('食事の項目を持たないバックアップでも空で埋まる', () => {
+    const normalized = normalizeBackupData(oldData)
+
+    expect(normalized.meals).toEqual([])
+    expect(normalized.customFoods).toEqual([])
+    expect(normalized.mealTemplates).toEqual([])
+    expect(normalized.cardioSessions).toEqual([])
+  })
+
+  test('献立から、使わなくなった「入れる区分」を落とす', () => {
+    // Arrange
+    const withMealType = {
+      ...oldData,
+      mealTemplates: [{ id: 1, name: 'いつもの朝食', mealType: 'breakfast', order: 1, items: [] }],
+    } as unknown as Parameters<typeof normalizeBackupData>[0]
+
+    // Act
+    const [template] = normalizeBackupData(withMealType).mealTemplates
+
+    // Assert
+    expect(template?.name).toBe('いつもの朝食')
+    expect('mealType' in (template ?? {})).toBe(false)
+  })
+})

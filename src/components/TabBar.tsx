@@ -39,12 +39,24 @@ const TABS_BY_MODE: Readonly<Record<AppMode, readonly TabDefinition[]>> = {
   ],
 }
 
-/** 切り替えボタンには「行き先」を出す。今いる側を出すと押した結果が読めない。 */
-const SWITCH_TARGET: Readonly<Record<AppMode, { label: string; to: string; Icon: typeof DumbbellIcon }>> =
-  {
-    workout: { label: '食事', to: '/meals', Icon: UtensilsIcon },
-    meal: { label: '運動', to: '/', Icon: DumbbellIcon },
-  }
+/**
+ * 切り替えボタンの行き先。
+ *
+ * 「食事」とだけ書くと、今いる場所を示しているのか行き先なのかが読めず、
+ * 逆に見える。「食事へ」と動作として書き、いまいる側は見出しで示す。
+ */
+const SWITCH_TARGET: Readonly<
+  Record<AppMode, { label: string; to: string; Icon: typeof DumbbellIcon }>
+> = {
+  workout: { label: '食事へ', to: '/meals', Icon: UtensilsIcon },
+  meal: { label: '運動へ', to: '/', Icon: DumbbellIcon },
+}
+
+/** いま見ている側。切り替えボタンの上に小さく出す。 */
+const CURRENT_MODE_LABELS: Readonly<Record<AppMode, string>> = {
+  workout: '運動',
+  meal: '食事',
+}
 
 export function TabBar() {
   const mode = useAppMode()
@@ -58,13 +70,14 @@ export function TabBar() {
         type="button"
         className={styles.switch}
         onClick={() => navigate(target.to)}
-        aria-label={`${target.label}に切り替える`}
+        aria-label={`${target.label}切り替える`}
       >
-        <span className={styles.switchIcons}>
-          <target.Icon size={20} />
-          <SwitchIcon size={12} />
+        <span className={styles.switchCurrent}>いま {CURRENT_MODE_LABELS[mode]}</span>
+        <span className={styles.switchTarget}>
+          <target.Icon size={16} />
+          {target.label}
+          <SwitchIcon size={10} />
         </span>
-        <span>{target.label}</span>
       </button>
 
       {TABS_BY_MODE[mode].map(({ to, label, Icon, end }) => (

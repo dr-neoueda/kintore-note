@@ -12,7 +12,7 @@ test.describe('運動と食事の切り替え', () => {
     await expect(tabbar(page)).toContainText('メニュー')
 
     // Act
-    await page.getByRole('button', { name: '食事に切り替える' }).click()
+    await page.getByRole('button', { name: '食事へ切り替える' }).click()
 
     // Assert: 食事側のタブに入れ替わる
     await expect(page.getByRole('heading', { name: '食事' })).toBeVisible()
@@ -20,7 +20,7 @@ test.describe('運動と食事の切り替え', () => {
     await expect(tabbar(page)).not.toContainText('メニュー')
 
     // Act
-    await page.getByRole('button', { name: '運動に切り替える' }).click()
+    await page.getByRole('button', { name: '運動へ切り替える' }).click()
 
     // Assert
     await expect(page.getByRole('heading', { name: 'ホーム' })).toBeVisible()

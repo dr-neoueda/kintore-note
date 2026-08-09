@@ -259,8 +259,11 @@ function normalizeCardioSession(raw: CardioSession): CardioSession {
 function normalizeMealTemplate(raw: MealTemplate): MealTemplate {
   const source = raw as unknown as Record<string, unknown>
 
+  // 「入れる区分」は持たなくなった。古いバックアップの値は落とす
+  const { mealType: _obsoleteMealType, ...rest } = source as { mealType?: unknown }
+
   return {
-    ...raw,
+    ...(rest as unknown as MealTemplate),
     name: typeof source.name === 'string' ? source.name : '',
     order: Math.max(0, toNumber(source.order)),
     items: Array.isArray(source.items)
@@ -285,20 +288,52 @@ function normalizeTemplate(raw: WorkoutTemplate): WorkoutTemplate {
 }
 
 /**
+ * 体重は v8 より前、ワークアウトに載せていた。
+ * 古いバックアップをそのまま入れると、アプリが読む先（measurements）に
+ * 何も入らず、記録した体重が消えたように見える。取り込みの入口で移す。
+ */
+function migrateWorkoutWeights(
+  workouts: readonly Workout[],
+  measurements: readonly BodyMeasurement[],
+): BodyMeasurement[] {
+  const recordedDates = new Set(measurements.map((measurement) => measurement.date))
+
+  return workouts
+    .filter(
+      (workout) =>
+        typeof workout.bodyWeightKg === 'number' &&
+        workout.bodyWeightKg > 0 &&
+        !recordedDates.has(workout.date),
+    )
+    .map((workout) => ({
+      date: workout.date,
+      weightKg: workout.bodyWeightKg as number,
+      bodyFatPercent: null,
+      muscleMassKg: null,
+      visceralFatLevel: null,
+      basalMetabolicRateKcal: null,
+      recordedAt: workout.startedAt === '' ? `${workout.date}T12:00:00.000Z` : workout.startedAt,
+    }))
+}
+
+/**
  * 取り込んだデータを現在の形に整える。
  * 古い形式のバックアップや手で編集されたファイルでも、そのまま保存できる状態にする。
  */
 export function normalizeBackupData(data: IncomingBackupData): BackupData {
+  const workouts = data.workouts.map(normalizeWorkout)
+  const measurements = (data.measurements ?? []).map(normalizeMeasurement)
+
   return {
     exercises: data.exercises.map(normalizeExercise),
-    workouts: data.workouts.map(normalizeWorkout),
+    workouts,
     sets: data.sets.map(normalizeSet),
     templates: data.templates.map(normalizeTemplate),
     // 食事の記録は後から足した項目のため、持たないバックアップがある
     meals: (data.meals ?? []).map(normalizeMealEntry),
     customFoods: (data.customFoods ?? []).map(normalizeCustomFood),
     mealTemplates: (data.mealTemplates ?? []).map(normalizeMealTemplate),
-    measurements: (data.measurements ?? []).map(normalizeMeasurement),
+    measurements: [...measurements, ...migrateWorkoutWeights(workouts, measurements)],
     cardioSessions: (data.cardioSessions ?? []).map(normalizeCardioSession),
     settings: data.settings,
   }
