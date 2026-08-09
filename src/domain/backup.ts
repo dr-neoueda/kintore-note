@@ -258,14 +258,10 @@ function normalizeCardioSession(raw: CardioSession): CardioSession {
 
 function normalizeMealTemplate(raw: MealTemplate): MealTemplate {
   const source = raw as unknown as Record<string, unknown>
-  const mealType = MEAL_TYPES.includes(source.mealType as MealType)
-    ? (source.mealType as MealType)
-    : 'breakfast'
 
   return {
     ...raw,
     name: typeof source.name === 'string' ? source.name : '',
-    mealType,
     order: Math.max(0, toNumber(source.order)),
     items: Array.isArray(source.items)
       ? raw.items.map((item) => ({

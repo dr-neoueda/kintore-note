@@ -137,7 +137,6 @@
 |---|---|---|
 | id | number | 自動採番 |
 | name | string | 献立の名前 |
-| mealType | MealType | 既定で入れる区分 |
 | order | number | 並び順 |
 | items | MealTemplateItem[] | `{ foodId, foodName, grams, nutrition }`。件数が少ないため埋め込む |
 

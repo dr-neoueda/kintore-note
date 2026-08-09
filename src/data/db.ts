@@ -181,6 +181,18 @@ export class KintoreDatabase extends Dexie {
         }
       })
 
+    // v10: 献立から「入れる区分」を外す。
+    // どの区分にも入れられるようにしたため、持っている意味がなくなった。
+    this.version(10).upgrade(async (transaction) => {
+      await transaction
+        .table('mealTemplates')
+        .toCollection()
+        .modify((template: Record<string, unknown>) => {
+          // Dexie の modify はその場で書き換える API のため、ここだけは delete で消す
+          delete template.mealType
+        })
+    })
+
     // v9: バックアップの書き出し先を覚える置き場。
     // 端末とブラウザに紐づくため、バックアップの中身には含めない。
     this.version(9).stores({

@@ -4,7 +4,6 @@ import { PageHeader } from '@/components/PageHeader'
 import { ChevronRightIcon, PlusIcon } from '@/components/icons'
 import { listMealTemplates } from '@/data/repositories/mealTemplateRepository'
 import { sumNutrition } from '@/domain/nutrition'
-import { MEAL_TYPE_LABELS } from '@/domain/types'
 import styles from './MealTemplatesPage.module.css'
 
 export function MealTemplatesPage() {
@@ -36,10 +35,7 @@ export function MealTemplatesPage() {
               className={styles.item}
             >
               <div className={styles.main}>
-                <div className={styles.name}>
-                  {template.name}
-                  <span className={styles.mealType}>{MEAL_TYPE_LABELS[template.mealType]}</span>
-                </div>
+                <div className={styles.name}>{template.name}</div>
                 <div className={styles.detail}>{names === '' ? '食品が未登録' : names}</div>
                 <div className={styles.total}>
                   {total.kcal} kcal · P{total.protein} F{total.fat} C{total.carb}

@@ -10,12 +10,7 @@ import {
 } from '@/data/repositories/mealTemplateRepository'
 import type { Food } from '@/domain/food'
 import { sumNutrition, type Nutrition } from '@/domain/nutrition'
-import {
-  MEAL_TYPES,
-  MEAL_TYPE_LABELS,
-  type MealTemplateItem,
-  type MealType,
-} from '@/domain/types'
+import type { MealTemplateItem } from '@/domain/types'
 import { ValidationError } from '@/domain/validation'
 import { CreateCustomFoodSheet } from './CreateCustomFoodSheet'
 import { FoodPickerSheet } from './FoodPickerSheet'
@@ -37,7 +32,6 @@ export function MealTemplateEditorPage() {
   const isNew = templateId === 'new'
 
   const [name, setName] = useState('')
-  const [mealType, setMealType] = useState<MealType>('breakfast')
   const [items, setItems] = useState<readonly MealTemplateItem[]>([])
   const [isLoading, setIsLoading] = useState(!isNew)
   const [isMissing, setIsMissing] = useState(false)
@@ -57,7 +51,6 @@ export function MealTemplateEditorPage() {
         setIsMissing(true)
       } else {
         setName(template.name)
-        setMealType(template.mealType)
         setItems(template.items)
       }
       setIsLoading(false)
@@ -96,9 +89,9 @@ export function MealTemplateEditorPage() {
     setErrorMessage(null)
     try {
       if (isNew) {
-        await createMealTemplate({ name, mealType, items })
+        await createMealTemplate({ name, items })
       } else if (templateId !== undefined) {
-        await updateMealTemplate(Number(templateId), { name, mealType, items })
+        await updateMealTemplate(Number(templateId), { name, items })
       }
       navigate('/meals/templates')
     } catch (cause) {
@@ -152,24 +145,6 @@ export function MealTemplateEditorPage() {
           />
         </div>
 
-        <div className={styles.field}>
-          <span className={styles.label}>入れる区分</span>
-          <div className={styles.chips}>
-            {MEAL_TYPES.map((type) => (
-              <button
-                key={type}
-                type="button"
-                className={
-                  mealType === type ? `${styles.chip} ${styles.chipSelected}` : styles.chip
-                }
-                onClick={() => setMealType(type)}
-                aria-pressed={mealType === type}
-              >
-                {MEAL_TYPE_LABELS[type]}
-              </button>
-            ))}
-          </div>
-        </div>
 
         <div className={styles.items}>
           {items.map((item, index) => (

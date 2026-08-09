@@ -4,6 +4,8 @@ import { Sheet } from '@/components/Sheet'
 import { PlusIcon } from '@/components/icons'
 import { listFrequentFoods } from '@/data/repositories/mealRepository'
 import { searchFoods, type Food } from '@/domain/food'
+import { sumNutrition } from '@/domain/nutrition'
+import type { MealTemplate } from '@/domain/types'
 import { useResetOnOpen } from '@/hooks/useResetOnOpen'
 import { useFoodCatalog } from './useFoodCatalog'
 import styles from './FoodPickerSheet.module.css'
@@ -13,6 +15,12 @@ interface FoodPickerSheetProps {
   readonly onClose: () => void
   readonly onSelect: (food: Food) => void
   readonly onRequestCreate: (initialName: string) => void
+  /**
+   * まとめて入れられる献立。
+   * 献立そのものを編集している画面では渡さない（献立の中に献立は入れられない）。
+   */
+  readonly templates?: readonly MealTemplate[]
+  readonly onSelectTemplate?: (template: MealTemplate) => void
 }
 
 /** よく食べるものは毎回検索させない。 */
@@ -23,6 +31,8 @@ export function FoodPickerSheet({
   onClose,
   onSelect,
   onRequestCreate,
+  templates = [],
+  onSelectTemplate,
 }: FoodPickerSheetProps) {
   const [keyword, setKeyword] = useState('')
   const { foods, isLoading } = useFoodCatalog()
@@ -69,6 +79,29 @@ export function FoodPickerSheet({
           onChange={(event) => setKeyword(event.target.value)}
         />
       </div>
+
+      {!hasKeyword && onSelectTemplate !== undefined && templates.length > 0 && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>献立からまとめて入れる</h3>
+          {templates.map((template) => (
+            <button
+              key={template.id}
+              type="button"
+              className={styles.item}
+              onClick={() => {
+                setKeyword('')
+                onSelectTemplate(template)
+              }}
+            >
+              <span className={styles.itemName}>{template.name}</span>
+              <span className={styles.itemMeta}>
+                {sumNutrition(template.items.map((item) => item.nutrition)).kcal} kcal ·{' '}
+                {template.items.length} 品
+              </span>
+            </button>
+          ))}
+        </section>
+      )}
 
       {!hasKeyword && frequentFoods.length > 0 && (
         <section className={styles.section}>

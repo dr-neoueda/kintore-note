@@ -139,14 +139,18 @@ export function MealsPage() {
     await deleteMealEntry(entryTarget.entry.id)
   }
 
-  /** 献立をまとめて入れる。栄養価は献立に保存された値をそのまま使う。 */
-  const applyTemplate = async (template: MealTemplate) => {
+  /**
+   * 献立をまとめて入れる。
+   * 区分は献立ではなく、開いている場所（朝食・昼食…）で決まる。
+   * 栄養価は献立に保存された値をそのまま使う。
+   */
+  const applyTemplate = async (template: MealTemplate, mealType: MealType) => {
     const recordedAt = new Date().toISOString()
 
     for (const item of template.items) {
       await addMealEntry({
         date,
-        mealType: template.mealType,
+        mealType,
         foodId: item.foodId,
         foodName: item.foodName,
         grams: item.grams,
@@ -225,26 +229,6 @@ export function MealsPage() {
           </button>
         )}
 
-        {!hasEntries && (templates ?? []).length > 0 && (
-          <div className={styles.templates}>
-            <span className={styles.templatesLabel}>献立から入れる</span>
-            <div className={styles.templateButtons}>
-              {(templates ?? []).map((template) => (
-                <button
-                  key={template.id}
-                  type="button"
-                  className={styles.templateButton}
-                  onClick={() => void applyTemplate(template)}
-                >
-                  <span className={styles.templateName}>{template.name}</span>
-                  <span className={styles.templateMeta}>
-                    {MEAL_TYPE_LABELS[template.mealType]}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         {MEAL_TYPES.map((mealType) => {
           const items = entriesByType.get(mealType) ?? []
@@ -290,6 +274,11 @@ export function MealsPage() {
         onClose={() => setPickerMealType(null)}
         onSelect={handleSelectFood}
         onRequestCreate={(initialName) => setCreatingName(initialName)}
+        templates={templates ?? []}
+        onSelectTemplate={(template) => {
+          setPickerMealType(null)
+          void applyTemplate(template, pendingMealType)
+        }}
       />
 
       {entryTarget !== null && (

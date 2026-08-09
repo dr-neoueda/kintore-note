@@ -235,12 +235,16 @@ export interface MealTemplateItem {
   readonly nutrition: Nutrition
 }
 
-/** よく食べる組み合わせ。まとめて1日の記録へ入れられる。 */
+/**
+ * よく食べる組み合わせ。まとめて1日の記録へ入れられる。
+ *
+ * どの区分に入れるかは持たない。同じ組み合わせを朝にも夜にも食べることがあり、
+ * 区分を決め打ちにすると、同じ内容の献立を区分ぶん作ることになる。
+ * 入れるときに、その場の区分へ入れる。
+ */
 export interface MealTemplate {
   readonly id?: MealTemplateId
   readonly name: string
-  /** 既定で入れる区分。入れるときに変えられる。 */
-  readonly mealType: MealType
   readonly order: number
   readonly items: readonly MealTemplateItem[]
 }

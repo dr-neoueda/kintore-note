@@ -1,10 +1,9 @@
 import { db } from '../db'
-import type { MealTemplate, MealTemplateId, MealTemplateItem, MealType } from '@/domain/types'
+import type { MealTemplate, MealTemplateId, MealTemplateItem } from '@/domain/types'
 import { requireNonEmpty } from '@/domain/validation'
 
 export interface NewMealTemplate {
   readonly name: string
-  readonly mealType: MealType
   readonly items: readonly MealTemplateItem[]
 }
 
@@ -18,12 +17,7 @@ export async function createMealTemplate(input: NewMealTemplate): Promise<MealTe
     const existing = await db.mealTemplates.toArray()
     const nextOrder = existing.reduce((max, template) => Math.max(max, template.order), 0) + 1
 
-    return db.mealTemplates.add({
-      name,
-      mealType: input.mealType,
-      items: input.items,
-      order: nextOrder,
-    })
+    return db.mealTemplates.add({ name, items: input.items, order: nextOrder })
   })
 }
 

@@ -70,6 +70,8 @@ test.describe('献立', () => {
     await page.goto('/meals/templates')
     await page.getByRole('link', { name: '献立を作る' }).click()
     await page.getByLabel('献立の名前').fill(name)
+    // 入れる区分は持たない。入れるときの場所で決まる
+    await expect(page.getByRole('main')).not.toContainText('入れる区分')
     await page.getByRole('button', { name: '食品を追加' }).click()
     await page.getByLabel('食品名で探す').fill('バナナ')
     await page.getByRole('dialog').getByRole('button', { name: /^バナナ 生/ }).click()
@@ -89,17 +91,50 @@ test.describe('献立', () => {
     await expect(page.getByRole('main')).toContainText('バナナ 生')
   })
 
-  test('献立をまとめて記録に入れられる', async ({ page }) => {
+  test('どの区分からでも献立を入れられる', async ({ page }) => {
     // Arrange
-    await createTemplate(page, 'いつもの朝食')
+    await createTemplate(page, 'いつもの組み合わせ')
 
-    // Act
+    // Act: 夕食から入れる
     await page.goto('/meals')
-    await page.getByRole('button', { name: /いつもの朝食/ }).click()
+    await page.getByRole('button', { name: '夕食に追加' }).click()
+    await page.getByRole('button', { name: /いつもの組み合わせ/ }).click()
 
-    // Assert: 朝食に入る
+    // Assert: 開いた区分（夕食）に入る
     await expect(page.getByRole('main')).toContainText('バナナ 生')
     await expect(page.getByTestId('total-kcal')).not.toHaveText('0')
+
+    const dinner = page.getByRole('main').locator('section').filter({ hasText: '夕食' }).first()
+    await expect(dinner).toContainText('バナナ 生')
+  })
+
+  test('同じ献立を別の区分にも入れられる', async ({ page }) => {
+    // Arrange
+    await createTemplate(page, 'いつもの組み合わせ')
+    await page.goto('/meals')
+
+    // Act: 朝食と間食の両方に入れる
+    await page.getByRole('button', { name: '朝食に追加' }).click()
+    await page.getByRole('button', { name: /いつもの組み合わせ/ }).click()
+    await expect(page.getByRole('main')).toContainText('バナナ 生')
+
+    await page.getByRole('button', { name: '間食に追加' }).click()
+    await page.getByRole('button', { name: /いつもの組み合わせ/ }).click()
+
+    // Assert: 2品ぶん入っている
+    await expect(page.getByRole('main').getByText('バナナ 生')).toHaveCount(2)
+  })
+
+  test('献立の編集では献立を入れられない', async ({ page }) => {
+    // Arrange: 献立の中に献立は入れられない
+    await createTemplate(page, 'いつもの組み合わせ')
+    await page.goto('/meals/templates/new')
+
+    // Act
+    await page.getByRole('button', { name: '食品を追加' }).click()
+
+    // Assert
+    await expect(page.getByRole('dialog')).not.toContainText('献立からまとめて入れる')
   })
 
   test('献立を削除できる', async ({ page }) => {
