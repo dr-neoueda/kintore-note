@@ -1,4 +1,5 @@
 import Dexie, { type Table } from 'dexie'
+import type { BackupTarget } from './repositories/backupTargetRepository'
 import {
   defaultRestSecForMuscleGroup,
   defaultTargetForArchitecture,
@@ -74,6 +75,7 @@ export class KintoreDatabase extends Dexie {
   declare mealTemplates: Table<MealTemplate, number>
   declare measurements: Table<BodyMeasurement, number>
   declare cardioSessions: Table<CardioSession, number>
+  declare backupTargets: Table<BackupTarget, number>
 
   /** データベース名を差し替えられるようにしているのは、移行のテストのため。 */
   constructor(databaseName: string = DATABASE_NAME) {
@@ -178,6 +180,12 @@ export class KintoreDatabase extends Dexie {
           await transaction.table('measurements').bulkAdd(moved)
         }
       })
+
+    // v9: バックアップの書き出し先を覚える置き場。
+    // 端末とブラウザに紐づくため、バックアップの中身には含めない。
+    this.version(9).stores({
+      backupTargets: 'id',
+    })
   }
 }
 

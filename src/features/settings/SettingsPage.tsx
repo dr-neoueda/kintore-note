@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Link } from 'react-router-dom'
 import { PageHeader } from '@/components/PageHeader'
@@ -34,7 +34,12 @@ import {
 } from '@/domain/types'
 import { ValidationError } from '@/domain/validation'
 import { formatWeightKg } from '@/domain/weight'
-import { downloadTextFile } from './downloadFile'
+import {
+  chooseBackupTarget,
+  detectBackupExportMode,
+  exportBackup,
+  getRememberedTargetName,
+} from './backupExport'
 
 import styles from './SettingsPage.module.css'
 
@@ -90,6 +95,13 @@ export function SettingsPage() {
   const [targetTexts, setTargetTexts] = useState<NutritionTargetTexts>(
     toTargetTexts(DEFAULT_NUTRITION_TARGET),
   )
+  const exportMode = useMemo(() => detectBackupExportMode(), [])
+  const [targetName, setTargetName] = useState<string | null>(null)
+
+  useEffect(() => {
+    void getRememberedTargetName().then(setTargetName)
+  }, [])
+
   const alarmDurationSec = settings?.restAlarmDurationSec ?? DEFAULT_REST_ALARM_DURATION_SEC
   const [status, setStatus] = useState<StatusMessage | null>(null)
 
@@ -180,14 +192,36 @@ export function SettingsPage() {
       const nowIso = new Date().toISOString()
       const file = createBackupFile(data, nowIso)
 
-      downloadTextFile(
+      const result = await exportBackup(
         `kintore-note-${toDateKey(new Date())}.json`,
         serializeBackup(file),
       )
+
       await markBackedUp(nowIso)
-      setStatus({ kind: 'success', text: 'バックアップを書き出しました' })
-    } catch {
+      setTargetName(result.isRemembered ? result.fileName : null)
+      setStatus({
+        kind: 'success',
+        text: result.isRemembered
+          ? `${result.fileName} に書き出しました`
+          : 'バックアップを書き出しました',
+      })
+    } catch (cause) {
+      // 保存先の選択を取り消した場合は、失敗として騒がない
+      if (cause instanceof DOMException && cause.name === 'AbortError') return
       setStatus({ kind: 'error', text: 'バックアップを書き出せませんでした' })
+    }
+  }
+
+  const handleChangeTarget = async () => {
+    try {
+      const name = await chooseBackupTarget(`kintore-note-${toDateKey(new Date())}.json`)
+      if (name === null) return
+
+      setTargetName(name)
+      setStatus({ kind: 'success', text: `保存先を ${name} にしました` })
+    } catch (cause) {
+      if (cause instanceof DOMException && cause.name === 'AbortError') return
+      setStatus({ kind: 'error', text: '保存先を変更できませんでした' })
     }
   }
 
@@ -427,9 +461,32 @@ export function SettingsPage() {
               : ` ${new Date(settings.lastBackupAt).toLocaleString('ja-JP')}`}
           </p>
 
+          {exportMode === 'remembered' && targetName !== null && (
+            <p className={styles.hint}>
+              保存先：{targetName}
+              <br />
+              「書き出す」を押すだけで、このファイルに上書きされます。
+            </p>
+          )}
+
+          {exportMode === 'share' && (
+            <p className={styles.hint}>
+              このブラウザは保存先を覚えられないため、共有シートを開きます。
+              保存先を1回選べば書き出せます。
+            </p>
+          )}
+
           <button type="button" className="btn btn-primary btn-block" onClick={handleExport}>
-            バックアップを書き出す
+            {exportMode === 'remembered' && targetName !== null
+              ? '書き出す（保存先は選ばずに済みます）'
+              : 'バックアップを書き出す'}
           </button>
+
+          {exportMode === 'remembered' && targetName !== null && (
+            <button type="button" className="btn btn-block" onClick={handleChangeTarget}>
+              保存先を変更する
+            </button>
+          )}
 
           <button
             type="button"
