@@ -53,9 +53,9 @@ test.describe('選んだ種目が消えない', () => {
     await expect(page.getByRole('main')).toContainText('サイドレイズ')
 
     // Act
-    await page.getByRole('button', { name: '食事へ切り替える' }).click()
+    await page.getByRole('button', { name: '食事に切り替える' }).click()
     await expect(page.getByRole('heading', { name: '食事' })).toBeVisible()
-    await page.getByRole('button', { name: '運動へ切り替える' }).click()
+    await page.getByRole('button', { name: '運動に切り替える' }).click()
 
     // Assert
     await expect(page.getByRole('main')).toContainText('サイドレイズ')
@@ -112,7 +112,7 @@ test.describe('休憩タイマーが画面をまたぐ', () => {
     await expect(page.getByRole('status')).toContainText('休憩')
 
     // Act
-    await page.getByRole('button', { name: '食事へ切り替える' }).click()
+    await page.getByRole('button', { name: '食事に切り替える' }).click()
     await expect(page.getByRole('heading', { name: '食事' })).toBeVisible()
 
     // Assert

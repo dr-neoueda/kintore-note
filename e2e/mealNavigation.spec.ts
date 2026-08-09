@@ -10,21 +10,25 @@ test.describe('運動と食事の切り替え', () => {
     // Arrange
     await page.goto('/')
     await expect(tabbar(page)).toContainText('メニュー')
+    // ボタンの表示と、中央のタブの系統が揃っている
+    await expect(page.getByRole('button', { name: '食事に切り替える' })).toHaveText(/運動/)
 
     // Act
-    await page.getByRole('button', { name: '食事へ切り替える' }).click()
+    await page.getByRole('button', { name: '食事に切り替える' }).click()
 
-    // Assert: 食事側のタブに入れ替わる
+    // Assert: 食事側のタブに入れ替わり、ボタンの表示も食事になる
     await expect(page.getByRole('heading', { name: '食事' })).toBeVisible()
     await expect(tabbar(page)).toContainText('献立')
     await expect(tabbar(page)).not.toContainText('メニュー')
+    await expect(page.getByRole('button', { name: '運動に切り替える' })).toHaveText(/食事/)
 
     // Act
-    await page.getByRole('button', { name: '運動へ切り替える' }).click()
+    await page.getByRole('button', { name: '運動に切り替える' }).click()
 
     // Assert
     await expect(page.getByRole('heading', { name: 'ホーム' })).toBeVisible()
     await expect(tabbar(page)).toContainText('メニュー')
+    await expect(page.getByRole('button', { name: '食事に切り替える' })).toHaveText(/運動/)
   })
 
   test('設定はどちらの系統でも右端に出る', async ({ page }) => {

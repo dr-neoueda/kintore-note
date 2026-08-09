@@ -63,16 +63,9 @@
   opacity: 0.6;
 }
 
-.switchCurrent {
-  font-size: 9px;
-  font-weight: 600;
-  color: var(--text-faint);
-}
-
-.switchTarget {
+.switchIcons {
   display: inline-flex;
   align-items: center;
   gap: 1px;
-  font-size: 11px;
-  font-weight: 700;
+  color: var(--text-dim);
 }
