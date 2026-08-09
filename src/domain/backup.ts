@@ -343,6 +343,11 @@ export function normalizeBackupData(data: IncomingBackupData): BackupData {
  * 書き出したバックアップを読み戻す。
  * 外部から渡されるファイルなので、取り込む前にここで全て検査する。
  */
+/** 後から足したテーブル。古いファイルには無いので、無ければ undefined を返す。 */
+function optionalArray<T>(value: unknown): T[] | undefined {
+  return Array.isArray(value) ? (value as T[]) : undefined
+}
+
 export function parseBackup(json: string): BackupFile {
   let parsed: unknown
   try {
@@ -381,12 +386,18 @@ export function parseBackup(json: string): BackupFile {
     app: BACKUP_APP_ID,
     version,
     exportedAt: typeof parsed.exportedAt === 'string' ? parsed.exportedAt : '',
-    // 取り込んだ値は境界でここだけ整える。以降の層は現在の形だけを扱えばよい
+    // 取り込んだ値は境界でここだけ整える。以降の層は現在の形だけを扱えばよい。
+    // 後から足した項目は、古いファイルだと存在しないため undefined を許す
     data: normalizeBackupData({
       exercises: data.exercises as Exercise[],
       workouts: data.workouts as Workout[],
       sets: data.sets as WorkoutSet[],
       templates: data.templates as WorkoutTemplate[],
+      meals: optionalArray<MealEntry>(data.meals),
+      customFoods: optionalArray<CustomFood>(data.customFoods),
+      mealTemplates: optionalArray<MealTemplate>(data.mealTemplates),
+      measurements: optionalArray<BodyMeasurement>(data.measurements),
+      cardioSessions: optionalArray<CardioSession>(data.cardioSessions),
       settings: isRecord(data.settings) ? (data.settings as unknown as AppSettings) : null,
     }),
   }

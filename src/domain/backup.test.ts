@@ -345,3 +345,120 @@ describe('古いバックアップの取り込み', () => {
     expect('mealType' in (template ?? {})).toBe(false)
   })
 })
+
+describe('書き出したものを読み戻す', () => {
+  /** 全テーブルに1件ずつ入ったデータ。 */
+  const fullData = {
+    exercises: [],
+    workouts: [],
+    sets: [],
+    templates: [],
+    meals: [
+      {
+        id: 1,
+        date: '2026-08-09',
+        mealType: 'breakfast',
+        foodId: '01088',
+        foodName: 'ごはん（白米・炊いた）',
+        grams: 180,
+        nutrition: { kcal: 281, protein: 4.5, fat: 0.5, carb: 66.8, fiber: 2.7, salt: 0 },
+        order: 1,
+        recordedAt: '2026-08-09T08:00:00.000Z',
+      },
+    ],
+    customFoods: [
+      {
+        id: 1,
+        name: 'ホエイプロテイン',
+        basisGrams: 30,
+        nutrition: { kcal: 120, protein: 24, fat: 1.5, carb: 2, fiber: 0, salt: 0.1 },
+        isArchived: false,
+        createdAt: '2026-08-01T00:00:00.000Z',
+      },
+    ],
+    mealTemplates: [
+      {
+        id: 1,
+        name: 'いつもの朝食',
+        order: 1,
+        items: [
+          {
+            foodId: 'custom:1',
+            foodName: 'ホエイプロテイン',
+            grams: 30,
+            nutrition: { kcal: 120, protein: 24, fat: 1.5, carb: 2, fiber: 0, salt: 0.1 },
+          },
+        ],
+      },
+    ],
+    measurements: [
+      {
+        id: 1,
+        date: '2026-08-09',
+        weightKg: 70.5,
+        bodyFatPercent: 15,
+        muscleMassKg: null,
+        visceralFatLevel: null,
+        basalMetabolicRateKcal: 1600,
+        recordedAt: '2026-08-09T07:00:00.000Z',
+      },
+    ],
+    cardioSessions: [
+      {
+        id: 1,
+        date: '2026-08-09',
+        activity: 'running',
+        distanceKm: 5,
+        durationSec: 1800,
+        note: '',
+        recordedAt: '2026-08-09T18:00:00.000Z',
+      },
+    ],
+    settings: null,
+  } as unknown as Parameters<typeof createBackupFile>[0]
+
+  test('書き出して読み戻すと、すべての項目が残る', () => {
+    // Arrange
+    const file = createBackupFile(fullData, '2026-08-09T20:00:00.000Z')
+
+    // Act
+    const restored = parseBackup(serializeBackup(file)).data
+
+    // Assert: 読み戻しで落ちる項目があると、復元したときに消える
+    expect(restored.meals).toHaveLength(1)
+    expect(restored.customFoods).toHaveLength(1)
+    expect(restored.mealTemplates).toHaveLength(1)
+    expect(restored.measurements).toHaveLength(1)
+    expect(restored.cardioSessions).toHaveLength(1)
+  })
+
+  test('献立の中身も残る', () => {
+    // Arrange & Act
+    const file = createBackupFile(fullData, '2026-08-09T20:00:00.000Z')
+    const [template] = parseBackup(serializeBackup(file)).data.mealTemplates
+
+    // Assert
+    expect(template?.name).toBe('いつもの朝食')
+    expect(template?.items).toHaveLength(1)
+    expect(template?.items[0]?.foodName).toBe('ホエイプロテイン')
+    expect(template?.items[0]?.nutrition.kcal).toBe(120)
+  })
+
+  test('マイ食品の栄養価と基準量も残る', () => {
+    const file = createBackupFile(fullData, '2026-08-09T20:00:00.000Z')
+    const [custom] = parseBackup(serializeBackup(file)).data.customFoods
+
+    expect(custom?.name).toBe('ホエイプロテイン')
+    expect(custom?.basisGrams).toBe(30)
+    expect(custom?.nutrition.protein).toBe(24)
+  })
+
+  test('食事の記録は、記録した時点の栄養価のまま残る', () => {
+    const file = createBackupFile(fullData, '2026-08-09T20:00:00.000Z')
+    const [meal] = parseBackup(serializeBackup(file)).data.meals
+
+    expect(meal?.foodName).toBe('ごはん（白米・炊いた）')
+    expect(meal?.grams).toBe(180)
+    expect(meal?.nutrition.kcal).toBe(281)
+  })
+})

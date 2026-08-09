@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { waitForPersisted } from './helpers/persistence'
 
 /**
  * バックアップの書き出し。
@@ -282,3 +283,122 @@ test.describe('古いバックアップの復元', () => {
     await expect(page.getByTestId('total-kcal')).toHaveText('0')
   })
 })
+
+test.describe('書き出して復元しても、すべて残る', () => {
+  test('マイ食品・献立・食事・体組成・有酸素が往復する', async ({ page }) => {
+    // Arrange: 一通り作る
+    await stubSaveFilePicker(page, 'roundtrip.json')
+
+    await page.goto('/settings/custom-foods')
+    await page.getByRole('button', { name: 'マイ食品を作る' }).click()
+    await page.getByLabel('食品名').fill('ホエイプロテイン')
+    await page.getByLabel('栄養成分表示の基準量').fill('30')
+    await page.getByLabel('エネルギー').fill('120')
+    await page.getByRole('button', { name: '作成する' }).click()
+    await expect(page.getByRole('main')).toContainText('ホエイプロテイン')
+
+    await page.goto('/meals/templates/new')
+    await page.getByLabel('献立の名前').fill('いつもの朝食')
+    await page.getByRole('button', { name: '食品を追加' }).click()
+    await page.getByLabel('食品名で探す').fill('ホエイプロテイン')
+    await page.getByRole('dialog').getByRole('button', { name: /ホエイプロテイン/ }).first().click()
+    await page.getByRole('button', { name: '記録する' }).click()
+    await page.getByRole('button', { name: '保存する' }).click()
+    await expect(page.getByRole('main')).toContainText('いつもの朝食')
+
+    await page.goto('/')
+    await page.getByRole('button', { name: '体組成を記録' }).click()
+    await page.getByLabel('体重').fill('70.5')
+    await page.getByRole('button', { name: '保存する' }).click()
+    await expect(page.getByRole('main')).toContainText('70.5 kg')
+
+    await page.getByRole('button', { name: 'ランニングなどを記録' }).click()
+    await page.getByLabel('距離').fill('5')
+    await page.getByLabel('時間（分）').fill('30')
+    await page.getByRole('button', { name: '記録する' }).click()
+    await expect(page.getByRole('main')).toContainText('ランニング 5 km')
+
+    await page.goto('/meals')
+    await page.getByRole('button', { name: '朝食に追加' }).click()
+    await page.getByLabel('食品名で探す').fill('白米')
+    await page.getByRole('button', { name: 'ごはん（白米・炊いた）を選ぶ' }).click()
+    await page.getByRole('button', { name: '記録する' }).click()
+    await expect(page.getByRole('main')).toContainText('ごはん（白米・炊いた）')
+    // 書き込みが確定する前に書き出すと、その分がファイルに入らない
+    await waitForPersisted(page, 'meals', 1)
+    await waitForPersisted(page, 'measurements', 1)
+    await waitForPersisted(page, 'cardioSessions', 1)
+
+    // Act: 書き出して、その内容で復元し直す
+    await page.goto('/settings')
+    await page.getByRole('button', { name: 'バックアップを書き出す' }).click()
+    await expect(page.getByRole('main')).toContainText('書き出しました')
+
+    const [written] = await readWrites(page)
+    page.once('dialog', (dialog) => void dialog.accept())
+    await page.setInputFiles('input[type=file]', {
+      name: 'roundtrip.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(written ?? '{}'),
+    })
+    await expect(page.getByRole('main')).toContainText('読み込みました')
+
+    // Assert: 落ちる項目があると、復元したときに消える
+    await page.goto('/settings/custom-foods')
+    await expect(page.getByRole('main')).toContainText('ホエイプロテイン')
+
+    await page.goto('/meals/templates')
+    await expect(page.getByRole('main')).toContainText('いつもの朝食')
+
+    await page.goto('/meals')
+    await expect(page.getByRole('main')).toContainText('ごはん（白米・炊いた）')
+
+    await page.goto('/')
+    await expect(page.getByRole('main')).toContainText('70.5 kg')
+    await expect(page.getByRole('main')).toContainText('ランニング 5 km')
+  })
+
+  test('復元した献立が、そのまま使える', async ({ page }) => {
+    // Arrange
+    await stubSaveFilePicker(page, 'roundtrip.json')
+
+    await page.goto('/settings/custom-foods')
+    await page.getByRole('button', { name: 'マイ食品を作る' }).click()
+    await page.getByLabel('食品名').fill('ホエイプロテイン')
+    await page.getByLabel('栄養成分表示の基準量').fill('30')
+    await page.getByLabel('エネルギー').fill('120')
+    await page.getByRole('button', { name: '作成する' }).click()
+    await expect(page.getByRole('main')).toContainText('ホエイプロテイン')
+
+    await page.goto('/meals/templates/new')
+    await page.getByLabel('献立の名前').fill('いつもの朝食')
+    await page.getByRole('button', { name: '食品を追加' }).click()
+    await page.getByLabel('食品名で探す').fill('ホエイプロテイン')
+    await page.getByRole('dialog').getByRole('button', { name: /ホエイプロテイン/ }).first().click()
+    await page.getByRole('button', { name: '記録する' }).click()
+    await page.getByRole('button', { name: '保存する' }).click()
+    await expect(page.getByRole('main')).toContainText('いつもの朝食')
+
+    await page.goto('/settings')
+    await page.getByRole('button', { name: 'バックアップを書き出す' }).click()
+    await expect(page.getByRole('main')).toContainText('書き出しました')
+    const [written] = await readWrites(page)
+
+    page.once('dialog', (dialog) => void dialog.accept())
+    await page.setInputFiles('input[type=file]', {
+      name: 'roundtrip.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(written ?? '{}'),
+    })
+    await expect(page.getByRole('main')).toContainText('読み込みました')
+
+    // Act: 復元した献立を夕食に入れる
+    await page.goto('/meals')
+    await page.getByRole('button', { name: '夕食に追加' }).click()
+    await page.getByRole('button', { name: /いつもの朝食/ }).click()
+
+    // Assert
+    await expect(page.getByRole('main')).toContainText('ホエイプロテイン')
+  })
+})
+
