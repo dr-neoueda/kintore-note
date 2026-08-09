@@ -1,4 +1,5 @@
 import { describe, test, expect } from 'vitest'
+import { COMMON_FOODS } from '@/domain/commonFoods'
 import { searchFoods } from '@/domain/food'
 import { loadCompositionFoods } from './foods'
 
@@ -94,4 +95,28 @@ describe('カタカナで打っても引ける', () => {
       expect(results.some((food) => food.name.includes(expected))).toBe(true)
     })
   }
+})
+
+describe('よく使う食品のショートカット', () => {
+  test('登録した食品番号がすべて成分表に存在する', async () => {
+    // Arrange
+    const foods = await loadCompositionFoods()
+    const byId = new Map(foods.map((food) => [food.id, food]))
+
+    // Act
+    const missing = COMMON_FOODS.filter((common) => !byId.has(common.id))
+
+    // Assert: 番号を打ち間違えると、押しても何も出ない
+    expect(missing.map((common) => `${common.label}(${common.id})`)).toEqual([])
+  })
+
+  test('「まずこれ」が炊いたごはんを指している', async () => {
+    // Arrange
+    const foods = await loadCompositionFoods()
+    const rice = foods.find((food) => food.id === '01088')
+
+    // Assert: 生の米（342kcal）ではなく、炊いた状態（156kcal）
+    expect(rice?.name).toContain('水稲めし')
+    expect(rice?.nutrition.kcal).toBeLessThan(200)
+  })
 })

@@ -1,3 +1,4 @@
+import type { FoodPortion } from './commonFoods'
 import type { Nutrition } from './nutrition'
 
 /**
@@ -10,12 +11,60 @@ export interface Food {
   /** 成分表の食品番号、またはマイ食品の 'custom:<id>'。 */
   readonly id: string
   readonly name: string
+  /** よく使う分量。量を入れるときのボタンになる。 */
+  readonly portions?: readonly FoodPortion[]
   /** 食品群（穀類・肉類など）。検索の手がかりにする。 */
   readonly group: string
   /** nutrition が何 g 分の値か。成分表は100g、マイ食品は任意。 */
   readonly basisGrams: number
   readonly nutrition: Nutrition
   readonly isCustom: boolean
+}
+
+/**
+ * 成分表の名前から、飾りの部分を落として読みやすくする。
+ *
+ * 「＜鳥肉類＞ にわとり ［若どり・主品目］ むね 皮なし 生」のうち、
+ * 先頭の分類（＜＞・（）で囲われた部分）は食品群と重なっていて、
+ * 狭い画面では読む手がかりにならない。
+ */
+export function formatFoodName(name: string): string {
+  return name
+    .replace(/^＜[^＞]*＞\s*/, '')
+    .replace(/^（[^）]*）\s*/, '')
+    .trim()
+}
+
+/**
+ * 調理の状態を表す言葉。
+ *
+ * 生か調理済みかでエネルギーが倍近く変わるため、名前に埋もれさせず取り出す。
+ * 長い語から先に見て、「ゆで」より「油いため」を優先して当てる。
+ */
+const COOKING_STATES: readonly string[] = [
+  '電子レンジ調理',
+  '油いため',
+  'そうざい',
+  '天ぷら',
+  'から揚げ',
+  'フライ',
+  '素揚げ',
+  '水煮缶詰',
+  '味付け缶詰',
+  '缶詰',
+  '味噌煮',
+  '蒸し',
+  '焼き',
+  'ゆで',
+  '生',
+  '乾',
+  'めし',
+  'かゆ',
+]
+
+/** その食品がどう調理された状態か。分からなければ null。 */
+export function extractCookingState(name: string): string | null {
+  return COOKING_STATES.find((state) => name.includes(state)) ?? null
 }
 
 /** 一度に出す検索結果の上限。これ以上並べても選べない。 */

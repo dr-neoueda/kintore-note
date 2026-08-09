@@ -134,3 +134,18 @@
   align-items: center;
   justify-content: center;
 }
+
+/* 「茶碗1杯」のような目安は、数字だけのボタンと見分けられるようにする。 */
+.portionButton {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  color: var(--text);
+  border-color: var(--text-dim);
+}
+
+.portionGrams {
+  font-size: 10px;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}

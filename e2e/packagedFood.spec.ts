@@ -101,9 +101,9 @@ test.describe('市販品を探す', () => {
 
     // Assert: 成分表の結果はそのまま使える
     await expect(page.getByRole('dialog')).toContainText('見つかりませんでした')
-    await page.getByRole('dialog').getByRole('button', { name: /^バナナ 生/ }).click()
+    await page.getByRole('dialog').getByRole('button', { name: 'バナナを選ぶ' }).click()
     await page.getByRole('button', { name: '記録する' }).click()
-    await expect(page.getByRole('main')).toContainText('バナナ 生')
+    await expect(page.getByRole('main')).toContainText('バナナ')
   })
 
   test('エネルギーが無い商品は出さない', async ({ page }) => {

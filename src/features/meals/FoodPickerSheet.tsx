@@ -10,7 +10,13 @@ import {
 } from '@/data/openFoodFacts'
 import { findOrCreateCustomFood, toFood } from '@/data/repositories/customFoodRepository'
 import { listFrequentFoods } from '@/data/repositories/mealRepository'
-import { searchFoods, type Food } from '@/domain/food'
+import { searchCommonFoods, type CommonFood } from '@/domain/commonFoods'
+import {
+  extractCookingState,
+  formatFoodName,
+  searchFoods,
+  type Food,
+} from '@/domain/food'
 import { sumNutrition } from '@/domain/nutrition'
 import type { MealTemplate } from '@/domain/types'
 import { useResetOnOpen } from '@/hooks/useResetOnOpen'
@@ -57,6 +63,24 @@ export function FoodPickerSheet({
   const frequent = useLiveQuery(() => listFrequentFoods(FREQUENT_FOOD_LIMIT), [])
 
   const results = useMemo(() => searchFoods(foods, keyword), [foods, keyword])
+
+  /**
+   * 日常語で引ける「まずこれ」。
+   * 成分表は同じ食品に多くの版があり、名前だけでは選びづらいため先頭に出す。
+   */
+  const suggestedFoods = useMemo(() => {
+    const byId = new Map(foods.map((food) => [food.id, food]))
+    return searchCommonFoods(keyword)
+      .map((common) => ({ common, food: byId.get(common.id) }))
+      .filter(
+        (entry): entry is { common: CommonFood; food: Food } => entry.food !== undefined,
+      )
+  }, [foods, keyword])
+
+  const suggestedIds = useMemo(
+    () => new Set(suggestedFoods.map((entry) => entry.common.id)),
+    [suggestedFoods],
+  )
 
   const frequentFoods = useMemo(() => {
     if (frequent === undefined) return []
@@ -155,6 +179,30 @@ export function FoodPickerSheet({
         </section>
       )}
 
+      {hasKeyword && suggestedFoods.length > 0 && (
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>よく使うもの</h3>
+          {suggestedFoods.map(({ common, food }) => (
+            <button
+              key={common.id}
+              type="button"
+              className={`${styles.item} ${styles.suggested}`}
+              aria-label={`${common.label}を選ぶ`}
+              onClick={() =>
+                // 分かりやすい名前のまま記録する。一覧でも読み取りやすくなる
+                handleSelect({ ...food, name: common.label, portions: common.portions })
+              }
+            >
+              <span className={styles.itemName}>{common.label}</span>
+              <span className={styles.itemMeta}>
+                {food.nutrition.kcal} kcal / 100g ·{' '}
+                {common.portions.map((portion) => portion.label).join('・')}
+              </span>
+            </button>
+          ))}
+        </section>
+      )}
+
       {hasKeyword && (
         <section className={styles.section}>
           {results.length === 0 ? (
@@ -170,9 +218,19 @@ export function FoodPickerSheet({
               )}
             </div>
           ) : (
-            results.map((food) => (
-              <FoodRow key={food.id} food={food} onSelect={handleSelect} />
-            ))
+            <>
+              {suggestedFoods.length > 0 && (
+                <h3 className={styles.sectionTitle}>成分表のすべての候補</h3>
+              )}
+              <p className={styles.stateHint}>
+                「生」と「ゆで」「めし」ではエネルギーが倍近く違います。食べた状態を選んでください。
+              </p>
+              {results
+                .filter((food) => !suggestedIds.has(food.id))
+                .map((food) => (
+                  <FoodRow key={food.id} food={food} onSelect={handleSelect} />
+                ))}
+            </>
           )}
 
           {packagedFoods.length > 0 && (
@@ -241,11 +299,16 @@ interface FoodRowProps {
 }
 
 function FoodRow({ food, onSelect }: FoodRowProps) {
+  const state = food.isCustom ? null : extractCookingState(food.name)
+
   return (
     <button type="button" className={styles.item} onClick={() => onSelect(food)}>
-      <span className={styles.itemName}>{food.name}</span>
+      <span className={styles.itemName}>
+        {food.isCustom ? food.name : formatFoodName(food.name)}
+      </span>
       <span className={styles.itemMeta}>
         {food.isCustom && <span className={styles.customBadge}>マイ食品</span>}
+        {state !== null && <span className={styles.stateBadge}>{state}</span>}
         {food.nutrition.kcal} kcal / {food.basisGrams}g
       </span>
     </button>

@@ -19,10 +19,10 @@ test.describe('食事の記録', () => {
     // Arrange
     await openMeals(page)
 
-    // Act: バナナ 生（100gあたり93kcal）を200g
+    // Act: バナナ（100gあたり93kcal）
     await page.getByRole('button', { name: '朝食に追加' }).click()
     await page.getByLabel('食品名で探す').fill('バナナ')
-    await page.getByRole('dialog').getByRole('button', { name: /^バナナ 生/ }).click()
+    await page.getByRole('dialog').getByRole('button', { name: 'バナナを選ぶ' }).click()
     await page.getByRole('button', { name: '量を増やす' }).click()
 
     // Assert: 分量に応じて栄養が変わる
@@ -32,7 +32,7 @@ test.describe('食事の記録', () => {
     await page.getByRole('button', { name: '記録する' }).click()
 
     // Assert
-    await expect(page.getByRole('main')).toContainText('バナナ 生')
+    await expect(page.getByRole('main')).toContainText('バナナ')
     await expect(page.getByTestId('total-kcal')).not.toHaveText('0')
   })
 
@@ -41,7 +41,7 @@ test.describe('食事の記録', () => {
     await openMeals(page)
     await page.getByRole('button', { name: '昼食に追加' }).click()
     await page.getByLabel('食品名で探す').fill('バナナ')
-    await page.getByRole('dialog').getByRole('button', { name: /^バナナ 生/ }).click()
+    await page.getByRole('dialog').getByRole('button', { name: 'バナナを選ぶ' }).click()
 
     // Act: 100g の表示を控えてから 200g にする
     await page.getByRole('button', { name: '200g', exact: true }).click()
@@ -71,7 +71,7 @@ test.describe('食事の記録', () => {
     await expect(page.getByRole('main')).toContainText('100 g')
 
     // Act
-    await page.getByRole('button', { name: 'バナナ 生の記録を編集' }).click()
+    await page.getByRole('button', { name: 'バナナの記録を編集' }).click()
     await page.getByRole('button', { name: '50g', exact: true }).click()
     await page.getByRole('button', { name: '更新する' }).click()
 
@@ -84,14 +84,14 @@ test.describe('食事の記録', () => {
     await openMeals(page)
     await addFood(page, '朝食', 'バナナ')
     await page.getByRole('button', { name: '記録する' }).click()
-    await expect(page.getByRole('main')).toContainText('バナナ 生')
+    await expect(page.getByRole('main')).toContainText('バナナ')
 
     // Act
-    await page.getByRole('button', { name: 'バナナ 生の記録を編集' }).click()
+    await page.getByRole('button', { name: 'バナナの記録を編集' }).click()
     await page.getByRole('button', { name: 'この記録を削除' }).click()
 
     // Assert
-    await expect(page.getByRole('main')).not.toContainText('バナナ 生')
+    await expect(page.getByRole('main')).not.toContainText('バナナ')
     await expect(page.getByTestId('total-kcal')).toHaveText('0')
   })
 
@@ -100,14 +100,14 @@ test.describe('食事の記録', () => {
     await openMeals(page)
     await addFood(page, '朝食', 'バナナ')
     await page.getByRole('button', { name: '記録する' }).click()
-    await expect(page.getByRole('main')).toContainText('バナナ 生')
+    await expect(page.getByRole('main')).toContainText('バナナ')
     await waitForPersisted(page, 'meals', 1)
 
     // Act
     await page.reload()
 
     // Assert
-    await expect(page.getByRole('main')).toContainText('バナナ 生')
+    await expect(page.getByRole('main')).toContainText('バナナ')
   })
 
   test('前の日に切り替えると、その日の記録になる', async ({ page }) => {
@@ -115,20 +115,20 @@ test.describe('食事の記録', () => {
     await openMeals(page)
     await addFood(page, '朝食', 'バナナ')
     await page.getByRole('button', { name: '記録する' }).click()
-    await expect(page.getByRole('main')).toContainText('バナナ 生')
+    await expect(page.getByRole('main')).toContainText('バナナ')
 
     // Act
     await page.getByRole('button', { name: '前の日' }).click()
 
     // Assert: 前日には何も無い
-    await expect(page.getByRole('main')).not.toContainText('バナナ 生')
+    await expect(page.getByRole('main')).not.toContainText('バナナ')
     await expect(page.getByTestId('total-kcal')).toHaveText('0')
 
     // Act
     await page.getByRole('button', { name: '今日' }).click()
 
     // Assert
-    await expect(page.getByRole('main')).toContainText('バナナ 生')
+    await expect(page.getByRole('main')).toContainText('バナナ')
   })
 })
 

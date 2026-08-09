@@ -79,3 +79,22 @@
   line-height: 1.5;
   text-align: center;
 }
+
+/* よく使うものは、押してよいものだと分かるよう枠を強める。 */
+.suggested {
+  border-color: var(--text-dim);
+}
+
+.stateBadge {
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+.stateHint {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  padding: var(--space-1) 0 var(--space-2);
+}

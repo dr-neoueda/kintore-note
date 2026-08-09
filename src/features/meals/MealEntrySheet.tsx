@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Sheet } from '@/components/Sheet'
 import { TrashIcon } from '@/components/icons'
-import type { Food } from '@/domain/food'
+import { formatFoodName, type Food } from '@/domain/food'
 import { scaleNutrition, type Nutrition } from '@/domain/nutrition'
 import { ValidationError } from '@/domain/validation'
 import { useResetOnOpen } from '@/hooks/useResetOnOpen'
@@ -90,7 +90,7 @@ export function MealEntrySheet({
   return (
     <Sheet
       isOpen={isOpen}
-      title={food.name}
+      title={food.isCustom ? food.name : formatFoodName(food.name)}
       onClose={onClose}
       footer={
         <div className={styles.footerActions}>
@@ -150,6 +150,17 @@ export function MealEntrySheet({
             </button>
           </div>
           <div className={styles.quickRow}>
+            {(food.portions ?? []).map((portion) => (
+              <button
+                key={portion.label}
+                type="button"
+                className={`${styles.quickButton} ${styles.portionButton}`}
+                onClick={() => setGramsText(String(portion.grams))}
+              >
+                {portion.label}
+                <span className={styles.portionGrams}>{portion.grams}g</span>
+              </button>
+            ))}
             {[food.basisGrams, ...QUICK_GRAMS]
               .filter((value, index, all) => all.indexOf(value) === index)
               .map((value) => (

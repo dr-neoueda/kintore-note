@@ -1,3 +1,4 @@
+import { findCommonFood } from '@/domain/commonFoods'
 import type { Food } from '@/domain/food'
 import { COMPOSITION_BASIS_GRAMS } from '@/domain/nutrition'
 
@@ -25,9 +26,12 @@ interface RawFood {
 }
 
 function toFood(raw: RawFood): Food {
+  const common = findCommonFood(raw.id)
+
   return {
     id: raw.id,
     name: raw.name,
+    ...(common === undefined ? {} : { portions: common.portions }),
     group: raw.group,
     basisGrams: COMPOSITION_BASIS_GRAMS,
     nutrition: {
