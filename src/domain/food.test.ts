@@ -1,5 +1,12 @@
 import { describe, test, expect } from 'vitest'
-import { type Food, normalizeFoodKeyword, matchesKeyword, searchFoods } from './food'
+import {
+  groupFoods,
+  matchesKeyword,
+  normalizeFoodKeyword,
+  searchFoods,
+  toFoodBaseName,
+  type Food,
+} from './food'
 
 const food = (id: string, name: string, group = '肉類'): Food => ({
   id,
@@ -97,5 +104,84 @@ describe('searchFoods', () => {
 
     // Act & Assert
     expect(searchFoods(many, 'とりにく').length).toBeLessThanOrEqual(50)
+  })
+})
+
+describe('toFoodBaseName', () => {
+  test('調理法を落として同じ食品にまとめる', () => {
+    expect(toFoodBaseName('ブロッコリー 花序 生')).toBe(
+      toFoodBaseName('ブロッコリー 花序 ゆで'),
+    )
+  })
+
+  test('分類の飾りも落とす', () => {
+    expect(toFoodBaseName('＜鳥肉類＞ にわとり むね 皮なし 生')).toBe('にわとり むね 皮なし')
+  })
+
+  test('調理法しか無い名前は残す', () => {
+    // Arrange & Act & Assert: 空にしてしまうと全部が1つにまとまる
+    expect(toFoodBaseName('生')).toBe('生')
+  })
+})
+
+describe('groupFoods', () => {
+  const vegetable = (name: string): Food => ({
+    id: name,
+    name,
+    group: '野菜類',
+    basisGrams: 100,
+    nutrition: { kcal: 30, protein: 3, fat: 0, carb: 5, fiber: 4, salt: 0 },
+    isCustom: false,
+  })
+
+  test('同じ食品の調理違いを1つにまとめる', () => {
+    // Arrange
+    const foods = [
+      vegetable('ブロッコリー 花序 ゆで'),
+      vegetable('ブロッコリー 花序 生'),
+      vegetable('ブロッコリー 花序 焼き'),
+    ]
+
+    // Act
+    const groups = groupFoods(foods)
+
+    // Assert
+    expect(groups).toHaveLength(1)
+    expect(groups[0]?.variants).toHaveLength(2)
+  })
+
+  test('素材そのもの（生）を代表にする', () => {
+    // Arrange
+    const foods = [vegetable('ブロッコリー 花序 ゆで'), vegetable('ブロッコリー 花序 生')]
+
+    // Act & Assert
+    expect(groupFoods(foods)[0]?.representative.name).toBe('ブロッコリー 花序 生')
+  })
+
+  test('生が無ければ、ゆでを代表にする', () => {
+    const foods = [vegetable('わかめ 焼き'), vegetable('わかめ ゆで')]
+
+    expect(groupFoods(foods)[0]?.representative.name).toBe('わかめ ゆで')
+  })
+
+  test('部位が違えば別の食品として扱う', () => {
+    // Arrange: 花序と芽ばえは別物
+    const foods = [vegetable('ブロッコリー 花序 生'), vegetable('ブロッコリー 芽ばえ 生')]
+
+    // Act & Assert
+    expect(groupFoods(foods)).toHaveLength(2)
+  })
+
+  test('マイ食品はまとめない', () => {
+    // Arrange: 利用者が付けた名前は、勝手に同じ物とみなさない
+    const custom = (id: string, name: string): Food => ({ ...vegetable(name), id, isCustom: true })
+    const foods = [custom('custom:1', 'プロテイン 生'), custom('custom:2', 'プロテイン ゆで')]
+
+    // Act & Assert
+    expect(groupFoods(foods)).toHaveLength(2)
+  })
+
+  test('調理違いが無ければ、そのまま1件で返す', () => {
+    expect(groupFoods([vegetable('バナナ 生')])[0]?.variants).toEqual([])
   })
 })

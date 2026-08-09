@@ -98,3 +98,21 @@
   line-height: 1.5;
   padding: var(--space-1) 0 var(--space-2);
 }
+
+/* 調理違いは、開くまで場所を取らないようにする。 */
+.variantToggle {
+  align-self: flex-start;
+  min-height: 32px;
+  padding: 0 var(--space-2);
+  border: none;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-decoration: underline;
+}
+
+/* 開いた分は、どの食品にぶら下がっているか分かるよう字下げする。 */
+.variantRow {
+  padding-left: var(--space-4);
+}

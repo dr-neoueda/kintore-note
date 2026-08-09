@@ -176,6 +176,67 @@ export function matchesKeyword(food: Food, keyword: string): boolean {
 }
 
 /**
+ * 同じ食品の調理違いをまとめたもの。
+ * 「ブロッコリー 花序」に 生・ゆで・電子レンジ調理・焼き・油いため が並ぶような場合に、
+ * まず代表を1つ出し、残りは畳んでおくために使う。
+ */
+export interface FoodGroup {
+  readonly key: string
+  readonly representative: Food
+  /** 代表以外の調理違い。無ければ空。 */
+  readonly variants: readonly Food[]
+}
+
+/** 調理法を落とした部分。これが同じなら同じ食品とみなす。 */
+export function toFoodBaseName(name: string): string {
+  const parts = formatFoodName(name).split(/\s+/)
+
+  while (parts.length > 1) {
+    const last = parts[parts.length - 1]
+    if (last === undefined || !COOKING_STATES.includes(last)) break
+    parts.pop()
+  }
+
+  return parts.join(' ')
+}
+
+/**
+ * 代表として先に出す調理法の優先順。
+ * 素材そのものを先に出し、そこから調理違いへ辿れるようにする。
+ */
+const REPRESENTATIVE_ORDER: readonly string[] = ['生', 'ゆで', 'めし', '蒸し', '焼き']
+
+function representativeRank(food: Food): number {
+  const state = extractCookingState(food.name)
+  if (state === null) return REPRESENTATIVE_ORDER.length
+  const index = REPRESENTATIVE_ORDER.indexOf(state)
+  return index === -1 ? REPRESENTATIVE_ORDER.length + 1 : index
+}
+
+/**
+ * 検索結果を食品ごとにまとめる。
+ * 並び順は元のまま保ち、同じ食品が離れて出ないようにする。
+ */
+export function groupFoods(foods: readonly Food[]): FoodGroup[] {
+  const byBase = new Map<string, Food[]>()
+
+  for (const food of foods) {
+    const key = food.isCustom ? food.id : toFoodBaseName(food.name)
+    const current = byBase.get(key)
+    if (current === undefined) byBase.set(key, [food])
+    else current.push(food)
+  }
+
+  return [...byBase.entries()].map(([key, members]) => {
+    const sorted = [...members].sort((a, b) => representativeRank(a) - representativeRank(b))
+    const [representative, ...variants] = sorted
+
+    // members は必ず1件以上あるため representative は存在する
+    return { key, representative: representative as Food, variants }
+  })
+}
+
+/**
  * 食品を検索する。
  * 修飾の少ない素の食品ほど探している物である場合が多いため、名前の短い順に並べる。
  */

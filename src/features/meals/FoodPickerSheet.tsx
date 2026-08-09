@@ -14,8 +14,10 @@ import { searchCommonFoods, type CommonFood } from '@/domain/commonFoods'
 import {
   extractCookingState,
   formatFoodName,
+  groupFoods,
   searchFoods,
   type Food,
+  type FoodGroup,
 } from '@/domain/food'
 import { sumNutrition } from '@/domain/nutrition'
 import type { MealTemplate } from '@/domain/types'
@@ -52,12 +54,15 @@ export function FoodPickerSheet({
   const [keyword, setKeyword] = useState('')
   const [packagedFoods, setPackagedFoods] = useState<readonly PackagedFood[]>([])
   const [packagedState, setPackagedState] = useState<PackagedState>('idle')
+  /** 調理違いを開いている食品。まとめたままだと選べない場合に開く。 */
+  const [expandedGroups, setExpandedGroups] = useState<ReadonlySet<string>>(new Set())
   const { foods, isLoading } = useFoodCatalog()
 
   useResetOnOpen(isOpen, () => {
     setKeyword('')
     setPackagedFoods([])
     setPackagedState('idle')
+    setExpandedGroups(new Set())
   })
 
   const frequent = useLiveQuery(() => listFrequentFoods(FREQUENT_FOOD_LIMIT), [])
@@ -143,6 +148,7 @@ export function FoodPickerSheet({
             setKeyword(event.target.value)
             setPackagedFoods([])
             setPackagedState('idle')
+            setExpandedGroups(new Set())
           }}
         />
       </div>
@@ -225,11 +231,24 @@ export function FoodPickerSheet({
               <p className={styles.stateHint}>
                 「生」と「ゆで」「めし」ではエネルギーが倍近く違います。食べた状態を選んでください。
               </p>
-              {results
-                .filter((food) => !suggestedIds.has(food.id))
-                .map((food) => (
-                  <FoodRow key={food.id} food={food} onSelect={handleSelect} />
-                ))}
+              {groupFoods(results.filter((food) => !suggestedIds.has(food.id))).map(
+                (group) => (
+                  <FoodGroupRows
+                    key={group.key}
+                    group={group}
+                    isExpanded={expandedGroups.has(group.key)}
+                    onToggle={() =>
+                      setExpandedGroups((current) => {
+                        const next = new Set(current)
+                        if (next.has(group.key)) next.delete(group.key)
+                        else next.add(group.key)
+                        return next
+                      })
+                    }
+                    onSelect={handleSelect}
+                  />
+                ),
+              )}
             </>
           )}
 
@@ -290,6 +309,47 @@ export function FoodPickerSheet({
         栄養価は「日本食品標準成分表（八訂）増補2023年」（文部科学省）から引用
       </p>
     </Sheet>
+  )
+}
+
+interface FoodGroupRowsProps {
+  readonly group: FoodGroup
+  readonly isExpanded: boolean
+  readonly onToggle: () => void
+  readonly onSelect: (food: Food) => void
+}
+
+/**
+ * 同じ食品の調理違いをまとめて出す。
+ * ブロッコリーのように 生・ゆで・焼き・油いため と5件並ぶと選べないため、
+ * まず素材そのものを出し、残りは開いたときだけ見せる。
+ */
+function FoodGroupRows({ group, isExpanded, onToggle, onSelect }: FoodGroupRowsProps) {
+  const variantStates = group.variants
+    .map((food) => extractCookingState(food.name))
+    .filter((state): state is string => state !== null)
+
+  return (
+    <>
+      <FoodRow food={group.representative} onSelect={onSelect} />
+
+      {group.variants.length > 0 && (
+        <button type="button" className={styles.variantToggle} onClick={onToggle}>
+          {isExpanded
+            ? '調理違いを閉じる'
+            : `調理違い ${group.variants.length}件${
+                variantStates.length === 0 ? '' : `（${variantStates.join('・')}）`
+              }`}
+        </button>
+      )}
+
+      {isExpanded &&
+        group.variants.map((food) => (
+          <div key={food.id} className={styles.variantRow}>
+            <FoodRow food={food} onSelect={onSelect} />
+          </div>
+        ))}
+    </>
   )
 }
 
