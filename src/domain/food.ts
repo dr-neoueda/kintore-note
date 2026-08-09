@@ -67,12 +67,18 @@ const KEYWORD_ALIASES: Readonly<Record<string, readonly string[]>> = {
   胡麻: ['ごま'],
 }
 
-/** 比較の邪魔になる記号と空白を落とし、英数字を半角小文字にそろえる。 */
+/**
+ * 比較の邪魔になる記号と空白を落とし、表記のゆれをそろえる。
+ *
+ * カタカナはひらがなに寄せる。成分表は「ぽん酢しょうゆ」のようにひらがなで
+ * 収載されている一方、利用者は「ポン酢」と打つ。
+ */
 export function normalizeFoodKeyword(value: string): string {
   return value
     .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (char) =>
       String.fromCharCode(char.charCodeAt(0) - 0xfee0),
     )
+    .replace(/[\u30a1-\u30f6]/g, (char) => String.fromCharCode(char.charCodeAt(0) - 0x60))
     .toLowerCase()
     .replace(/[\s　＜＞〈〉［］[\]（）()【】、,.／/・-]/g, '')
 }

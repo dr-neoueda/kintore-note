@@ -27,7 +27,12 @@ describe('normalizeFoodKeyword', () => {
   })
 
   test('全角と半角の英数字をそろえる', () => {
-    expect(normalizeFoodKeyword('ＭＣＴオイル')).toBe('mctオイル')
+    expect(normalizeFoodKeyword('ＭＣＴオイル')).toBe('mctおいる')
+  })
+
+  test('カタカナはひらがなに寄せる', () => {
+    // Arrange & Act & Assert: 成分表は「ぽん酢」、利用者は「ポン酢」と打つ
+    expect(normalizeFoodKeyword('ポン酢')).toBe(normalizeFoodKeyword('ぽん酢'))
   })
 })
 

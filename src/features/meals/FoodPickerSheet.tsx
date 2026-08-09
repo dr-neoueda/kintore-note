@@ -2,6 +2,13 @@ import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Sheet } from '@/components/Sheet'
 import { PlusIcon } from '@/components/icons'
+import {
+  PACKAGED_BASIS_GRAMS,
+  formatPackagedFoodName,
+  searchPackagedFoods,
+  type PackagedFood,
+} from '@/data/openFoodFacts'
+import { findOrCreateCustomFood, toFood } from '@/data/repositories/customFoodRepository'
 import { listFrequentFoods } from '@/data/repositories/mealRepository'
 import { searchFoods, type Food } from '@/domain/food'
 import { sumNutrition } from '@/domain/nutrition'
@@ -26,6 +33,8 @@ interface FoodPickerSheetProps {
 /** よく食べるものは毎回検索させない。 */
 const FREQUENT_FOOD_LIMIT = 8
 
+type PackagedState = 'idle' | 'searching' | 'done' | 'empty'
+
 export function FoodPickerSheet({
   isOpen,
   onClose,
@@ -35,9 +44,15 @@ export function FoodPickerSheet({
   onSelectTemplate,
 }: FoodPickerSheetProps) {
   const [keyword, setKeyword] = useState('')
+  const [packagedFoods, setPackagedFoods] = useState<readonly PackagedFood[]>([])
+  const [packagedState, setPackagedState] = useState<PackagedState>('idle')
   const { foods, isLoading } = useFoodCatalog()
 
-  useResetOnOpen(isOpen, () => setKeyword(''))
+  useResetOnOpen(isOpen, () => {
+    setKeyword('')
+    setPackagedFoods([])
+    setPackagedState('idle')
+  })
 
   const frequent = useLiveQuery(() => listFrequentFoods(FREQUENT_FOOD_LIMIT), [])
 
@@ -54,6 +69,30 @@ export function FoodPickerSheet({
   const handleSelect = (food: Food) => {
     setKeyword('')
     onSelect(food)
+  }
+
+  /**
+   * 市販品を探す。
+   * 自動では行わない。通信は利用者の操作を起点にした方が、
+   * 圏外での挙動も問い合わせ回数も読みやすい。
+   */
+  const searchPackaged = async () => {
+    setPackagedState('searching')
+    const results = await searchPackagedFoods(keyword)
+    setPackagedFoods(results)
+    setPackagedState(results.length === 0 ? 'empty' : 'done')
+  }
+
+  /** 選んだ市販品はマイ食品として残す。次からはオフラインでも選べる。 */
+  const handleSelectPackaged = async (packaged: PackagedFood) => {
+    const custom = await findOrCreateCustomFood({
+      name: formatPackagedFoodName(packaged),
+      basisGrams: PACKAGED_BASIS_GRAMS,
+      nutrition: packaged.nutrition,
+    })
+
+    setKeyword('')
+    onSelect(toFood(custom))
   }
 
   const handleRequestCreate = () => {
@@ -76,7 +115,11 @@ export function FoodPickerSheet({
           type="search"
           placeholder="例: 鶏むね、白米、納豆"
           value={keyword}
-          onChange={(event) => setKeyword(event.target.value)}
+          onChange={(event) => {
+            setKeyword(event.target.value)
+            setPackagedFoods([])
+            setPackagedState('idle')
+          }}
         />
       </div>
 
@@ -130,6 +173,46 @@ export function FoodPickerSheet({
             results.map((food) => (
               <FoodRow key={food.id} food={food} onSelect={handleSelect} />
             ))
+          )}
+
+          {packagedFoods.length > 0 && (
+            <>
+              <h3 className={styles.sectionTitle}>市販品</h3>
+              {packagedFoods.map((packaged) => (
+                <button
+                  key={packaged.code}
+                  type="button"
+                  className={styles.item}
+                  onClick={() => void handleSelectPackaged(packaged)}
+                >
+                  <span className={styles.itemName}>
+                    {formatPackagedFoodName(packaged)}
+                  </span>
+                  <span className={styles.itemMeta}>
+                    {packaged.nutrition.kcal} kcal / 100g
+                  </span>
+                </button>
+              ))}
+              <p className={styles.source}>
+                市販品は Open Food Facts（有志が登録している開かれたデータベース）から。
+                値が違っていることもあるので、取り込んだあとマイ食品として直せます。
+              </p>
+            </>
+          )}
+
+          {packagedState !== 'done' && (
+            <button
+              type="button"
+              className="btn btn-block"
+              onClick={() => void searchPackaged()}
+              disabled={packagedState === 'searching'}
+            >
+              {packagedState === 'searching'
+                ? '市販品を探しています…'
+                : packagedState === 'empty'
+                  ? '見つかりませんでした（もう一度探す）'
+                  : '市販品も探す（インターネット）'}
+            </button>
           )}
         </section>
       )}

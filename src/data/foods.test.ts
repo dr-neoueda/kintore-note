@@ -71,3 +71,27 @@ describe('よく使う言葉で引けるか', () => {
     expect(results.every((food) => !food.name.includes('ささみ'))).toBe(true)
   })
 })
+
+describe('カタカナで打っても引ける', () => {
+  const cases: readonly { keyword: string; expected: string }[] = [
+    { keyword: 'ポン酢', expected: 'ぽん酢' },
+    { keyword: 'マグロ', expected: 'まぐろ' },
+    { keyword: 'サバ', expected: 'さば' },
+    { keyword: 'タマネギ', expected: 'たまねぎ' },
+    { keyword: 'オートミール', expected: 'オートミール' },
+    { keyword: 'お茶漬け', expected: 'お茶漬け' },
+  ]
+
+  for (const { keyword, expected } of cases) {
+    test(`「${keyword}」で ${expected} が出る`, async () => {
+      // Arrange
+      const foods = await loadCompositionFoods()
+
+      // Act
+      const results = searchFoods(foods, keyword)
+
+      // Assert
+      expect(results.some((food) => food.name.includes(expected))).toBe(true)
+    })
+  }
+})

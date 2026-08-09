@@ -46,6 +46,34 @@ export async function createCustomFood(input: NewCustomFood): Promise<CustomFood
   })
 }
 
+/**
+ * 同じ名前があればそれを返し、無ければ作る。
+ * 市販品を取り込むときに、同じ商品で行が増えないようにする。
+ */
+export async function findOrCreateCustomFood(input: NewCustomFood): Promise<CustomFood> {
+  const name = requireNonEmpty(input.name, '食品名')
+
+  const existing = await db.customFoods.where('name').equals(name).first()
+  if (existing !== undefined) {
+    // 隠していた食品を選び直したら、また使えるようにする
+    if (existing.isArchived && existing.id !== undefined) {
+      await db.customFoods.update(existing.id, { isArchived: false })
+      return { ...existing, isArchived: false }
+    }
+    return existing
+  }
+
+  const id = await createCustomFood(input)
+  return {
+    id,
+    name,
+    basisGrams: input.basisGrams,
+    nutrition: input.nutrition,
+    isArchived: false,
+    createdAt: new Date().toISOString(),
+  }
+}
+
 export async function listActiveCustomFoods(): Promise<CustomFood[]> {
   const all = await db.customFoods.toArray()
   return all.filter((food) => !food.isArchived).sort((a, b) => a.name.localeCompare(b.name, 'ja'))
