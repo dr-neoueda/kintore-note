@@ -3,7 +3,10 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { listSetsByWorkout } from '@/data/repositories/setRepository'
 import { getSettings } from '@/data/repositories/settingsRepository'
 import { getWorkoutByDate } from '@/data/repositories/workoutRepository'
-import { REST_ALARM_GRACE_SEC } from '@/domain/restAlarm'
+import {
+  DEFAULT_REST_ALARM_DURATION_SEC,
+  REST_ALARM_GRACE_SEC,
+} from '@/domain/restAlarm'
 import type { WorkoutSet } from '@/domain/types'
 import { useExercises } from '@/hooks/useExercises'
 import { useRestTimer } from '@/hooks/useRestTimer'
@@ -68,6 +71,7 @@ export function useRestTimerState(): RestTimerState {
     elapsedSeconds: seconds,
     targetSeconds,
     isEnabled: isRestAlarmEnabled,
+    durationSec: settings?.restAlarmDurationSec ?? DEFAULT_REST_ALARM_DURATION_SEC,
   })
 
   // 目標に達するまでは画面を消させない。到達後は解放して電池の消費を抑える。

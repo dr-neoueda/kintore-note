@@ -8,6 +8,8 @@ interface UseRestAlarmParams {
   readonly elapsedSeconds: number
   readonly targetSeconds: number
   readonly isEnabled: boolean
+  /** 鳴らし続ける長さ（秒）。 */
+  readonly durationSec: number
 }
 
 /** 休憩が目標時間に達したら、その休憩につき1回だけ合図を鳴らす。 */
@@ -16,6 +18,7 @@ export function useRestAlarm({
   elapsedSeconds,
   targetSeconds,
   isEnabled,
+  durationSec,
 }: UseRestAlarmParams): void {
   const firedForRestRef = useRef<string | null>(null)
 
@@ -33,6 +36,6 @@ export function useRestAlarm({
     if (!shouldFire) return
 
     firedForRestRef.current = restStartedAt
-    void playRestAlarm()
-  }, [restStartedAt, elapsedSeconds, targetSeconds, isEnabled])
+    void playRestAlarm(durationSec)
+  }, [restStartedAt, elapsedSeconds, targetSeconds, isEnabled, durationSec])
 }

@@ -1,6 +1,10 @@
 import { db } from '../db'
 import { DEFAULT_REST_SEC_BY_MUSCLE_GROUP } from '@/domain/muscle'
 import { SETTINGS_ID, type AppSettings, type MuscleGroup } from '@/domain/types'
+import {
+  DEFAULT_REST_ALARM_DURATION_SEC,
+  normalizeRestAlarmDurationSec,
+} from '@/domain/restAlarm'
 import { DEFAULT_NUTRITION_TARGET, normalizeNutritionTarget } from '@/domain/nutritionTarget'
 import { DEFAULT_DUMBBELL_STEPS_KG } from '@/domain/weight'
 
@@ -19,6 +23,7 @@ function createDefaultSettings(): AppSettings {
     backupReminderDays: DEFAULT_BACKUP_REMINDER_DAYS,
     restSecByMuscleGroup: { ...DEFAULT_REST_SEC_BY_MUSCLE_GROUP },
     isRestAlarmEnabled: true,
+    restAlarmDurationSec: DEFAULT_REST_ALARM_DURATION_SEC,
     nutritionTarget: { ...DEFAULT_NUTRITION_TARGET },
   }
 }
@@ -88,6 +93,9 @@ export async function updateSettings(patch: SettingsPatch): Promise<AppSettings>
     nutritionTarget: patch.nutritionTarget
       ? normalizeNutritionTarget(patch.nutritionTarget)
       : current.nutritionTarget,
+    restAlarmDurationSec: normalizeRestAlarmDurationSec(
+      patch.restAlarmDurationSec ?? current.restAlarmDurationSec,
+    ),
   }
 
   await db.settings.put(next)

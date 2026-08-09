@@ -8,10 +8,13 @@
  * セットを記録したタイミングで unlockAlarmAudio を呼んで解錠しておく。
  */
 
-const BEEP_COUNT = 2
 const BEEP_FREQUENCY_HZ = 880
 const BEEP_DURATION_SEC = 0.18
 const BEEP_INTERVAL_SEC = 0.3
+/** 1組の鳴らす回数。まとまりを作らないと、長く鳴らしたとき機械の警告音のようになる。 */
+const BEEPS_PER_GROUP = 2
+/** 組と組の間。ここで途切れることで「鳴り続けている」と分かる。 */
+const GROUP_GAP_SEC = 0.5
 const PEAK_GAIN = 0.25
 /** 立ち上がりを緩やかにしてプチッというノイズを避ける。 */
 const ENVELOPE_ATTACK_SEC = 0.01
@@ -74,8 +77,34 @@ function scheduleBeep(context: AudioContext, startTime: number): void {
   oscillator.stop(startTime + BEEP_DURATION_SEC)
 }
 
-/** 休憩終了の合図を鳴らす。鳴らせない環境では静かに何もしない。 */
-export async function playRestAlarm(): Promise<void> {
+/**
+ * 鳴らす時刻の一覧を、指定した長さに収まるだけ組み立てる。
+ * 2回鳴らして少し空ける、を繰り返す。
+ */
+export function buildBeepOffsets(durationSec: number): number[] {
+  if (durationSec <= 0) return []
+
+  const offsets: number[] = []
+  let offset = 0
+
+  while (offset < durationSec) {
+    for (let index = 0; index < BEEPS_PER_GROUP; index += 1) {
+      if (offset >= durationSec) break
+      offsets.push(offset)
+      offset += BEEP_INTERVAL_SEC
+    }
+    offset += GROUP_GAP_SEC
+  }
+
+  // 長さが1回ぶんに満たなくても、無音では合図にならない
+  return offsets.length === 0 ? [0] : offsets
+}
+
+/**
+ * 休憩終了の合図を鳴らす。鳴らせない環境では静かに何もしない。
+ * durationSec の間、鳴らし続ける。
+ */
+export async function playRestAlarm(durationSec: number): Promise<void> {
   const context = getAudioContext()
   if (context === null) return
 
@@ -87,7 +116,8 @@ export async function playRestAlarm(): Promise<void> {
     }
   }
 
-  for (let index = 0; index < BEEP_COUNT; index += 1) {
-    scheduleBeep(context, context.currentTime + index * BEEP_INTERVAL_SEC)
+  const startTime = context.currentTime
+  for (const offset of buildBeepOffsets(durationSec)) {
+    scheduleBeep(context, startTime + offset)
   }
 }

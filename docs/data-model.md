@@ -153,6 +153,7 @@
 | backupReminderDays | number | この日数を超えたら警告する |
 | restSecByMuscleGroup | Record<MuscleGroup, number> | 部位ごとの既定の休憩秒数。新規種目の初期値 |
 | isRestAlarmEnabled | boolean | 休憩終了を音で知らせるか。有効な間は休憩中の画面点灯も行う |
+| restAlarmDurationSec | number | アラームを鳴らし続ける長さ（秒）|
 | nutritionTarget | NutritionTarget | 1日の目標（kcal / P / F / C） |
 
 索引: `id`

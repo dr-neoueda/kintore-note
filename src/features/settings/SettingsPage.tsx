@@ -19,6 +19,11 @@ import {
 import { toDateKey } from '@/domain/date'
 import { DEFAULT_REST_SEC_BY_MUSCLE_GROUP } from '@/domain/muscle'
 import {
+  DEFAULT_REST_ALARM_DURATION_SEC,
+  REST_ALARM_DURATION_OPTIONS,
+} from '@/domain/restAlarm'
+import { playRestAlarm } from '../workout/audioAlarm'
+import {
   DEFAULT_NUTRITION_TARGET,
   normalizeNutritionTarget,
 } from '@/domain/nutritionTarget'
@@ -85,6 +90,7 @@ export function SettingsPage() {
   const [targetTexts, setTargetTexts] = useState<NutritionTargetTexts>(
     toTargetTexts(DEFAULT_NUTRITION_TARGET),
   )
+  const alarmDurationSec = settings?.restAlarmDurationSec ?? DEFAULT_REST_ALARM_DURATION_SEC
   const [status, setStatus] = useState<StatusMessage | null>(null)
 
   useEffect(() => {
@@ -139,6 +145,12 @@ export function SettingsPage() {
 
     await updateSettings({ restSecByMuscleGroup: parsed })
     setStatus({ kind: 'success', text: '部位ごとの休憩時間を保存しました' })
+  }
+
+  /** 選んだ長さをそのまま鳴らす。聞かずに秒数だけ選んでも判断できない。 */
+  const handleSelectAlarmDuration = async (seconds: number) => {
+    await updateSettings({ restAlarmDurationSec: seconds })
+    await playRestAlarm(seconds)
   }
 
   const handleSaveNutritionTarget = async () => {
@@ -261,6 +273,40 @@ export function SettingsPage() {
           >
             {(settings?.isRestAlarmEnabled ?? false) ? '音で知らせる：オン' : '音で知らせる：オフ'}
           </button>
+
+          {(settings?.isRestAlarmEnabled ?? false) && (
+            <>
+              <span className={styles.fieldLabel}>鳴らす長さ</span>
+              <div className={styles.chips}>
+                {REST_ALARM_DURATION_OPTIONS.map(({ seconds, label }) => (
+                  <button
+                    key={seconds}
+                    type="button"
+                    className={
+                      alarmDurationSec === seconds
+                        ? `${styles.chip} ${styles.chipSelected}`
+                        : styles.chip
+                    }
+                    onClick={() => void handleSelectAlarmDuration(seconds)}
+                    aria-pressed={alarmDurationSec === seconds}
+                  >
+                    {label}
+                    <span className={styles.chipSub}>{seconds}秒</span>
+                  </button>
+                ))}
+              </div>
+              <p className={styles.hint}>
+                選ぶとその場で鳴ります。長さは実際に聞いて決めてください。
+              </p>
+              <button
+                type="button"
+                className="btn btn-block"
+                onClick={() => void playRestAlarm(alarmDurationSec)}
+              >
+                今の長さで鳴らす
+              </button>
+            </>
+          )}
         </section>
 
         <section className={styles.section}>

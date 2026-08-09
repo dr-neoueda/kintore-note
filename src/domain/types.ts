@@ -284,6 +284,8 @@ export interface AppSettings {
   readonly restSecByMuscleGroup: Readonly<Record<MuscleGroup, number>>
   /** 休憩が目標時間に達したら音で知らせる。有効な間は画面を点けたままにする。 */
   readonly isRestAlarmEnabled: boolean
+  /** アラームを鳴らし続ける長さ（秒）。 */
+  readonly restAlarmDurationSec: number
   /** 1日の栄養の目標。 */
   readonly nutritionTarget: NutritionTarget
 }
