@@ -9,6 +9,7 @@ import {
   type PackagedFood,
 } from '@/data/openFoodFacts'
 import { findOrCreateCustomFood, toFood } from '@/data/repositories/customFoodRepository'
+import { STORE_FOOD_GROUP } from '@/data/storeFoods'
 import { listFrequentFoods } from '@/data/repositories/mealRepository'
 import { searchCommonFoods, type CommonFood } from '@/domain/commonFoods'
 import {
@@ -296,7 +297,8 @@ export function FoodPickerSheet({
 
       {!hasKeyword && (
         <p className={styles.hint}>
-          食品名を入力して探します。成分表に無い市販品やプロテインは、マイ食品として登録できます。
+          食品名を入力して探します。「{STORE_FOOD_GROUP}」と入力すると、その店の商品だけが並びます。
+          成分表にも店の一覧にも無いものは、マイ食品として登録できます。
         </p>
       )}
 
@@ -359,7 +361,8 @@ interface FoodRowProps {
 }
 
 function FoodRow({ food, onSelect }: FoodRowProps) {
-  const state = food.isCustom ? null : extractCookingState(food.name)
+  const isStoreFood = food.group === STORE_FOOD_GROUP
+  const state = food.isCustom || isStoreFood ? null : extractCookingState(food.name)
 
   return (
     <button type="button" className={styles.item} onClick={() => onSelect(food)}>
@@ -368,6 +371,7 @@ function FoodRow({ food, onSelect }: FoodRowProps) {
       </span>
       <span className={styles.itemMeta}>
         {food.isCustom && <span className={styles.customBadge}>マイ食品</span>}
+        {isStoreFood && <span className={styles.customBadge}>{STORE_FOOD_GROUP}</span>}
         {state !== null && <span className={styles.stateBadge}>{state}</span>}
         {food.nutrition.kcal} kcal / {food.basisGrams}g
       </span>

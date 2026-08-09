@@ -140,3 +140,47 @@ test.describe('カタカナで探す', () => {
     await expect(page.getByRole('dialog')).toContainText('ぽん酢しょうゆ')
   })
 })
+
+test.describe('業務スーパーの商品', () => {
+  test('店の名前で商品が一覧になる', async ({ page }) => {
+    // Arrange & Act
+    await openPicker(page, '業務スーパー')
+
+    // Assert: 圏外でも使えるよう同梱してある
+    await expect(page.getByRole('dialog')).toContainText('業務スーパー')
+    await expect(
+      page.getByRole('dialog').getByRole('button').filter({ hasText: 'kcal / 100g' }).first(),
+    ).toBeVisible()
+  })
+
+  test('商品名で引ける', async ({ page }) => {
+    // Arrange & Act
+    await openPicker(page, '冷凍ブロッコリー')
+
+    // Assert
+    await expect(page.getByRole('dialog')).toContainText('冷凍ブロッコリー')
+  })
+
+  test('通信できなくても選んで記録できる', async ({ page }) => {
+    // Arrange: 圏外
+    await page.route('**/cgi/search.pl*', (route) => route.abort())
+    await openPicker(page, '冷凍ブロッコリー')
+
+    // Act
+    await page.getByRole('dialog').getByRole('button', { name: /冷凍ブロッコリー/ }).first().click()
+    await page.getByRole('button', { name: '記録する' }).click()
+
+    // Assert
+    await expect(page.getByRole('main')).toContainText('冷凍ブロッコリー')
+    await expect(page.getByTestId('total-kcal')).not.toHaveText('0')
+  })
+
+  test('店の商品だと分かる印が付く', async ({ page }) => {
+    // Arrange & Act
+    await openPicker(page, '冷凍ブロッコリー')
+
+    // Assert
+    const row = page.getByRole('dialog').getByRole('button', { name: /冷凍ブロッコリー/ }).first()
+    await expect(row).toContainText('業務スーパー')
+  })
+})

@@ -482,6 +482,11 @@ export function SettingsPage() {
             こちらは値が違っていることもあるため、取り込んだあとマイ食品として直せます。
             インターネットに繋がっているときだけ使えます。
           </p>
+          <p className={styles.hint}>
+            業務スーパーの商品（169品）は、同じ Open Food Facts のデータから
+            あらかじめ取り込んであります。こちらは圏外でも使えます。
+            食品を選ぶ画面で「業務スーパー」と入力すると一覧になります。
+          </p>
         </section>
 
         <section className={styles.section}>

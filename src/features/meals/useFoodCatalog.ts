@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { listActiveCustomFoods, toFood } from '@/data/repositories/customFoodRepository'
 import { loadCompositionFoods } from '@/data/foods'
+import { loadStoreFoods } from '@/data/storeFoods'
 import type { Food } from '@/domain/food'
 
 const EMPTY_FOODS: readonly Food[] = []
@@ -27,13 +28,14 @@ export function useFoodCatalog(): FoodCatalog {
   useEffect(() => {
     let isActive = true
 
-    loadCompositionFoods()
-      .then((loaded) => {
+    Promise.all([loadCompositionFoods(), loadStoreFoods()])
+      .then(([composition, store]) => {
         if (!isActive) return
-        setCompositionFoods(loaded)
+        // 店の商品を先に置く。成分表の素材より、買った物そのものを選ぶ場面が多い
+        setCompositionFoods([...store, ...composition])
       })
       .catch(() => {
-        // 成分表を読めなくても、マイ食品だけで記録は続けられる
+        // 読めなくても、マイ食品だけで記録は続けられる
       })
       .finally(() => {
         if (isActive) setIsLoading(false)
