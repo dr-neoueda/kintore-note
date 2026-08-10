@@ -16,7 +16,7 @@ import {
 import type { DateKey } from '@/domain/date'
 import { formatShortDateLabel } from '@/domain/date'
 import { calcEnergyShare } from '@/domain/nutrition'
-import type { NutritionTarget } from '@/domain/nutritionTarget'
+import type { NutritionTarget } from '@/domain/types'
 import type { MetricChange } from '../body/bodyTrend'
 import { useChartTheme } from '../charts/useChartTheme'
 import type { DailyExpenditure } from './dailyExpenditure'
