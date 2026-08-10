@@ -1,0 +1,111 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.cardTitle {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.cardNote {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+.averages {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+  margin-top: var(--space-1);
+}
+
+.balanceRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.average {
+  min-width: 0;
+}
+
+.averageValue {
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.averageLabel {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.chart {
+  height: 180px;
+  margin-top: var(--space-2);
+}
+
+/* PFC のエネルギー比。白黒なので濃さで区別する。 */
+.shareBlock {
+  margin-top: var(--space-3);
+}
+
+.shareBar {
+  display: flex;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--surface-raised);
+}
+
+.shareProtein {
+  background: var(--text);
+}
+
+.shareFat {
+  background: var(--text-dim);
+}
+
+.shareCarb {
+  background: var(--border);
+}
+
+.shareLegend {
+  margin-top: var(--space-2);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+}
+
+.estimate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+}
+
+.estimate strong {
+  font-size: 16px;
+  color: var(--text);
+}
+
+.estimateNote {
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-faint);
+  font-variant-numeric: normal;
+}

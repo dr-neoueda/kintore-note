@@ -62,7 +62,7 @@ test.describe('運動と食事の切り替え', () => {
     await expect(page.getByRole('heading', { name: '食事の履歴' })).toBeVisible()
 
     await tabbar(page).getByRole('link', { name: 'グラフ' }).click()
-    await expect(page.getByRole('heading', { name: '食事のグラフ' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'グラフ' })).toBeVisible()
 
     await tabbar(page).getByRole('link', { name: '献立' }).click()
     await expect(page.getByRole('heading', { name: '献立' })).toBeVisible()
@@ -190,7 +190,12 @@ test.describe('食事の履歴とグラフ', () => {
     // Assert
     await expect(page.getByRole('main')).toContainText('エネルギーの推移')
     await expect(page.getByRole('main')).toContainText('たんぱく質の推移')
-    await expect(page.getByRole('main')).toContainText('体重の推移')
+
+    // Act: 体組成は「からだ」に分けている
+    await page.getByRole('tab', { name: 'からだ' }).click()
+
+    // Assert: 測っていなければ案内を出す
+    await expect(page.getByRole('main')).toContainText('体組成の記録がありません')
   })
 
   test('記録が無ければグラフは案内だけ出す', async ({ page }) => {

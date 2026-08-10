@@ -1,0 +1,54 @@
+.item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas:
+    'label value perWeek'
+    'label range range';
+  align-items: baseline;
+  gap: 2px var(--space-3);
+}
+
+.label {
+  grid-area: label;
+  min-width: 76px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.value {
+  grid-area: value;
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* 増える方が望ましい項目は、矢印を塗りつぶさずに区別する。 */
+.gainGood {
+  color: var(--text-dim);
+}
+
+.perWeek {
+  grid-area: perWeek;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.range {
+  grid-area: range;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+.empty {
+  grid-area: value;
+  font-size: 11px;
+  color: var(--text-faint);
+}
