@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { listCardioSessionsByDate } from '@/data/repositories/cardioRepository'
 import {
-  findLatestWeightKg,
+  findLatestMeasurement,
   getMeasurementByDate,
 } from '@/data/repositories/measurementRepository'
 import type { DateKey } from '@/domain/date'
@@ -16,7 +16,12 @@ import type { BodyMeasurement, CardioSession, WorkoutSet } from '@/domain/types'
 export interface DailyEnergy {
   /** 消費エネルギーの計算に使った体重。無ければ null。 */
   readonly weightKg: number | null
+  /** その日に測った記録。測っていなければ undefined。 */
   readonly measurement: BodyMeasurement | undefined
+  /** その日以前で最も新しい記録。測っていない日の計算に使う。 */
+  readonly latestMeasurement: BodyMeasurement | undefined
+  /** その日に当てはめる基礎代謝。測っていなければ直近の値。 */
+  readonly basalMetabolicRateKcal: number | null
   readonly cardioSessions: readonly CardioSession[]
   readonly strengthDurationSec: number
   readonly strengthKcal: number
@@ -30,15 +35,16 @@ const EMPTY_SESSIONS: readonly CardioSession[] = []
 /**
  * その日の運動による消費エネルギーをまとめる。
  *
- * 体重が無いと計算できないため、その日に測っていなければ直近の記録を使う。
- * 体重の記録が一度も無ければ 0 のままにし、当て推量の数字は出さない。
+ * 体組成は毎日測るとは限らない。その日に測っていなければ直近の記録を使い、
+ * 体重も基礎代謝もそこから引く。一度も測っていなければ 0 のままにし、
+ * 当て推量の数字は出さない。
  */
 export function useDailyEnergy(date: DateKey, sets: readonly WorkoutSet[]): DailyEnergy {
   const measurement = useLiveQuery(() => getMeasurementByDate(date), [date])
-  const weightKg = useLiveQuery(() => findLatestWeightKg(date), [date])
+  const latestMeasurement = useLiveQuery(() => findLatestMeasurement(date), [date])
   const cardioSessions = useLiveQuery(() => listCardioSessionsByDate(date), [date])
 
-  const resolvedWeight = weightKg ?? null
+  const resolvedWeight = latestMeasurement?.weightKg ?? null
   const sessions = cardioSessions ?? EMPTY_SESSIONS
 
   const strengthDurationSec = estimateWorkoutDurationSec(sets.map((set) => set.recordedAt))
@@ -62,6 +68,8 @@ export function useDailyEnergy(date: DateKey, sets: readonly WorkoutSet[]): Dail
   return {
     weightKg: resolvedWeight,
     measurement,
+    latestMeasurement,
+    basalMetabolicRateKcal: latestMeasurement?.basalMetabolicRateKcal ?? null,
     cardioSessions: sessions,
     strengthDurationSec,
     strengthKcal,

@@ -59,12 +59,14 @@ const build = (params: {
   sets?: [number, WorkoutSet[]][]
   cardioSessions?: CardioSession[]
   measurements?: BodyMeasurement[]
+  todayKey?: string
 }) =>
   buildDailyExpenditure({
     workouts: params.workouts ?? [],
     setsByWorkoutId: new Map<WorkoutId, WorkoutSet[]>(params.sets ?? []),
     cardioSessions: params.cardioSessions ?? [],
     measurements: params.measurements ?? [],
+    todayKey: params.todayKey ?? '2026-08-10',
   })
 
 describe('buildDailyExpenditure', () => {
@@ -154,5 +156,50 @@ describe('buildDailyExpenditure', () => {
 
   test('記録が無ければ空', () => {
     expect(build({}).size).toBe(0)
+  })
+
+  test('測っていない日にも、直近の体組成を当てはめる', () => {
+    // Arrange: 9日と11日に測り、10日は測っていない
+    const days = build({
+      measurements: [
+        measurement('2026-08-09', 70, 1600),
+        measurement('2026-08-11', 69, 1580),
+      ],
+      todayKey: '2026-08-11',
+    })
+
+    // Act
+    const skipped = days.get('2026-08-10')
+
+    // Assert: 10日は9日の値を使う
+    expect(skipped?.basalKcal).toBe(1600)
+    expect(days.get('2026-08-11')?.basalKcal).toBe(1580)
+  })
+
+  test('測っていない日も1日も飛ばさずに作る', () => {
+    // Arrange: 食べただけの日が抜け落ちると、収支のグラフが飛ぶ
+    const days = build({
+      measurements: [measurement('2026-08-08', 70, 1600)],
+      todayKey: '2026-08-11',
+    })
+
+    // Act & Assert: 8〜11日の4日ぶん
+    expect([...days.keys()].sort()).toEqual([
+      '2026-08-08',
+      '2026-08-09',
+      '2026-08-10',
+      '2026-08-11',
+    ])
+  })
+
+  test('最初の記録より前の日は作らない', () => {
+    // Arrange & Act: 測る前の日は計算できない
+    const days = build({
+      measurements: [measurement('2026-08-09', 70, 1600)],
+      todayKey: '2026-08-11',
+    })
+
+    // Assert
+    expect(days.has('2026-08-08')).toBe(false)
   })
 })

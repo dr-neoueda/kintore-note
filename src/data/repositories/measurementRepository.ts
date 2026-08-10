@@ -79,16 +79,25 @@ export async function listMeasurements(): Promise<BodyMeasurement[]> {
 }
 
 /**
- * その日以前で最も新しい体重を返す。
- * 消費エネルギーの計算に使うため、測っていない日でも直近の値で賄う。
+ * その日以前で最も新しい測定を返す。
+ *
+ * 体組成は毎日測るとは限らない。9日と11日に測って10日に測らなかった場合、
+ * 10日は9日の値で計算する。測っていない日を「体重も基礎代謝も無い日」として
+ * 扱うと、その日だけ収支が出せずグラフが飛んでしまうため。
  */
-export async function findLatestWeightKg(date: DateKey): Promise<number | null> {
+export async function findLatestMeasurement(
+  date: DateKey,
+): Promise<BodyMeasurement | undefined> {
   const all = await db.measurements.toArray()
-  const candidates = all
-    .filter((measurement) => measurement.date <= date)
-    .sort((a, b) => b.date.localeCompare(a.date))
 
-  return candidates[0]?.weightKg ?? null
+  return all
+    .filter((measurement) => measurement.date <= date)
+    .sort((a, b) => b.date.localeCompare(a.date))[0]
+}
+
+/** その日以前で最も新しい体重。 */
+export async function findLatestWeightKg(date: DateKey): Promise<number | null> {
+  return (await findLatestMeasurement(date))?.weightKg ?? null
 }
 
 export async function deleteMeasurement(id: MeasurementId): Promise<void> {

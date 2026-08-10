@@ -1,4 +1,4 @@
-import type { DateKey } from '@/domain/date'
+import { addDaysToDateKey, type DateKey } from '@/domain/date'
 import {
   calcAverageRestSec,
   calcCardioEnergyKcal,
@@ -35,6 +35,30 @@ interface BuildDailyExpenditureParams {
   readonly setsByWorkoutId: ReadonlyMap<WorkoutId, WorkoutSet[]>
   readonly cardioSessions: readonly CardioSession[]
   readonly measurements: readonly BodyMeasurement[]
+  /**
+   * この日まで1日も飛ばさずに作る。
+   * 運動も測定もしていない日でも、食事の記録と突き合わせられるようにするため。
+   */
+  readonly todayKey: DateKey
+}
+
+/**
+ * 壊れた日付で無限に回らないための上限。
+ * 10年ぶんあれば、実際の記録には足りる。
+ */
+const MAX_DAYS = 365 * 10
+
+/** はじめの日から終わりの日まで、1日も飛ばさずに並べる。 */
+function listDatesInRange(from: DateKey, to: DateKey): DateKey[] {
+  const dates: DateKey[] = []
+  let current = from
+
+  while (current <= to && dates.length < MAX_DAYS) {
+    dates.push(current)
+    current = addDaysToDateKey(current, 1)
+  }
+
+  return dates
 }
 
 /** その日以前で最も新しい測定。無ければ undefined。 */
@@ -52,6 +76,7 @@ export function buildDailyExpenditure({
   setsByWorkoutId,
   cardioSessions,
   measurements,
+  todayKey,
 }: BuildDailyExpenditureParams): Map<DateKey, DailyExpenditure> {
   const setsByDate = new Map<DateKey, readonly WorkoutSet[]>()
   for (const workout of workouts) {
@@ -66,12 +91,22 @@ export function buildDailyExpenditure({
     else current.push(session)
   }
 
-  // 基礎代謝しか無い日（運動していない日）も収支の対象になる
-  const dates = new Set([
+  /*
+   * 記録のある日だけを作ると、食べただけの日が抜け落ちる。
+   * 9日と11日に体組成を測って10日に測らなかった場合、10日は9日の値で計算したい。
+   * そのため、最初の記録から今日までを1日も飛ばさずに作る。
+   */
+  const recordDates = [
     ...setsByDate.keys(),
     ...cardioByDate.keys(),
     ...measurements.map((measurement) => measurement.date),
-  ])
+  ].sort()
+
+  const earliest = recordDates[0]
+  if (earliest === undefined) return new Map()
+
+  const latest = recordDates[recordDates.length - 1] as DateKey
+  const dates = listDatesInRange(earliest, latest > todayKey ? latest : todayKey)
 
   const result = new Map<DateKey, DailyExpenditure>()
 

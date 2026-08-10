@@ -218,7 +218,7 @@ export function MealsPage() {
         <NutritionSummary
           total={total}
           target={target}
-          basalMetabolicRateKcal={energy.measurement?.basalMetabolicRateKcal ?? null}
+          basalMetabolicRateKcal={energy.basalMetabolicRateKcal}
           activeKcal={energy.activeKcal}
         />
 
