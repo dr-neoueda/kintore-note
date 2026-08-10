@@ -25,6 +25,7 @@ function createDefaultSettings(): AppSettings {
     isRestAlarmEnabled: true,
     restAlarmDurationSec: DEFAULT_REST_ALARM_DURATION_SEC,
     nutritionTarget: { ...DEFAULT_NUTRITION_TARGET },
+    heightCm: null,
   }
 }
 

@@ -297,6 +297,11 @@ export interface AppSettings {
   readonly restAlarmDurationSec: number
   /** 1日の栄養の目標。 */
   readonly nutritionTarget: NutritionTarget
+  /**
+   * 身長（cm）。BMI を出すのに使う。
+   * 日々変わるものではないので、測定ごとではなく設定として1つ持つ。
+   */
+  readonly heightCm: number | null
 }
 
 export const RPE_MIN = 1

@@ -1,10 +1,14 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { BackupReminderBanner } from '@/components/BackupReminderBanner'
 import { PageHeader } from '@/components/PageHeader'
-import { saveMeasurement } from '@/data/repositories/measurementRepository'
+import {
+  listMeasurements,
+  saveMeasurement,
+} from '@/data/repositories/measurementRepository'
+import { getSettings, updateSettings } from '@/data/repositories/settingsRepository'
 import { listTemplates } from '@/data/repositories/templateRepository'
-import { formatDateLabel } from '@/domain/date'
+import { formatDateLabel, type DateKey } from '@/domain/date'
 import { formatWeightKg } from '@/domain/weight'
 import { useExercises } from '@/hooks/useExercises'
 import { useLastSessions } from '@/hooks/useLastSessions'
@@ -28,6 +32,14 @@ export function TodayPage() {
 
   const energy = useDailyEnergy(todayKey, editor.sets)
   const [isMeasurementOpen, setIsMeasurementOpen] = useState(false)
+
+  const settings = useLiveQuery(() => getSettings(), [])
+  const measurements = useLiveQuery(() => listMeasurements(), [])
+  const measuredDates = useMemo(
+    () => new Set<DateKey>((measurements ?? []).map((entry) => entry.date)),
+    [measurements],
+  )
+
   const hasSections = editor.sectionExerciseIds.length > 0
   const hasTemplates = templates !== undefined && templates.length > 0
 
@@ -123,9 +135,17 @@ export function TodayPage() {
 
       <BodyMeasurementSheet
         isOpen={isMeasurementOpen}
+        todayKey={todayKey}
         measurement={energy.measurement}
+        heightCm={settings?.heightCm ?? null}
+        recordedDates={measuredDates}
         onClose={() => setIsMeasurementOpen(false)}
-        onSubmit={(values) => saveMeasurement(todayKey, values, new Date().toISOString())}
+        onSubmit={(date, values) =>
+          saveMeasurement(date, values, new Date().toISOString())
+        }
+        onChangeHeightCm={async (heightCm) => {
+          await updateSettings({ heightCm })
+        }}
       />
 
     </>

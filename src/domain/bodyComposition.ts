@@ -20,6 +20,25 @@ export function calcLeanBodyMassKg(
   return roundTo(weightKg * (1 - bodyFatPercent / 100), MASS_DECIMALS)
 }
 
+const BMI_DECIMALS = 1
+
+/** 身長として受け付ける範囲（cm）。打ち間違いから桁違いの BMI が出るのを防ぐ。 */
+export const MIN_HEIGHT_CM = 50
+export const MAX_HEIGHT_CM = 250
+
+/**
+ * BMI。体重(kg) ÷ 身長(m)^2。
+ * 身長を入れていなければ出さない。当て推量の数字は置かない。
+ */
+export function calcBmi(weightKg: number, heightCm: number | null): number | null {
+  if (heightCm === null) return null
+  if (heightCm < MIN_HEIGHT_CM || heightCm > MAX_HEIGHT_CM) return null
+  if (!Number.isFinite(weightKg) || weightKg <= 0) return null
+
+  const heightM = heightCm / 100
+  return roundTo(weightKg / (heightM * heightM), BMI_DECIMALS)
+}
+
 /** 体脂肪量（kg）。 */
 export function calcFatMassKg(
   weightKg: number,
