@@ -9,8 +9,11 @@ import {
 } from '@/data/repositories/cardioRepository'
 import {
   CARDIO_ACTIVITY_LABELS,
+  CARDIO_INTENSITY_LABELS,
+  DEFAULT_CARDIO_INTENSITY,
   calcPaceSecPerKm,
   formatPace,
+  usesDistance,
 } from '@/domain/cardio'
 import type { DateKey } from '@/domain/date'
 import { formatDuration } from '@/domain/duration'
@@ -52,19 +55,11 @@ export function CardioSection({ date, weightKg }: CardioSectionProps) {
   return (
     <section className={styles.section}>
       <div className={styles.header}>
-        <h2 className={styles.title}>有酸素運動</h2>
+        <h2 className={styles.title}>有酸素・自重トレ</h2>
       </div>
 
       {(sessions ?? []).map((session) => {
-        const kcal =
-          weightKg === null
-            ? null
-            : calcCardioEnergyKcal(
-                session.activity,
-                session.distanceKm,
-                session.durationSec,
-                weightKg,
-              )
+        const kcal = weightKg === null ? null : calcCardioEnergyKcal(session, weightKg)
 
         return (
           <button
@@ -76,11 +71,17 @@ export function CardioSection({ date, weightKg }: CardioSectionProps) {
           >
             <span className={styles.itemMain}>
               <span className={styles.itemTitle}>
-                {CARDIO_ACTIVITY_LABELS[session.activity]} {session.distanceKm} km
+                {CARDIO_ACTIVITY_LABELS[session.activity]}
+                {usesDistance(session.activity)
+                  ? ` ${session.distanceKm} km`
+                  : ` ${formatDuration(session.durationSec)}`}
               </span>
               <span className={styles.itemDetail}>
-                {formatDuration(session.durationSec)} ·{' '}
-                {formatPace(calcPaceSecPerKm(session.distanceKm, session.durationSec))}/km
+                {usesDistance(session.activity)
+                  ? `${formatDuration(session.durationSec)} · ${formatPace(
+                      calcPaceSecPerKm(session.distanceKm, session.durationSec),
+                    )}/km`
+                  : `強度 ${CARDIO_INTENSITY_LABELS[session.intensity ?? DEFAULT_CARDIO_INTENSITY]}`}
                 {session.note !== '' && ` · ${session.note}`}
               </span>
             </span>
@@ -91,7 +92,7 @@ export function CardioSection({ date, weightKg }: CardioSectionProps) {
 
       <button type="button" className={styles.addButton} onClick={() => setIsCreating(true)}>
         <PlusIcon size={18} />
-        ランニングなどを記録
+        ランニング・自重トレを記録
       </button>
 
       {(isCreating || editing !== null) && (

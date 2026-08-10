@@ -84,7 +84,7 @@ test.describe('ランニングの記録', () => {
     await recordBody(page, '70')
 
     // Act: 10km を 50分
-    await page.getByRole('button', { name: 'ランニングなどを記録' }).click()
+    await page.getByRole('button', { name: 'ランニング・自重トレを記録' }).click()
     await page.getByLabel('距離').fill('10')
     await page.getByLabel('時間（分）').fill('50')
 
@@ -99,7 +99,7 @@ test.describe('ランニングの記録', () => {
     await recordBody(page, '70')
 
     // Act
-    await page.getByRole('button', { name: 'ランニングなどを記録' }).click()
+    await page.getByRole('button', { name: 'ランニング・自重トレを記録' }).click()
     await page.getByLabel('距離').fill('10')
     await page.getByLabel('時間（分）').fill('50')
     await page.getByRole('button', { name: '記録する' }).click()
@@ -114,7 +114,7 @@ test.describe('ランニングの記録', () => {
     await page.goto('/')
 
     // Act
-    await page.getByRole('button', { name: 'ランニングなどを記録' }).click()
+    await page.getByRole('button', { name: 'ランニング・自重トレを記録' }).click()
     await page.getByLabel('距離').fill('10')
     await page.getByLabel('時間（分）').fill('50')
 
@@ -126,7 +126,7 @@ test.describe('ランニングの記録', () => {
   test('距離が空だと保存できない', async ({ page }) => {
     // Arrange
     await page.goto('/')
-    await page.getByRole('button', { name: 'ランニングなどを記録' }).click()
+    await page.getByRole('button', { name: 'ランニング・自重トレを記録' }).click()
 
     // Act
     await page.getByLabel('時間（分）').fill('30')
@@ -139,7 +139,7 @@ test.describe('ランニングの記録', () => {
   test('記録を消せる', async ({ page }) => {
     // Arrange
     await page.goto('/')
-    await page.getByRole('button', { name: 'ランニングなどを記録' }).click()
+    await page.getByRole('button', { name: 'ランニング・自重トレを記録' }).click()
     await page.getByLabel('距離').fill('5')
     await page.getByLabel('時間（分）').fill('30')
     await page.getByRole('button', { name: '記録する' }).click()
@@ -158,7 +158,7 @@ test.describe('ランニングの記録', () => {
     await page.goto('/')
 
     // Act
-    await page.getByRole('button', { name: 'ランニングなどを記録' }).click()
+    await page.getByRole('button', { name: 'ランニング・自重トレを記録' }).click()
     await page.getByRole('button', { name: 'ウォーキング' }).click()
     await page.getByLabel('距離').fill('3')
     await page.getByLabel('時間（分）').fill('40')

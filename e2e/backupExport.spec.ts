@@ -312,7 +312,7 @@ test.describe('書き出して復元しても、すべて残る', () => {
     await page.getByRole('button', { name: '保存する' }).click()
     await expect(page.getByRole('main')).toContainText('70.5 kg')
 
-    await page.getByRole('button', { name: 'ランニングなどを記録' }).click()
+    await page.getByRole('button', { name: 'ランニング・自重トレを記録' }).click()
     await page.getByLabel('距離').fill('5')
     await page.getByLabel('時間（分）').fill('30')
     await page.getByRole('button', { name: '記録する' }).click()

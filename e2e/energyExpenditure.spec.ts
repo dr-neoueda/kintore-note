@@ -13,7 +13,7 @@ async function recordBody(page: Page, weight: string, bmr?: string): Promise<voi
 }
 
 async function recordCardio(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'ランニングなどを記録' }).click()
+  await page.getByRole('button', { name: 'ランニング・自重トレを記録' }).click()
   await page.getByLabel('距離').fill('5')
   await page.getByLabel('時間（分）').fill('30')
   await page.getByRole('button', { name: '記録する' }).click()

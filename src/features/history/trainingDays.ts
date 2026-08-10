@@ -1,4 +1,4 @@
-import { CARDIO_ACTIVITY_LABELS } from '@/domain/cardio'
+import { CARDIO_ACTIVITY_LABELS, usesDistance } from '@/domain/cardio'
 import type { DateKey } from '@/domain/date'
 import type { CardioSession, Workout, WorkoutId, WorkoutSet } from '@/domain/types'
 
@@ -53,15 +53,24 @@ export function buildTrainingDays({
     .sort((a, b) => b.date.localeCompare(a.date))
 }
 
-/** その日の有酸素運動を「ランニング 5km」のようにまとめる。 */
+/**
+ * その日の有酸素・自重トレを「ランニング 5km」「自重トレ 10分」のようにまとめる。
+ * 距離を測らない種目は時間で表す。
+ */
 export function formatCardioSummary(sessions: readonly CardioSession[]): string {
   return sessions
-    .map((session) => `${CARDIO_ACTIVITY_LABELS[session.activity]} ${session.distanceKm}km`)
+    .map((session) => {
+      const label = CARDIO_ACTIVITY_LABELS[session.activity]
+      if (usesDistance(session.activity)) return `${label} ${session.distanceKm}km`
+      return `${label} ${Math.round(session.durationSec / 60)}分`
+    })
     .join('、')
 }
 
-/** その日の有酸素運動の合計距離（km）。 */
+/** その日の合計距離（km）。距離を測らない種目は数えない。 */
 export function sumCardioDistanceKm(sessions: readonly CardioSession[]): number {
-  const total = sessions.reduce((sum, session) => sum + session.distanceKm, 0)
+  const total = sessions
+    .filter((session) => usesDistance(session.activity))
+    .reduce((sum, session) => sum + session.distanceKm, 0)
   return Math.round(total * 10) / 10
 }

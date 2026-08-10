@@ -23,7 +23,12 @@ import type {
   WorkoutTemplate,
 } from './types'
 import { MUSCLE_GROUPS } from './types'
-import { CARDIO_ACTIVITIES, type CardioActivity } from './cardio'
+import {
+  CARDIO_ACTIVITIES,
+  CARDIO_INTENSITIES,
+  type CardioActivity,
+  type CardioIntensity,
+} from './cardio'
 import type { Nutrition } from './nutrition'
 import { MEAL_TYPES } from './types'
 import { ValidationError } from './validation'
@@ -246,11 +251,16 @@ function normalizeCardioSession(raw: CardioSession): CardioSession {
     ? (source.activity as CardioActivity)
     : 'running'
 
+  const intensity = CARDIO_INTENSITIES.includes(source.intensity as CardioIntensity)
+    ? (source.intensity as CardioIntensity)
+    : null
+
   return {
     ...raw,
     activity,
     distanceKm: Math.max(0, toNumber(source.distanceKm)),
     durationSec: Math.max(0, toNumber(source.durationSec)),
+    intensity,
     note: typeof source.note === 'string' ? source.note : '',
     recordedAt: typeof source.recordedAt === 'string' ? source.recordedAt : '',
   }

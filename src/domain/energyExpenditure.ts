@@ -1,4 +1,11 @@
-import { calcSpeedKmh, metsForSpeed, type CardioActivity } from './cardio'
+import {
+  calcSpeedKmh,
+  metsForCalisthenics,
+  metsForSpeed,
+  usesDistance,
+  type CardioActivity,
+  type CardioIntensity,
+} from './cardio'
 
 /**
  * 運動による消費エネルギーの推定。
@@ -62,17 +69,40 @@ export function estimateWorkoutDurationSec(recordedAtList: readonly string[]): n
   return Math.round(spanSec + averageIntervalSec)
 }
 
-/** 有酸素運動1回の消費エネルギー（kcal）。 */
+export interface CardioEnergyInput {
+  readonly activity: CardioActivity
+  readonly distanceKm: number
+  readonly durationSec: number
+  /** 自重トレーニングの強度。距離のある運動では使わない。 */
+  readonly intensity: CardioIntensity | null
+}
+
+/**
+ * 運動1回の消費エネルギー（kcal）。
+ *
+ * 距離のある運動は速度から強度を決める。
+ * 自重トレーニングは距離を持たないため、選んだ強度を使う。
+ */
 export function calcCardioEnergyKcal(
-  activity: CardioActivity,
-  distanceKm: number,
-  durationSec: number,
+  input: CardioEnergyInput,
   weightKg: number,
 ): number {
-  const speedKmh = calcSpeedKmh(distanceKm, durationSec)
+  if (!usesDistance(input.activity)) {
+    return calcActiveEnergyKcal(
+      metsForCalisthenics(input.intensity),
+      weightKg,
+      input.durationSec,
+    )
+  }
+
+  const speedKmh = calcSpeedKmh(input.distanceKm, input.durationSec)
   if (speedKmh <= 0) return 0
 
-  return calcActiveEnergyKcal(metsForSpeed(activity, speedKmh), weightKg, durationSec)
+  return calcActiveEnergyKcal(
+    metsForSpeed(input.activity, speedKmh),
+    weightKg,
+    input.durationSec,
+  )
 }
 
 /** 筋力トレーニング1セッションの消費エネルギー（kcal）。 */

@@ -2,7 +2,7 @@
  * アプリ全体で共有するドメイン型。
  * 保存は IndexedDB (Dexie) だが、この層は永続化の詳細を知らない。
  */
-import type { CardioActivity } from './cardio'
+import type { CardioActivity, CardioIntensity } from './cardio'
 import type { Nutrition } from './nutrition'
 
 export type ExerciseId = number
@@ -55,7 +55,8 @@ export const MUSCLE_GROUPS: readonly MuscleGroup[] = [
  *
  * 鍛えていない部位を並べても、選ぶときの邪魔になり、
  * 週間セット数では常に0の行が居座るだけになる。
- * MuscleGroup 自体からは外さない。外すと過去の記録の部位が解決できなくなる。
+ * 逆に鍛え始めたらここへ戻す。MuscleGroup 自体からは外さないので、
+ * 戻せば過去の記録も種目もそのまま現れる。
  */
 export const DISPLAYED_MUSCLE_GROUPS: readonly MuscleGroup[] = [
   'chest',
@@ -63,6 +64,7 @@ export const DISPLAYED_MUSCLE_GROUPS: readonly MuscleGroup[] = [
   'shoulders',
   'arms',
   'legs',
+  'core',
   'other',
 ]
 
@@ -212,14 +214,17 @@ export interface BodyMeasurement {
   readonly recordedAt: string
 }
 
-/** 有酸素運動1回の記録。 */
+/** 有酸素運動・自重トレーニング1回の記録。 */
 export interface CardioSession {
   readonly id?: CardioSessionId
   /** 'YYYY-MM-DD' 形式のローカル日付。 */
   readonly date: string
   readonly activity: CardioActivity
+  /** 距離を測らない種類（自重トレなど）では 0。 */
   readonly distanceKm: number
   readonly durationSec: number
+  /** 自重トレーニングの強度。距離のある運動では null。 */
+  readonly intensity: CardioIntensity | null
   readonly note: string
   readonly recordedAt: string
 }

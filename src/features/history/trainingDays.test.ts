@@ -29,6 +29,7 @@ const cardio = (date: string, distanceKm = 5): CardioSession => ({
   activity: 'running',
   distanceKm,
   durationSec: 1800,
+  intensity: null,
   note: '',
   recordedAt: `${date}T18:00:00.000Z`,
 })

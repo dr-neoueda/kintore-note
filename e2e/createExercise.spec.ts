@@ -104,13 +104,13 @@ test.describe('種目を作る', () => {
 
     // Act
     await page.getByRole('button', { name: '種目を作る' }).click()
-    await page.getByLabel('種目名').fill('自作のその他種目')
-    await page.getByRole('button', { name: 'その他', exact: true }).click()
+    await page.getByLabel('種目名').fill('自作の体幹種目')
+    await page.getByRole('button', { name: '体幹', exact: true }).click()
     await page.getByRole('button', { name: '作成する' }).click()
 
     // Assert
     await expect(page.getByRole('dialog')).toHaveCount(0)
-    await expect(page.getByRole('main')).toContainText('自作のその他種目')
+    await expect(page.getByRole('main')).toContainText('自作の体幹種目')
   })
 })
 

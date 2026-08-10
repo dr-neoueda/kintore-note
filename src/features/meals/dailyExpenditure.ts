@@ -88,12 +88,7 @@ export function buildDailyExpenditure({
     const cardioKcal = (cardioByDate.get(date) ?? []).reduce(
       (sum, session) =>
         sum +
-        calcCardioEnergyKcal(
-          session.activity,
-          session.distanceKm,
-          session.durationSec,
-          weightKg,
-        ),
+        calcCardioEnergyKcal(session, weightKg),
       0,
     )
 

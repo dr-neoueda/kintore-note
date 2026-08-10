@@ -6,14 +6,63 @@
  * 距離と時間を手で入れてもらい、そこから読み取れる値を出す。
  */
 
-export type CardioActivity = 'running' | 'walking' | 'cycling'
+export type CardioActivity = 'running' | 'walking' | 'cycling' | 'calisthenics'
 
-export const CARDIO_ACTIVITIES: readonly CardioActivity[] = ['running', 'walking', 'cycling']
+export const CARDIO_ACTIVITIES: readonly CardioActivity[] = [
+  'running',
+  'walking',
+  'cycling',
+  'calisthenics',
+]
 
 export const CARDIO_ACTIVITY_LABELS: Readonly<Record<CardioActivity, string>> = {
   running: 'ランニング',
   walking: 'ウォーキング',
   cycling: 'バイク',
+  calisthenics: '自重トレ',
+}
+
+/**
+ * 距離を測らない運動。
+ *
+ * 動画に沿って行う腹筋・体幹のトレーニングは、距離もペースも意味を持たない。
+ * 時間と強度だけで記録する。
+ */
+export function usesDistance(
+  activity: CardioActivity,
+): activity is Exclude<CardioActivity, 'calisthenics'> {
+  return activity !== 'calisthenics'
+}
+
+/** 自重トレーニングの強度。同じ時間でも、休みなく続けるかで倍以上変わる。 */
+export type CardioIntensity = 'light' | 'moderate' | 'vigorous'
+
+export const CARDIO_INTENSITIES: readonly CardioIntensity[] = ['light', 'moderate', 'vigorous']
+
+export const CARDIO_INTENSITY_LABELS: Readonly<Record<CardioIntensity, string>> = {
+  light: '軽め',
+  moderate: 'ふつう',
+  vigorous: 'きつい',
+}
+
+/**
+ * 自重トレーニングの METs。
+ * 出典: Compendium of Physical Activities (2011)
+ * - calisthenics, home exercise, light or moderate effort: 3.5
+ * - calisthenics（腕立て・腹筋など）, vigorous effort: 8.0
+ *
+ * 動画に沿って休みなく続ける腹筋は「ふつう」〜「きつい」に当たる。
+ */
+const CALISTHENICS_METS: Readonly<Record<CardioIntensity, number>> = {
+  light: 3.5,
+  moderate: 5.0,
+  vigorous: 8.0,
+}
+
+export const DEFAULT_CARDIO_INTENSITY: CardioIntensity = 'moderate'
+
+export function metsForCalisthenics(intensity: CardioIntensity | null): number {
+  return CALISTHENICS_METS[intensity ?? DEFAULT_CARDIO_INTENSITY]
 }
 
 const SECONDS_PER_HOUR = 3600
@@ -23,7 +72,9 @@ const SECONDS_PER_HOUR = 3600
  * 出典: Compendium of Physical Activities (2011)。
  * 表にない速度は前後の値から直線で補間する。
  */
-const METS_TABLE: Readonly<Record<CardioActivity, readonly (readonly [number, number])[]>> = {
+const METS_TABLE: Readonly<
+  Record<Exclude<CardioActivity, 'calisthenics'>, readonly (readonly [number, number])[]>
+> = {
   walking: [
     [3.2, 2.8],
     [4.8, 3.5],
@@ -76,7 +127,10 @@ export function formatPace(secPerKm: number | null): string {
  * 速度から METs を求める。
  * 表の範囲外は端の値で頭打ちにする。外挿すると非現実的な値になるため。
  */
-export function metsForSpeed(activity: CardioActivity, speedKmh: number): number {
+export function metsForSpeed(
+  activity: Exclude<CardioActivity, 'calisthenics'>,
+  speedKmh: number,
+): number {
   const table = METS_TABLE[activity]
   const first = table[0]
   const last = table[table.length - 1]

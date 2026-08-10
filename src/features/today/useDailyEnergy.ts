@@ -50,12 +50,7 @@ export function useDailyEnergy(date: DateKey, sets: readonly WorkoutSet[]): Dail
       : sessions.reduce(
           (sum, session) =>
             sum +
-            calcCardioEnergyKcal(
-              session.activity,
-              session.distanceKm,
-              session.durationSec,
-              resolvedWeight,
-            ),
+            calcCardioEnergyKcal(session, resolvedWeight),
           0,
         )
 

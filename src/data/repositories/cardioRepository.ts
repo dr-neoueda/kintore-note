@@ -1,5 +1,5 @@
 import { db } from '../db'
-import type { CardioActivity } from '@/domain/cardio'
+import { usesDistance, type CardioActivity, type CardioIntensity } from '@/domain/cardio'
 import { isValidDateKey, type DateKey } from '@/domain/date'
 import type { CardioSession, CardioSessionId } from '@/domain/types'
 import { ValidationError } from '@/domain/validation'
@@ -11,15 +11,19 @@ export interface CardioInput {
   readonly activity: CardioActivity
   readonly distanceKm: number
   readonly durationSec: number
+  readonly intensity: CardioIntensity | null
   readonly note: string
 }
 
 function validate(input: CardioInput): void {
-  if (!Number.isFinite(input.distanceKm) || input.distanceKm <= 0) {
-    throw new ValidationError('距離は0より大きい数値で入力してください')
-  }
-  if (input.distanceKm > MAX_DISTANCE_KM) {
-    throw new ValidationError(`距離は${MAX_DISTANCE_KM}km以下で入力してください`)
+  // 自重トレーニングは距離を持たない。時間だけで記録する
+  if (usesDistance(input.activity)) {
+    if (!Number.isFinite(input.distanceKm) || input.distanceKm <= 0) {
+      throw new ValidationError('距離は0より大きい数値で入力してください')
+    }
+    if (input.distanceKm > MAX_DISTANCE_KM) {
+      throw new ValidationError(`距離は${MAX_DISTANCE_KM}km以下で入力してください`)
+    }
   }
   if (!Number.isFinite(input.durationSec) || input.durationSec <= 0) {
     throw new ValidationError('時間は0より大きい値で入力してください')

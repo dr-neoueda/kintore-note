@@ -4,7 +4,15 @@ import { createExercise } from '@/data/repositories/exerciseRepository'
 import { defaultRestSecForMuscleGroup } from '@/domain/muscle'
 import { formatDuration } from '@/domain/duration'
 import type { ExerciseId, MuscleGroup } from '@/domain/types'
-import { DISPLAYED_MUSCLE_GROUPS, MUSCLE_GROUP_LABELS } from '@/domain/types'
+import {
+  DISPLAYED_MUSCLE_GROUPS,
+  EQUIPMENT_LABELS,
+  MUSCLE_GROUP_LABELS,
+  type EquipmentType,
+} from '@/domain/types'
+
+/** 選べる器具。「その他」はマシンやバンドなど、重量を自分で入れるもの。 */
+const EQUIPMENT_OPTIONS: readonly EquipmentType[] = ['dumbbell', 'bodyweight', 'other']
 import { ValidationError } from '@/domain/validation'
 import { useResetOnOpen } from '@/hooks/useResetOnOpen'
 import styles from './CreateExerciseSheet.module.css'
@@ -32,12 +40,14 @@ export function CreateExerciseSheet({
 }: CreateExerciseSheetProps) {
   const [name, setName] = useState(initialName)
   const [muscleGroup, setMuscleGroup] = useState<MuscleGroup>('chest')
+  const [equipment, setEquipment] = useState<EquipmentType>('dumbbell')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
   useResetOnOpen(isOpen, () => {
     setName(initialName)
     setMuscleGroup('chest')
+    setEquipment('dumbbell')
     setErrorMessage(null)
   })
 
@@ -45,7 +55,7 @@ export function CreateExerciseSheet({
     setIsSaving(true)
     setErrorMessage(null)
     try {
-      const exerciseId = await createExercise({ name, muscleGroup })
+      const exerciseId = await createExercise({ name, muscleGroup, equipment })
       onCreated(exerciseId)
       onClose()
     } catch (cause) {
@@ -106,8 +116,31 @@ export function CreateExerciseSheet({
           </div>
           <p className={styles.note}>
             休憩時間は{formatDuration(defaultRestSecForMuscleGroup(muscleGroup))}
-            、回数の目安は部位に応じて自動で設定されます。
-            器具や両手・片手の別を含め、あとから種目カルテで変更できます。
+            、回数の目安は部位に応じて自動で設定されます。あとから種目カルテで変更できます。
+          </p>
+        </div>
+
+        <div className={styles.field}>
+          <span className={styles.label}>使う器具</span>
+          <div className={styles.chips}>
+            {EQUIPMENT_OPTIONS.map((option) => (
+              <button
+                key={option}
+                type="button"
+                className={
+                  equipment === option ? `${styles.chip} ${styles.chipSelected}` : styles.chip
+                }
+                onClick={() => setEquipment(option)}
+                aria-pressed={equipment === option}
+              >
+                {EQUIPMENT_LABELS[option]}
+              </button>
+            ))}
+          </div>
+          <p className={styles.note}>
+            {equipment === 'bodyweight'
+              ? '自重の種目は回数だけを記録します（重量は入力しません）。'
+              : '両手に1個ずつか片手ずつかは、あとから種目カルテで変更できます。'}
           </p>
         </div>
 

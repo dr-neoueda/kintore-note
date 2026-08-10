@@ -113,9 +113,12 @@ export const ARCHITECTURE_BY_SEED_EXERCISE: Readonly<Record<string, MuscleArchit
   ダンベルルーマニアンデッドリフト: 'parallel',
   カーフレイズ: 'pennate',
 
-  // 体幹（腹直筋・腹斜筋）。初期投入はしていないが、
-  // 既存のデータベースに残っている分と、手で作り直した場合のために分類は残す
+  // 体幹（腹直筋・腹斜筋）
   プランク: 'parallel',
+  レッグレイズ: 'parallel',
+  バイシクルクランチ: 'parallel',
+  サイドプランク: 'parallel',
+  マウンテンクライマー: 'parallel',
   クランチ: 'parallel',
   ダンベルサイドベンド: 'parallel',
 }

@@ -12,7 +12,7 @@ function todayLabel(): string {
 
 async function recordCardio(page: Page, distanceKm: string): Promise<void> {
   await page.goto('/')
-  await page.getByRole('button', { name: 'ランニングなどを記録' }).click()
+  await page.getByRole('button', { name: 'ランニング・自重トレを記録' }).click()
   await page.getByLabel('距離').fill(distanceKm)
   await page.getByLabel('時間（分）').fill('30')
   await page.getByRole('button', { name: '記録する' }).click()

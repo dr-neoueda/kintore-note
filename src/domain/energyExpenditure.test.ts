@@ -64,7 +64,7 @@ describe('estimateWorkoutDurationSec', () => {
 describe('calcCardioEnergyKcal', () => {
   test('速度から強度を決めて計算する', () => {
     // Arrange & Act: 10km を50分（12km/h）、体重70kg
-    const kcal = calcCardioEnergyKcal('running', 10, 50 * 60, 70)
+    const kcal = calcCardioEnergyKcal({ activity: 'running', distanceKm: 10, durationSec: 50 * 60, intensity: null }, 70)
 
     // Assert: 11 METs 前後 × 0.833h × 70kg × 1.05 ≒ 670
     expect(kcal).toBeGreaterThan(600)
@@ -74,8 +74,8 @@ describe('calcCardioEnergyKcal', () => {
   test('同じ距離なら、ペースが違っても消費はおおむね同じになる', () => {
     // Arrange: 走行の消費は距離でほぼ決まる（およそ 1kcal/kg/km）。
     // 速くすると強度は上がるが時間が短くなり、打ち消し合う
-    const fast = calcCardioEnergyKcal('running', 10, 45 * 60, 70)
-    const slow = calcCardioEnergyKcal('running', 10, 70 * 60, 70)
+    const fast = calcCardioEnergyKcal({ activity: 'running', distanceKm: 10, durationSec: 45 * 60, intensity: null }, 70)
+    const slow = calcCardioEnergyKcal({ activity: 'running', distanceKm: 10, durationSec: 70 * 60, intensity: null }, 70)
 
     // Assert: 10km × 70kg ≒ 700kcal の周辺に収まる
     for (const kcal of [fast, slow]) {
@@ -85,14 +85,14 @@ describe('calcCardioEnergyKcal', () => {
   })
 
   test('距離が伸びれば消費も増える', () => {
-    const short = calcCardioEnergyKcal('running', 5, 25 * 60, 70)
-    const long = calcCardioEnergyKcal('running', 10, 50 * 60, 70)
+    const short = calcCardioEnergyKcal({ activity: 'running', distanceKm: 5, durationSec: 25 * 60, intensity: null }, 70)
+    const long = calcCardioEnergyKcal({ activity: 'running', distanceKm: 10, durationSec: 50 * 60, intensity: null }, 70)
 
     expect(long).toBeGreaterThan(short)
   })
 
   test('距離が0なら0', () => {
-    expect(calcCardioEnergyKcal('running', 0, 1800, 70)).toBe(0)
+    expect(calcCardioEnergyKcal({ activity: 'running', distanceKm: 0, durationSec: 1800, intensity: null }, 70)).toBe(0)
   })
 })
 
@@ -105,5 +105,40 @@ describe('calcStrengthEnergyKcal', () => {
 
   test('体重が分からなければ0', () => {
     expect(calcStrengthEnergyKcal(3600, 0)).toBe(0)
+  })
+})
+
+describe('自重トレーニングの消費', () => {
+  const calisthenics = (durationSec: number, intensity: 'light' | 'moderate' | 'vigorous' | null) =>
+    calcCardioEnergyKcal(
+      { activity: 'calisthenics', distanceKm: 0, durationSec, intensity },
+      70,
+    )
+
+  test('距離が無くても、時間と強度から出せる', () => {
+    // Arrange & Act: 動画に沿った腹筋10分（ふつう）
+    // 1.05 × 5.0 × (10/60)h × 70kg ≒ 61
+    const kcal = calisthenics(10 * 60, 'moderate')
+
+    // Assert
+    expect(kcal).toBeGreaterThan(50)
+    expect(kcal).toBeLessThan(75)
+  })
+
+  test('強度が上がるほど多くなる', () => {
+    expect(calisthenics(600, 'vigorous')).toBeGreaterThan(calisthenics(600, 'moderate'))
+    expect(calisthenics(600, 'moderate')).toBeGreaterThan(calisthenics(600, 'light'))
+  })
+
+  test('強度を選んでいなければ「ふつう」として扱う', () => {
+    expect(calisthenics(600, null)).toBe(calisthenics(600, 'moderate'))
+  })
+
+  test('長くやるほど多くなる', () => {
+    expect(calisthenics(1200, 'moderate')).toBeGreaterThan(calisthenics(600, 'moderate'))
+  })
+
+  test('時間が0なら0', () => {
+    expect(calisthenics(0, 'moderate')).toBe(0)
   })
 })

@@ -47,6 +47,15 @@ export const SEED_EXERCISES: readonly NewExercise[] = [
   { name: 'ダンベルルーマニアンデッドリフト', muscleGroup: 'legs', equipment: 'dumbbell', dumbbellCount: 2 },
   { name: 'カーフレイズ', muscleGroup: 'legs', equipment: 'dumbbell', dumbbellCount: 2 },
 
+  // 体幹（自重で行うものが中心）
+  { name: 'クランチ', muscleGroup: 'core', equipment: 'bodyweight', dumbbellCount: 1 },
+  { name: 'レッグレイズ', muscleGroup: 'core', equipment: 'bodyweight', dumbbellCount: 1 },
+  { name: 'バイシクルクランチ', muscleGroup: 'core', equipment: 'bodyweight', dumbbellCount: 1 },
+  { name: 'プランク', muscleGroup: 'core', equipment: 'bodyweight', dumbbellCount: 1 },
+  { name: 'サイドプランク', muscleGroup: 'core', equipment: 'bodyweight', dumbbellCount: 1 },
+  { name: 'マウンテンクライマー', muscleGroup: 'core', equipment: 'bodyweight', dumbbellCount: 1 },
+  { name: 'ダンベルサイドベンド', muscleGroup: 'core', equipment: 'dumbbell', dumbbellCount: 1 },
+
 ]
 
 /**

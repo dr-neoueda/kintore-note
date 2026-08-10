@@ -4,10 +4,15 @@ import { TrashIcon } from '@/components/icons'
 import {
   CARDIO_ACTIVITIES,
   CARDIO_ACTIVITY_LABELS,
+  CARDIO_INTENSITIES,
+  CARDIO_INTENSITY_LABELS,
+  DEFAULT_CARDIO_INTENSITY,
   calcPaceSecPerKm,
   calcSpeedKmh,
   formatPace,
+  usesDistance,
   type CardioActivity,
+  type CardioIntensity,
 } from '@/domain/cardio'
 import { formatDuration } from '@/domain/duration'
 import { calcCardioEnergyKcal } from '@/domain/energyExpenditure'
@@ -20,6 +25,7 @@ export interface CardioValues {
   readonly activity: CardioActivity
   readonly distanceKm: number
   readonly durationSec: number
+  readonly intensity: CardioIntensity | null
   readonly note: string
 }
 
@@ -63,6 +69,9 @@ export function CardioSheet({
   const [secondsText, setSecondsText] = useState(
     session === null ? '' : String(session.durationSec % 60),
   )
+  const [intensity, setIntensity] = useState<CardioIntensity>(
+    session?.intensity ?? DEFAULT_CARDIO_INTENSITY,
+  )
   const [note, setNote] = useState(session?.note ?? '')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
@@ -72,22 +81,37 @@ export function CardioSheet({
     setDistanceText(session === null ? '' : String(session.distanceKm))
     setMinutesText(session === null ? '' : String(Math.floor(session.durationSec / 60)))
     setSecondsText(session === null ? '' : String(session.durationSec % 60))
+    setIntensity(session?.intensity ?? DEFAULT_CARDIO_INTENSITY)
     setNote(session?.note ?? '')
     setErrorMessage(null)
   })
 
-  const distanceKm = toNumber(distanceText)
+  const hasDistance = usesDistance(activity)
+  const distanceKm = hasDistance ? toNumber(distanceText) : 0
   const durationSec = toNumber(minutesText) * 60 + toNumber(secondsText)
+  const resolvedIntensity = hasDistance ? null : intensity
 
   const paceSecPerKm = calcPaceSecPerKm(distanceKm, durationSec)
   const speedKmh = calcSpeedKmh(distanceKm, durationSec)
-  const kcal = weightKg === null ? null : calcCardioEnergyKcal(activity, distanceKm, durationSec, weightKg)
+  const kcal =
+    weightKg === null
+      ? null
+      : calcCardioEnergyKcal(
+          { activity, distanceKm, durationSec, intensity: resolvedIntensity },
+          weightKg,
+        )
 
   const handleSubmit = async () => {
     setIsSaving(true)
     setErrorMessage(null)
     try {
-      await onSubmit({ activity, distanceKm, durationSec, note: note.trim() })
+      await onSubmit({
+        activity,
+        distanceKm,
+        durationSec,
+        intensity: resolvedIntensity,
+        note: note.trim(),
+      })
       onClose()
     } catch (cause) {
       setErrorMessage(
@@ -114,7 +138,7 @@ export function CardioSheet({
   return (
     <Sheet
       isOpen={isOpen}
-      title={session === null ? '有酸素運動を記録' : '有酸素運動を編集'}
+      title={session === null ? '運動を記録' : '運動を編集'}
       onClose={onClose}
       footer={
         <div className={styles.footerActions}>
@@ -160,24 +184,49 @@ export function CardioSheet({
           </div>
         </div>
 
-        <div className={styles.field}>
-          <label className={styles.label} htmlFor="cardio-distance">
-            距離
-          </label>
-          <div className={styles.inlineField}>
-            <input
-              id="cardio-distance"
-              type="number"
-              inputMode="decimal"
-              min={0}
-              step="0.1"
-              placeholder="5.0"
-              value={distanceText}
-              onChange={(event) => setDistanceText(event.target.value)}
-            />
-            <span className={styles.unit}>km</span>
+        {hasDistance ? (
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="cardio-distance">
+              距離
+            </label>
+            <div className={styles.inlineField}>
+              <input
+                id="cardio-distance"
+                type="number"
+                inputMode="decimal"
+                min={0}
+                step="0.1"
+                placeholder="5.0"
+                value={distanceText}
+                onChange={(event) => setDistanceText(event.target.value)}
+              />
+              <span className={styles.unit}>km</span>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className={styles.field}>
+            <span className={styles.label}>強度</span>
+            <div className={styles.chips}>
+              {CARDIO_INTENSITIES.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  className={
+                    intensity === option ? `${styles.chip} ${styles.chipSelected}` : styles.chip
+                  }
+                  onClick={() => setIntensity(option)}
+                  aria-pressed={intensity === option}
+                >
+                  {CARDIO_INTENSITY_LABELS[option]}
+                </button>
+              ))}
+            </div>
+            <p className={styles.note}>
+              休みなく続けたなら「きつい」、動画に沿って淡々と行ったなら「ふつう」です。
+              同じ時間でも消費は倍以上変わります。
+            </p>
+          </div>
+        )}
 
         <div className={styles.field}>
           <span className={styles.label}>時間</span>
@@ -207,14 +256,18 @@ export function CardioSheet({
         </div>
 
         <dl className={styles.derived}>
-          <div>
-            <dt>ペース</dt>
-            <dd data-testid="cardio-pace">{formatPace(paceSecPerKm)} /km</dd>
-          </div>
-          <div>
-            <dt>速度</dt>
-            <dd>{speedKmh} km/h</dd>
-          </div>
+          {hasDistance && (
+            <>
+              <div>
+                <dt>ペース</dt>
+                <dd data-testid="cardio-pace">{formatPace(paceSecPerKm)} /km</dd>
+              </div>
+              <div>
+                <dt>速度</dt>
+                <dd>{speedKmh} km/h</dd>
+              </div>
+            </>
+          )}
           <div>
             <dt>推定消費</dt>
             <dd data-testid="cardio-kcal">{kcal === null ? '—' : `${kcal} kcal`}</dd>

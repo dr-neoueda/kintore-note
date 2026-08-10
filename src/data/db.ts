@@ -181,6 +181,16 @@ export class KintoreDatabase extends Dexie {
         }
       })
 
+    // v11: 自重トレーニングの強度を追加。距離のある運動では使わないため null。
+    this.version(11).upgrade(async (transaction) => {
+      await transaction
+        .table('cardioSessions')
+        .toCollection()
+        .modify((session: { intensity?: unknown }) => {
+          session.intensity ??= null
+        })
+    })
+
     // v10: 献立から「入れる区分」を外す。
     // どの区分にも入れられるようにしたため、持っている意味がなくなった。
     this.version(10).upgrade(async (transaction) => {
