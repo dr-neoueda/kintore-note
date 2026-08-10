@@ -115,3 +115,31 @@ test.describe('グラフに摂取と消費が並ぶ', () => {
     await expect(page.getByRole('main')).not.toContainText('折れ線は消費')
   })
 })
+
+test.describe('筋トレの強度は休憩の長さで決まる', () => {
+  test('休憩が短いセッションほど、消費を多く見積もる', async ({ page }) => {
+    // Arrange: 体重が無いと計算できない
+    await recordBody(page, '70')
+
+    // Act: 1セット目を記録し、休憩をおいて2セット目を記録する
+    await recordOneSet(page)
+    await page.waitForTimeout(2000)
+    await page.getByRole('button', { name: 'セットを追加' }).click()
+    await page.getByRole('dialog').getByRole('button', { name: '記録する', exact: true }).click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+
+    // Assert: 休憩2秒＝ほぼ休まずに続けた扱いになり、消費が出る
+    await expect(page.getByTestId('active-kcal')).toBeVisible()
+    await expect(page.getByTestId('active-kcal')).not.toHaveText('0')
+  })
+
+  test('計算のしかたを設定で説明している', async ({ page }) => {
+    // Arrange & Act
+    await page.goto('/settings')
+
+    // Assert
+    await expect(page.getByRole('main')).toContainText('消費カロリーについて')
+    await expect(page.getByRole('main')).toContainText('セット間の平均休憩から強度を決めます')
+    await expect(page.getByRole('main')).toContainText('扱った重量は使っていません')
+  })
+})

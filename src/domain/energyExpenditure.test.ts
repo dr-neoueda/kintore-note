@@ -1,6 +1,9 @@
 import { describe, test, expect } from 'vitest'
 import {
-  STRENGTH_METS,
+  STRENGTH_METS_LIGHT,
+  STRENGTH_METS_VIGOROUS,
+  calcAverageRestSec,
+  calcStrengthMets,
   calcActiveEnergyKcal,
   calcCardioEnergyKcal,
   calcStrengthEnergyKcal,
@@ -37,20 +40,28 @@ describe('estimateWorkoutDurationSec', () => {
     expect(estimateWorkoutDurationSec(times)).toBe(30 * 60)
   })
 
-  test('セットが1つなら既定の時間を当てる', () => {
-    expect(estimateWorkoutDurationSec(['2026-08-08T10:00:00.000Z'])).toBe(180)
+  test('セットが1つなら最低限の時間を当てる', () => {
+    expect(estimateWorkoutDurationSec(['2026-08-08T10:00:00.000Z'])).toBe(60)
   })
 
   test('記録が無ければ0', () => {
     expect(estimateWorkoutDurationSec([])).toBe(0)
   })
 
-  test('同じ時刻に固まっていてもセット数ぶんは数える', () => {
-    // Arrange: 過去の日をまとめて入力すると時刻が揃うことがある
+  test('まとめて入力しても、セット数ぶんの下限は数える', () => {
+    // Arrange: 過去の日を後からまとめて入れると、時刻が近くに固まる
     const times = ['2026-08-08T12:00:00.000Z', '2026-08-08T12:00:00.000Z']
 
     // Act & Assert
-    expect(estimateWorkoutDurationSec(times)).toBe(360)
+    expect(estimateWorkoutDurationSec(times)).toBe(120)
+  })
+
+  test('続けて押したときも、0秒扱いにはしない', () => {
+    // Arrange: 数秒差で2セット記録した場合
+    const times = ['2026-08-08T12:00:00.000Z', '2026-08-08T12:00:02.000Z']
+
+    // Act & Assert: 実際にはセット本体の時間がかかっている
+    expect(estimateWorkoutDurationSec(times)).toBe(120)
   })
 
   test('順不同で渡しても同じ結果になる', () => {
@@ -96,11 +107,64 @@ describe('calcCardioEnergyKcal', () => {
   })
 })
 
+describe('calcAverageRestSec', () => {
+  test('記録された休憩の平均を出す', () => {
+    expect(calcAverageRestSec([60, 120, 90])).toBe(90)
+  })
+
+  test('記録されていない休憩は数えない', () => {
+    // Arrange & Act & Assert: 1セット目には休憩が無い
+    expect(calcAverageRestSec([null, 60, 120])).toBe(90)
+  })
+
+  test('1つも記録が無ければ null', () => {
+    expect(calcAverageRestSec([null, null])).toBeNull()
+    expect(calcAverageRestSec([])).toBeNull()
+  })
+})
+
+describe('calcStrengthMets', () => {
+  test('長く休むセッションは light にする', () => {
+    expect(calcStrengthMets(180)).toBe(STRENGTH_METS_LIGHT)
+    expect(calcStrengthMets(150)).toBe(STRENGTH_METS_LIGHT)
+  })
+
+  test('ほとんど休まないセッションは vigorous にする', () => {
+    expect(calcStrengthMets(30)).toBe(STRENGTH_METS_VIGOROUS)
+    expect(calcStrengthMets(45)).toBe(STRENGTH_METS_VIGOROUS)
+  })
+
+  test('間は補間する', () => {
+    // Arrange & Act
+    const mets = calcStrengthMets(90)
+
+    // Assert
+    expect(mets).toBeGreaterThan(STRENGTH_METS_LIGHT)
+    expect(mets).toBeLessThan(STRENGTH_METS_VIGOROUS)
+  })
+
+  test('休憩が短いほど強度が上がる', () => {
+    expect(calcStrengthMets(60)).toBeGreaterThan(calcStrengthMets(120))
+  })
+
+  test('休憩が分からなければ控えめな方にする', () => {
+    // Arrange & Act & Assert: 当て推量で多く見積もらない
+    expect(calcStrengthMets(null)).toBe(STRENGTH_METS_LIGHT)
+  })
+})
+
 describe('calcStrengthEnergyKcal', () => {
-  test('休憩を含む強度で計算する', () => {
+  test('休憩が分からなければ light で計算する', () => {
     // Arrange & Act: 1時間、体重70kg
     // 1.05 × 3.5 × 1 × 70 ≒ 257
-    expect(calcStrengthEnergyKcal(3600, 70)).toBe(Math.round(1.05 * STRENGTH_METS * 70))
+    expect(calcStrengthEnergyKcal(3600, 70)).toBe(Math.round(1.05 * STRENGTH_METS_LIGHT * 70))
+  })
+
+  test('休憩が短いセッションは多く見積もる', () => {
+    // Arrange & Act & Assert: 同じ1時間でも、休まず続けた方が消費は大きい
+    expect(calcStrengthEnergyKcal(3600, 70, 45)).toBeGreaterThan(
+      calcStrengthEnergyKcal(3600, 70, 180),
+    )
   })
 
   test('体重が分からなければ0', () => {

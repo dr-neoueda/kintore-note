@@ -21,16 +21,61 @@ const KCAL_COEFFICIENT = 1.05
 const SECONDS_PER_HOUR = 3600
 
 /**
- * 筋力トレーニング1セッション全体の METs。
+ * 筋力トレーニングの METs。
  *
- * Compendium は「連続して行う場合」に 6.0 前後を当てているが、
- * ここで数える時間はセット間の休憩を含む。
- * 休憩込みの平均としては 3.5（light or moderate effort, general）が実態に近い。
+ * Compendium には強度別に2つの値がある。
+ * - resistance training, light or moderate effort: 3.5
+ * - resistance training（8〜15回）, vigorous effort: 6.0
+ *
+ * どちらに当たるかは、扱った重量ではなく**休憩の長さ**で大きく変わる。
+ * 休憩が短いセッションほど分あたりの消費が大きい、という点は
+ * 研究でも一致している。重量から仕事量を出す方法は、種目ごとの可動域を
+ * 仮定しなければならず、しかも下の値には標準的な挙上仕事が既に含まれるため
+ * 二重計上になる。ここでは記録済みの休憩秒数から補間する。
  */
-export const STRENGTH_METS = 3.5
+export const STRENGTH_METS_LIGHT = 3.5
+export const STRENGTH_METS_VIGOROUS = 6.0
 
-/** セットが1つだけのときに、そのセットへ当てる時間（秒）。 */
-const SINGLE_SET_SEC = 180
+/** この長さ以上休むなら light、これ以下なら vigorous とみなす。 */
+const REST_SEC_FOR_LIGHT = 150
+const REST_SEC_FOR_VIGOROUS = 45
+
+/**
+ * セット間の平均休憩（秒）。
+ * 記録されていない休憩（1セット目や、間が空きすぎた場合）は数えない。
+ */
+export function calcAverageRestSec(restSecList: readonly (number | null)[]): number | null {
+  const measured = restSecList.filter((rest): rest is number => rest !== null && rest > 0)
+  if (measured.length === 0) return null
+
+  const total = measured.reduce((sum, rest) => sum + rest, 0)
+  return Math.round(total / measured.length)
+}
+
+/**
+ * 休憩の長さから METs を決める。
+ * 休憩が記録されていなければ、控えめな light を使う。
+ */
+export function calcStrengthMets(averageRestSec: number | null): number {
+  if (averageRestSec === null) return STRENGTH_METS_LIGHT
+  if (averageRestSec >= REST_SEC_FOR_LIGHT) return STRENGTH_METS_LIGHT
+  if (averageRestSec <= REST_SEC_FOR_VIGOROUS) return STRENGTH_METS_VIGOROUS
+
+  const ratio =
+    (REST_SEC_FOR_LIGHT - averageRestSec) / (REST_SEC_FOR_LIGHT - REST_SEC_FOR_VIGOROUS)
+  const mets =
+    STRENGTH_METS_LIGHT + (STRENGTH_METS_VIGOROUS - STRENGTH_METS_LIGHT) * ratio
+  return Math.round(mets * 10) / 10
+}
+
+/**
+ * 1セットに最低限かかる時間（秒）。
+ *
+ * 記録の時刻だけで見積もると、まとめて入力した日や続けて押した日に
+ * 数十秒しか動いていないことになってしまう。
+ * セット本体と切り替えを考えれば、これより短くはならない。
+ */
+const MIN_SEC_PER_SET = 60
 
 /** 消費エネルギー（kcal）。体重か時間が無ければ 0。 */
 export function calcActiveEnergyKcal(
@@ -57,16 +102,17 @@ export function estimateWorkoutDurationSec(recordedAtList: readonly string[]): n
     .sort((a, b) => a - b)
 
   if (times.length === 0) return 0
-  if (times.length === 1) return SINGLE_SET_SEC
+
+  const floorSec = MIN_SEC_PER_SET * times.length
+  if (times.length === 1) return floorSec
 
   const first = times[0] ?? 0
   const last = times[times.length - 1] ?? 0
   const spanSec = Math.max(0, Math.round((last - first) / 1000))
 
-  if (spanSec === 0) return SINGLE_SET_SEC * times.length
-
+  // 最後の1セットぶんが抜けるので、セット間の平均間隔を1つ足す
   const averageIntervalSec = spanSec / (times.length - 1)
-  return Math.round(spanSec + averageIntervalSec)
+  return Math.max(floorSec, Math.round(spanSec + averageIntervalSec))
 }
 
 export interface CardioEnergyInput {
@@ -105,7 +151,14 @@ export function calcCardioEnergyKcal(
   )
 }
 
-/** 筋力トレーニング1セッションの消費エネルギー（kcal）。 */
-export function calcStrengthEnergyKcal(durationSec: number, weightKg: number): number {
-  return calcActiveEnergyKcal(STRENGTH_METS, weightKg, durationSec)
+/**
+ * 筋力トレーニング1セッションの消費エネルギー（kcal）。
+ * 平均休憩が分かれば強度に反映する。
+ */
+export function calcStrengthEnergyKcal(
+  durationSec: number,
+  weightKg: number,
+  averageRestSec: number | null = null,
+): number {
+  return calcActiveEnergyKcal(calcStrengthMets(averageRestSec), weightKg, durationSec)
 }

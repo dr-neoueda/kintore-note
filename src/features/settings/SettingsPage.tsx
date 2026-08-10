@@ -473,6 +473,25 @@ export function SettingsPage() {
         </section>
 
         <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>消費カロリーについて</h2>
+          <p className={styles.hint}>
+            体重をもとに「1.05 × METs × 時間 × 体重」で推定しています。体重の記録が無いと出せません。
+          </p>
+          <p className={styles.hint}>
+            <strong>筋トレ</strong>は、セットの記録時刻から時間を、
+            セット間の平均休憩から強度を決めます。
+            休憩が長いほど 3.5、短いほど 6.0 METs に寄せます（2分半以上で3.5、45秒以下で6.0）。
+            扱った重量は使っていません。重量から仕事量を出すには種目ごとの可動域を仮定する必要があり、
+            METs の値には標準的な挙上仕事が既に含まれているためです。
+          </p>
+          <p className={styles.hint}>
+            <strong>自重トレ</strong>は入力した時間と選んだ強度、
+            <strong>ランニングなど</strong>は距離と時間から求めた速度を使います。
+            いずれも運動後の代謝亢進と日常生活の活動量は含みません。目安として見てください。
+          </p>
+        </section>
+
+        <section className={styles.section}>
           <h2 className={styles.sectionTitle}>食品成分データについて</h2>
           <p className={styles.hint}>
             食品の栄養価は「日本食品標準成分表（八訂）増補2023年」（文部科学省）から引用しています。

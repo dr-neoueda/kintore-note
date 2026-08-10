@@ -1,5 +1,6 @@
 import type { DateKey } from '@/domain/date'
 import {
+  calcAverageRestSec,
   calcCardioEnergyKcal,
   calcStrengthEnergyKcal,
   estimateWorkoutDurationSec,
@@ -83,6 +84,7 @@ export function buildDailyExpenditure({
     const strengthKcal = calcStrengthEnergyKcal(
       estimateWorkoutDurationSec(sets.map((set) => set.recordedAt)),
       weightKg,
+      calcAverageRestSec(sets.map((set) => set.restSec)),
     )
 
     const cardioKcal = (cardioByDate.get(date) ?? []).reduce(

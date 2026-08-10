@@ -6,6 +6,7 @@ import {
 } from '@/data/repositories/measurementRepository'
 import type { DateKey } from '@/domain/date'
 import {
+  calcAverageRestSec,
   calcCardioEnergyKcal,
   calcStrengthEnergyKcal,
   estimateWorkoutDurationSec,
@@ -41,8 +42,12 @@ export function useDailyEnergy(date: DateKey, sets: readonly WorkoutSet[]): Dail
   const sessions = cardioSessions ?? EMPTY_SESSIONS
 
   const strengthDurationSec = estimateWorkoutDurationSec(sets.map((set) => set.recordedAt))
+  // 休憩が短いセッションほど、分あたりの消費が大きい
+  const averageRestSec = calcAverageRestSec(sets.map((set) => set.restSec))
   const strengthKcal =
-    resolvedWeight === null ? 0 : calcStrengthEnergyKcal(strengthDurationSec, resolvedWeight)
+    resolvedWeight === null
+      ? 0
+      : calcStrengthEnergyKcal(strengthDurationSec, resolvedWeight, averageRestSec)
 
   const cardioKcal =
     resolvedWeight === null
