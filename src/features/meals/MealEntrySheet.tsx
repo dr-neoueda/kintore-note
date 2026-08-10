@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react'
 import { Sheet } from '@/components/Sheet'
 import { TrashIcon } from '@/components/icons'
+import { countToGrams, findCountUnit, gramsToCount } from '@/domain/foodAmount'
 import { formatFoodName, type Food } from '@/domain/food'
+import { roundTo } from '@/domain/number'
 import { scaleNutrition, type Nutrition } from '@/domain/nutrition'
 import { ValidationError } from '@/domain/validation'
 import { useResetOnOpen } from '@/hooks/useResetOnOpen'
@@ -20,8 +22,19 @@ interface MealEntrySheetProps {
 /** ± ボタン1回あたりの量（g）。 */
 const GRAM_STEP = 10
 
+/** ± ボタン1回あたりの個数。 */
+const COUNT_STEP = 1
+
 /** よく使う量。毎回打ち込まずに済むようにする。 */
 const QUICK_GRAMS: readonly number[] = [50, 100, 150, 200]
+
+/** よく使う個数。 */
+const QUICK_COUNTS: readonly number[] = [1, 2, 3, 5]
+
+/** 個数は半端も入れられるので、小数1桁まで持つ。 */
+const COUNT_DECIMALS = 1
+
+type UnitMode = 'count' | 'gram'
 
 export function MealEntrySheet({
   isOpen,
@@ -32,31 +45,70 @@ export function MealEntrySheet({
   onSubmit,
   onDelete,
 }: MealEntrySheetProps) {
-  const [gramsText, setGramsText] = useState(String(initialGrams))
+  /** 梅干しのように数えた方が早い食品は、分量から数え方を読み取る。 */
+  const countUnit = useMemo(() => findCountUnit(food.portions), [food.portions])
+  const defaultUnitMode: UnitMode = countUnit === null ? 'gram' : 'count'
+
+  const toAmountText = (grams: number, mode: UnitMode): string =>
+    mode === 'count' && countUnit !== null
+      ? String(gramsToCount(grams, countUnit))
+      : String(grams)
+
+  /**
+   * 新しく足すときは1つぶんから始める。
+   * 既定の100gを個数に直すと「1.1本」のような半端から始まってしまう。
+   */
+  const initialAmountText = (): string =>
+    !isEditing && defaultUnitMode === 'count'
+      ? '1'
+      : toAmountText(initialGrams, defaultUnitMode)
+
+  const [unitMode, setUnitMode] = useState<UnitMode>(defaultUnitMode)
+  const [amountText, setAmountText] = useState(initialAmountText)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
 
   useResetOnOpen(isOpen, () => {
-    setGramsText(String(initialGrams))
+    setUnitMode(defaultUnitMode)
+    setAmountText(initialAmountText())
     setErrorMessage(null)
   })
 
-  const grams = Number(gramsText)
-  const isValidGrams = gramsText.trim() !== '' && Number.isFinite(grams) && grams > 0
+  const amount = Number(amountText)
+  const hasAmount = amountText.trim() !== '' && Number.isFinite(amount) && amount > 0
+
+  const isCounting = unitMode === 'count' && countUnit !== null
+  const grams = !hasAmount ? 0 : isCounting ? countToGrams(amount, countUnit) : amount
+  const isValidGrams = grams > 0
 
   const nutrition = useMemo(
-    () => scaleNutrition(food.nutrition, isValidGrams ? grams : 0, food.basisGrams),
-    [food, grams, isValidGrams],
+    () => scaleNutrition(food.nutrition, grams, food.basisGrams),
+    [food, grams],
   )
 
-  const changeGrams = (delta: number) => {
-    const current = Number.isFinite(grams) ? grams : 0
-    setGramsText(String(Math.max(0, Math.round(current + delta))))
+  const changeAmount = (direction: number) => {
+    const step = isCounting ? COUNT_STEP : GRAM_STEP
+    const current = Number.isFinite(amount) ? amount : 0
+    setAmountText(
+      String(Math.max(0, roundTo(current + direction * step, COUNT_DECIMALS))),
+    )
+  }
+
+  /** g と個数を行き来する。今入っている量はそのまま持ち越す。 */
+  const toggleUnitMode = () => {
+    if (countUnit === null) return
+    const next: UnitMode = unitMode === 'count' ? 'gram' : 'count'
+    setAmountText(toAmountText(grams, next))
+    setUnitMode(next)
   }
 
   const handleSubmit = async () => {
     if (!isValidGrams) {
-      setErrorMessage('量を0より大きい数値で入力してください')
+      setErrorMessage(
+        isCounting
+          ? '個数を0より大きい数値で入力してください'
+          : '量を0より大きい数値で入力してください',
+      )
       return
     }
 
@@ -125,7 +177,7 @@ export function MealEntrySheet({
             <button
               type="button"
               className={styles.stepButton}
-              onClick={() => changeGrams(-GRAM_STEP)}
+              onClick={() => changeAmount(-1)}
               aria-label="量を減らす"
             >
               −
@@ -136,45 +188,81 @@ export function MealEntrySheet({
               inputMode="decimal"
               min={0}
               className={styles.amountInput}
-              value={gramsText}
-              onChange={(event) => setGramsText(event.target.value)}
+              value={amountText}
+              onChange={(event) => setAmountText(event.target.value)}
             />
-            <span className={styles.unit}>g</span>
+            {countUnit === null ? (
+              <span className={styles.unit}>g</span>
+            ) : (
+              <button
+                type="button"
+                className={styles.unitButton}
+                onClick={toggleUnitMode}
+                aria-label={`単位を切り替える（今は${isCounting ? countUnit.label : 'g'}）`}
+              >
+                {isCounting ? countUnit.label : 'g'}
+                <span aria-hidden="true">⇄</span>
+              </button>
+            )}
             <button
               type="button"
               className={styles.stepButton}
-              onClick={() => changeGrams(GRAM_STEP)}
+              onClick={() => changeAmount(1)}
               aria-label="量を増やす"
             >
               ＋
             </button>
           </div>
+
+          {isCounting && (
+            <p className={styles.gramHint} data-testid="amount-grams">
+              {grams} g
+            </p>
+          )}
+
           <div className={styles.quickRow}>
-            {(food.portions ?? []).map((portion) => (
-              <button
-                key={portion.label}
-                type="button"
-                className={`${styles.quickButton} ${styles.portionButton}`}
-                onClick={() => setGramsText(String(portion.grams))}
-              >
-                {portion.label}
-                <span className={styles.portionGrams}>{portion.grams}g</span>
-              </button>
-            ))}
-            {[food.basisGrams, ...QUICK_GRAMS]
-              .filter((value, index, all) => all.indexOf(value) === index)
-              .map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={styles.quickButton}
-                  onClick={() => setGramsText(String(value))}
-                >
-                  {value}g
-                </button>
-              ))}
+            {isCounting
+              ? QUICK_COUNTS.map((count) => (
+                  <button
+                    key={count}
+                    type="button"
+                    className={styles.quickButton}
+                    onClick={() => setAmountText(String(count))}
+                  >
+                    {count}
+                    {countUnit.label}
+                  </button>
+                ))
+              : (food.portions ?? []).map((portion) => (
+                  <button
+                    key={portion.label}
+                    type="button"
+                    className={`${styles.quickButton} ${styles.portionButton}`}
+                    onClick={() => setAmountText(String(portion.grams))}
+                  >
+                    {portion.label}
+                    <span className={styles.portionGrams}>{portion.grams}g</span>
+                  </button>
+                ))}
+            {!isCounting &&
+              [food.basisGrams, ...QUICK_GRAMS]
+                .filter((value, index, all) => all.indexOf(value) === index)
+                .map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={styles.quickButton}
+                    onClick={() => setAmountText(String(value))}
+                  >
+                    {value}g
+                  </button>
+                ))}
           </div>
         </div>
+
+        {food.estimateNote !== undefined && (
+          <p className={styles.estimateNote}>{food.estimateNote}</p>
+        )}
 
         <div className={styles.preview}>
           <div className={styles.kcal}>

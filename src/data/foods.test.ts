@@ -120,3 +120,64 @@ describe('よく使う食品のショートカット', () => {
     expect(rice?.nutrition.kcal).toBeLessThan(200)
   })
 })
+
+describe('成分表に無い調理法の見積もり', () => {
+  test('茹でた鶏むね肉を選べる', async () => {
+    // Arrange
+    const foods = await loadCompositionFoods()
+
+    // Act
+    const boiled = foods.find((food) => food.id === '11220y')
+
+    // Assert
+    expect(boiled?.name).toContain('むね 皮なし ゆで')
+    expect(boiled?.group).toBe('肉類')
+  })
+
+  test('生より濃く、焼きより薄い値になる', async () => {
+    // Arrange: 茹でると水分が抜けるぶん濃くなるが、焼きほどは抜けない
+    const foods = await loadCompositionFoods()
+    const raw = foods.find((food) => food.id === '11220')
+    const boiled = foods.find((food) => food.id === '11220y')
+    const grilled = foods.find((food) => food.id === '11288')
+
+    // Act & Assert
+    expect(boiled?.nutrition.kcal).toBeGreaterThan(raw?.nutrition.kcal ?? 0)
+    expect(boiled?.nutrition.kcal).toBeLessThan(grilled?.nutrition.kcal ?? 0)
+    expect(boiled?.nutrition.protein).toBeGreaterThan(raw?.nutrition.protein ?? 0)
+    expect(boiled?.nutrition.protein).toBeLessThan(grilled?.nutrition.protein ?? 0)
+  })
+
+  test('見積もりであることを断っている', async () => {
+    // Arrange & Act: 成分表そのままの値と混ぜない
+    const foods = await loadCompositionFoods()
+    const boiled = foods.find((food) => food.id === '11220y')
+
+    // Assert
+    expect(boiled?.estimateNote).toContain('ささみ')
+  })
+
+  test('成分表の食品には断りを付けない', async () => {
+    const foods = await loadCompositionFoods()
+
+    expect(foods.find((food) => food.id === '11220')?.estimateNote).toBeUndefined()
+  })
+
+  test('「鶏むね」で引ける', async () => {
+    // Arrange
+    const foods = await loadCompositionFoods()
+
+    // Act
+    const results = searchFoods(foods, '鶏むね')
+
+    // Assert
+    expect(results.some((food) => food.id === '11220y')).toBe(true)
+  })
+
+  test('よく使う食品の分量が付く', async () => {
+    const foods = await loadCompositionFoods()
+    const boiled = foods.find((food) => food.id === '11220y')
+
+    expect(boiled?.portions?.length).toBeGreaterThan(0)
+  })
+})

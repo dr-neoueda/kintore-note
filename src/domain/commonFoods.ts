@@ -117,6 +117,16 @@ export const COMMON_FOODS: readonly CommonFood[] = [
     ],
   },
   {
+    // 成分表に「むね・ゆで」は無く、src/domain/derivedFoods.ts で見積もっている
+    id: '11220y',
+    label: '鶏むね肉（皮なし・ゆで）',
+    keywords: ['鶏むねゆで', 'とりむねゆで', '茹で鶏', 'ゆで鶏', 'サラダチキン', '鶏胸茹で'],
+    portions: [
+      { label: '1枚分', grams: 200 },
+      { label: '半分', grams: 100 },
+    ],
+  },
+  {
     id: '11219',
     label: '鶏むね肉（皮つき・生）',
     keywords: ['鶏むね皮つき', 'むね皮つき'],
@@ -157,7 +167,7 @@ export const COMMON_FOODS: readonly CommonFood[] = [
     label: '卵（生）',
     keywords: ['卵', 'たまご', '玉子', '鶏卵', 'エッグ'],
     portions: [
-      { label: 'M1個', grams: 50 },
+      { label: '1個', grams: 50 },
       { label: 'L1個', grams: 60 },
       { label: '2個', grams: 100 },
     ],
@@ -1044,6 +1054,37 @@ export const COMMON_FOODS: readonly CommonFood[] = [
     label: 'コーラ',
     keywords: ['コーラ', '炭酸'],
     portions: [{ label: '1本', grams: 500 }],
+  },
+
+  // 漬物。量るより数える方が早いので、分量は「1個」から始める
+  {
+    id: '07022',
+    label: '梅干し（塩漬）',
+    keywords: ['梅干し', 'うめぼし', '梅干', 'うめ'],
+    portions: [
+      // 成分表は可食部の値。中1個は種込み約10g、種を除くと約8g
+      { label: '1個', grams: 8 },
+      { label: '大1個', grams: 12 },
+    ],
+  },
+  {
+    // はちみつ梅などの味付きは、塩漬より食塩が半分以下（18.2g → 7.6g/100g）
+    id: '07023',
+    label: '梅干し（調味漬）',
+    keywords: ['梅干し調味', 'はちみつ梅', 'うめぼし調味', '減塩梅干し'],
+    portions: [
+      { label: '1個', grams: 8 },
+      { label: '大1個', grams: 12 },
+    ],
+  },
+  {
+    id: '06138',
+    label: 'たくあん',
+    keywords: ['たくあん', 'タクアン', '沢庵', 'たくわん'],
+    portions: [
+      { label: '1切れ', grams: 10 },
+      { label: '3切れ', grams: 30 },
+    ],
   },
 ]
 

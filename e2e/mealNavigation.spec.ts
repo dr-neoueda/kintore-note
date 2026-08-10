@@ -172,7 +172,8 @@ test.describe('食事の履歴とグラフ', () => {
 
     // Act
     await page.goto('/meals/history')
-    await expect(page.getByRole('main')).toContainText('93 kcal')
+    // バナナは1本90g（93kcal/100g）から始まる
+    await expect(page.getByRole('main')).toContainText('84 kcal')
     await page.getByRole('link').first().click()
 
     // Assert
@@ -219,7 +220,7 @@ test.describe('前の日をなぞる', () => {
 
     // Assert
     await expect(page.getByRole('main')).toContainText('バナナ')
-    await expect(page.getByTestId('total-kcal')).toHaveText('93')
+    await expect(page.getByTestId('total-kcal')).toHaveText('84')
   })
 
   test('その日に記録があれば出さない', async ({ page }) => {

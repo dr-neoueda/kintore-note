@@ -1,4 +1,5 @@
 import { findCommonFood } from '@/domain/commonFoods'
+import { buildDerivedFood, DERIVED_FOODS } from '@/domain/derivedFoods'
 import type { Food } from '@/domain/food'
 import { COMPOSITION_BASIS_GRAMS } from '@/domain/nutrition'
 
@@ -46,6 +47,25 @@ function toFood(raw: RawFood): Food {
   }
 }
 
+/**
+ * 成分表に無い調理法を、収載食品から見積もって足す。
+ * 元にする食品が見つからなければ、当て推量の値を出さずに黙って落とす。
+ */
+function withDerivedFoods(foods: readonly Food[]): readonly Food[] {
+  const byId = new Map(foods.map((food) => [food.id, food]))
+
+  const derived = DERIVED_FOODS.flatMap((source) => {
+    const base = byId.get(source.baseId)
+    if (base === undefined) return []
+
+    const food = buildDerivedFood(source, base)
+    const common = findCommonFood(food.id)
+    return [common === undefined ? food : { ...food, portions: common.portions }]
+  })
+
+  return [...foods, ...derived]
+}
+
 let cached: readonly Food[] | null = null
 
 /** 成分表の食品を読み込む。2回目以降は読み込み済みのものを返す。 */
@@ -53,6 +73,6 @@ export async function loadCompositionFoods(): Promise<readonly Food[]> {
   if (cached !== null) return cached
 
   const loaded = await import('./foodComposition.json')
-  cached = (loaded.default as readonly RawFood[]).map(toFood)
+  cached = withDerivedFoods((loaded.default as readonly RawFood[]).map(toFood))
   return cached
 }

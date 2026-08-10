@@ -19,6 +19,11 @@ export interface Food {
   readonly basisGrams: number
   readonly nutrition: Nutrition
   readonly isCustom: boolean
+  /**
+   * 成分表そのままではなく見積もった値のときに、その根拠を入れる。
+   * 出典と見積もりを混ぜないよう、画面でも断りを出す。
+   */
+  readonly estimateNote?: string
 }
 
 /**

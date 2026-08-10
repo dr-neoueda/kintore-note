@@ -19,14 +19,15 @@ test.describe('食事の記録', () => {
     // Arrange
     await openMeals(page)
 
-    // Act: バナナ（100gあたり93kcal）
+    // Act: バナナ（100gあたり93kcal）は1本90gから始まる
     await page.getByRole('button', { name: '朝食に追加' }).click()
     await page.getByLabel('食品名で探す').fill('バナナ')
     await page.getByRole('dialog').getByRole('button', { name: 'バナナを選ぶ' }).click()
     await page.getByRole('button', { name: '量を増やす' }).click()
 
     // Assert: 分量に応じて栄養が変わる
-    await expect(page.getByRole('spinbutton', { name: '量' })).toHaveValue('110')
+    await expect(page.getByRole('spinbutton', { name: '量' })).toHaveValue('2')
+    await expect(page.getByTestId('amount-grams')).toHaveText('180 g')
 
     // Act
     await page.getByRole('button', { name: '記録する' }).click()
@@ -43,7 +44,8 @@ test.describe('食事の記録', () => {
     await page.getByLabel('食品名で探す').fill('バナナ')
     await page.getByRole('dialog').getByRole('button', { name: 'バナナを選ぶ' }).click()
 
-    // Act: 100g の表示を控えてから 200g にする
+    // Act: g に切り替えてから 200g にする
+    await page.getByRole('button', { name: /単位を切り替える/ }).click()
     await page.getByRole('button', { name: '200g', exact: true }).click()
 
     // Assert: 100g あたり93kcal なので 186kcal
@@ -68,10 +70,11 @@ test.describe('食事の記録', () => {
     await openMeals(page)
     await addFood(page, '朝食', 'バナナ')
     await page.getByRole('button', { name: '記録する' }).click()
-    await expect(page.getByRole('main')).toContainText('100 g')
+    await expect(page.getByRole('main')).toContainText('90 g')
 
     // Act
     await page.getByRole('button', { name: 'バナナの記録を編集' }).click()
+    await page.getByRole('button', { name: /単位を切り替える/ }).click()
     await page.getByRole('button', { name: '50g', exact: true }).click()
     await page.getByRole('button', { name: '更新する' }).click()
 
