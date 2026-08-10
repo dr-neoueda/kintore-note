@@ -10,9 +10,13 @@
 |---|---|---|
 | `src/data/foodComposition.json` | 2,538 | 日本食品標準成分表（八訂）増補2023年（文部科学省）|
 | `src/data/storeFoods.json` | 169 | Open Food Facts（ODbL）・業務スーパー |
+| `src/domain/derivedFoods.ts` | 1 | 成分表に無い調理法の見積もり（元の食品番号 + 変化率）|
 
-どちらも読み取り専用で、バックアップには含めない（アプリに入っているため）。
+どれも読み取り専用で、バックアップには含めない（アプリに入っているため）。
 記録する側は、記録した時点の栄養価を焼き付けて持つ。
+
+見積もり食品は `<元の食品番号>y` のような id を持ち、`estimateNote` に導出根拠を入れる。
+成分表そのままの値と混ざらないよう、画面でも断りを出す。
 
 ### exercises（種目マスタ）
 
@@ -175,6 +179,7 @@
 | isRestAlarmEnabled | boolean | 休憩終了を音で知らせるか。有効な間は休憩中の画面点灯も行う |
 | restAlarmDurationSec | number | アラームを鳴らし続ける長さ（秒）|
 | nutritionTarget | NutritionTarget | 1日の目標（kcal / P / F / C） |
+| heightCm | number \| null | 身長。BMI に使う。日々変わらないので測定ごとには持たない |
 
 索引: `id`
 
