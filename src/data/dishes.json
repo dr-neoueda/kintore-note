@@ -2914,6 +2914,1253 @@
    "carb": 6.2,
    "fiber": 2.8,
    "salt": 0.6
+  },
+  {
+   "id": "dish-shoronpo",
+   "name": "小籠包（5個）",
+   "category": "洋食・ファストフード",
+   "keywords": [
+    "小籠包",
+    "しょうろんぽう",
+    "ショーロンポー"
+   ],
+   "servingGrams": 130,
+   "portions": [
+    {
+     "label": "5個",
+     "grams": 130
+    },
+    {
+     "label": "1個",
+     "grams": 26
+    }
+   ],
+   "recipe": "中国料理 点心類 しゅうまい 130g",
+   "kcal": 191,
+   "protein": 9.1,
+   "fat": 9.2,
+   "carb": 19.5,
+   "fiber": 1.7,
+   "salt": 1.3
+  },
+  {
+   "id": "dish-sui-gyoza",
+   "name": "水餃子（6個）",
+   "category": "洋食・ファストフード",
+   "keywords": [
+    "水餃子",
+    "すいぎょうざ"
+   ],
+   "servingGrams": 150,
+   "portions": [
+    {
+     "label": "6個",
+     "grams": 150
+    }
+   ],
+   "recipe": "中国料理 点心類 ぎょうざ 130g",
+   "kcal": 181,
+   "protein": 6.0,
+   "fat": 9.8,
+   "carb": 19.3,
+   "fiber": 1.3,
+   "salt": 1.0
+  },
+  {
+   "id": "dish-mabo-nasu",
+   "name": "麻婆茄子",
+   "category": "洋食・ファストフード",
+   "keywords": [
+    "麻婆茄子",
+    "マーボーナス",
+    "麻婆なす"
+   ],
+   "servingGrams": 230,
+   "portions": [
+    {
+     "label": "1皿",
+     "grams": 230
+    }
+   ],
+   "recipe": "（なす類） なす 果実 油いため 130g、＜畜肉類＞ ぶた ［ひき肉］ 生 50g、（ねぎ類） 根深ねぎ 葉 軟白 生 15g、＜調味料類＞ （しょうゆ類） こいくちしょうゆ 12g、＜調味料類＞ （辛味調味料類） トウバンジャン 5g",
+   "kcal": 94,
+   "protein": 5.2,
+   "fat": 7.1,
+   "carb": 4.7,
+   "fiber": 1.7,
+   "salt": 1.2
+  },
+  {
+   "id": "dish-ebi-mayo",
+   "name": "エビマヨ",
+   "category": "洋食・ファストフード",
+   "keywords": [
+    "エビマヨ",
+    "えびマヨ",
+    "海老マヨ"
+   ],
+   "servingGrams": 173,
+   "portions": [
+    {
+     "label": "1皿",
+     "grams": 173
+    }
+   ],
+   "recipe": "＜えび・かに類＞ （えび類） バナメイえび 養殖 天ぷら 130g、＜調味料類＞ （ドレッシング類） 半固体状ドレッシング マヨネーズ 全卵型 35g、（その他） はちみつ 国産品 8g",
+   "kcal": 296,
+   "protein": 15.3,
+   "fat": 23.1,
+   "carb": 9.4,
+   "fiber": 0.7,
+   "salt": 0.6
+  },
+  {
+   "id": "dish-wakame-soup",
+   "name": "わかめスープ",
+   "category": "定食・和食",
+   "keywords": [
+    "わかめスープ",
+    "中華スープ"
+   ],
+   "servingGrams": 180,
+   "portions": [
+    {
+     "label": "1杯",
+     "grams": 180
+    }
+   ],
+   "recipe": "わかめ 原藻 生 15g、（ねぎ類） 根深ねぎ 葉 軟白 生 5g、（植物油脂類） ごま油 2g、＜調味料類＞ （食塩類） 食塩 1g",
+   "kcal": 13,
+   "protein": 0.2,
+   "fat": 1.1,
+   "carb": 0.7,
+   "fiber": 0.4,
+   "salt": 0.7
+  },
+  {
+   "id": "dish-egg-soup",
+   "name": "たまごスープ",
+   "category": "定食・和食",
+   "keywords": [
+    "たまごスープ",
+    "卵スープ",
+    "玉子スープ"
+   ],
+   "servingGrams": 180,
+   "portions": [
+    {
+     "label": "1杯",
+     "grams": 180
+    }
+   ],
+   "recipe": "鶏卵 全卵 生 30g、（ねぎ類） 根深ねぎ 葉 軟白 生 5g、（植物油脂類） ごま油 2g、＜調味料類＞ （食塩類） 食塩 1g",
+   "kcal": 35,
+   "protein": 2.1,
+   "fat": 2.8,
+   "carb": 0.3,
+   "fiber": 0.1,
+   "salt": 0.6
+  },
+  {
+   "id": "dish-chijimi",
+   "name": "チヂミ",
+   "category": "洋食・ファストフード",
+   "keywords": [
+    "チヂミ",
+    "ちぢみ",
+    "韓国風お好み焼き"
+   ],
+   "servingGrams": 200,
+   "portions": [
+    {
+     "label": "1枚",
+     "grams": 200
+    }
+   ],
+   "recipe": "こむぎ ［小麦粉］ 薄力粉 1等 60g、（にら類） にら 葉 生 40g、（にんじん類） にんじん 根 皮なし 生 15g、＜いか・たこ類＞ （いか類） するめいか 生 30g、鶏卵 全卵 生 25g、（植物油脂類） ごま油 10g",
+   "kcal": 184,
+   "protein": 7.1,
+   "fat": 6.9,
+   "carb": 24.3,
+   "fiber": 1.5,
+   "salt": 0.1
+  },
+  {
+   "id": "dish-chapchae",
+   "name": "チャプチェ",
+   "category": "洋食・ファストフード",
+   "keywords": [
+    "チャプチェ",
+    "ちゃぷちぇ"
+   ],
+   "servingGrams": 215,
+   "portions": [
+    {
+     "label": "1皿",
+     "grams": 215
+    }
+   ],
+   "recipe": "＜でん粉・でん粉製品＞ （でん粉製品） はるさめ 緑豆はるさめ ゆで 120g、＜畜肉類＞ うし ［輸入牛肉］ かた 赤肉 生 40g、（ピーマン類） 青ピーマン 果実 生 20g、（にんじん類） にんじん 根 皮なし 生 15g、（植物油脂類） ごま油 8g、＜調味料類＞ （しょうゆ類） こいくちしょうゆ 12g",
+   "kcal": 106,
+   "protein": 4.4,
+   "fat": 4.7,
+   "carb": 13.0,
+   "fiber": 1.2,
+   "salt": 0.8
+  },
+  {
+   "id": "dish-samgyeopsal",
+   "name": "サムギョプサル",
+   "category": "定食・和食",
+   "keywords": [
+    "サムギョプサル",
+    "さむぎょぷさる"
+   ],
+   "servingGrams": 250,
+   "portions": [
+    {
+     "label": "1人前",
+     "grams": 250
+    }
+   ],
+   "recipe": "＜畜肉類＞ ぶた ［大型種肉］ ばら 脂身つき 生 150g、（レタス類） サニーレタス 葉 生 40g、はくさい 漬物 キムチ 40g、＜調味料類＞ （みそ類） 練りみそ 15g、（植物油脂類） ごま油 5g",
+   "kcal": 260,
+   "protein": 9.5,
+   "fat": 23.4,
+   "carb": 5.0,
+   "fiber": 0.9,
+   "salt": 0.7
+  },
+  {
+   "id": "dish-sundubu",
+   "name": "スンドゥブチゲ",
+   "category": "定食・和食",
+   "keywords": [
+    "スンドゥブ",
+    "すんどぅぶ",
+    "純豆腐"
+   ],
+   "servingGrams": 450,
+   "portions": [
+    {
+     "label": "1人前",
+     "grams": 450
+    }
+   ],
+   "recipe": "だいず ［豆腐・油揚げ類］ 絹ごし豆腐 150g、はくさい 漬物 キムチ 50g、＜えび・かに類＞ （えび類） バナメイえび 養殖 生 30g、＜貝類＞ あさり 生 40g、鶏卵 全卵 生 50g、（植物油脂類） ごま油 6g、＜調味料類＞ （みそ類） 米みそ 淡色辛みそ 12g",
+   "kcal": 62,
+   "protein": 5.5,
+   "fat": 3.9,
+   "carb": 2.0,
+   "fiber": 0.7,
+   "salt": 0.9
+  },
+  {
+   "id": "dish-tteokbokki",
+   "name": "トッポギ",
+   "category": "洋食・ファストフード",
+   "keywords": [
+    "トッポギ",
+    "とっぽぎ",
+    "トッポッキ"
+   ],
+   "servingGrams": 220,
+   "portions": [
+    {
+     "label": "1皿",
+     "grams": 220
+    }
+   ],
+   "recipe": "こめ ［もち米製品］ もち 130g、＜調味料類＞ （みそ類） 練りみそ 25g、＜水産練り製品＞ 蒸しかまぼこ 25g、（ねぎ類） 根深ねぎ 葉 軟白 生 10g",
+   "kcal": 174,
+   "protein": 4.4,
+   "fat": 0.7,
+   "carb": 38.2,
+   "fiber": 0.8,
+   "salt": 0.7
+  },
+  {
+   "id": "dish-bulgogi",
+   "name": "プルコギ",
+   "category": "定食・和食",
+   "keywords": [
+    "プルコギ",
+    "ぷるこぎ"
+   ],
+   "servingGrams": 236,
+   "portions": [
+    {
+     "label": "1人前",
+     "grams": 236
+    }
+   ],
+   "recipe": "＜畜肉類＞ うし ［輸入牛肉］ かた 脂身つき 生 120g、（たまねぎ類） たまねぎ りん茎 生 40g、（にんじん類） にんじん 根 皮なし 生 20g、（にら類） にら 葉 生 20g、＜調味料類＞ （しょうゆ類） こいくちしょうゆ 20g、（砂糖類） 車糖 上白糖 8g、（植物油脂類） ごま油 8g",
+   "kcal": 141,
+   "protein": 10.7,
+   "fat": 8.8,
+   "carb": 6.6,
+   "fiber": 0.7,
+   "salt": 1.3
+  },
+  {
+   "id": "dish-tom-yum",
+   "name": "トムヤムクン",
+   "category": "洋食・ファストフード",
+   "keywords": [
+    "トムヤムクン",
+    "とむやむくん"
+   ],
+   "servingGrams": 300,
+   "portions": [
+    {
+     "label": "1杯",
+     "grams": 300
+    }
+   ],
+   "recipe": "＜えび・かに類＞ （えび類） バナメイえび 養殖 生 50g、マッシュルーム ブラウン種 生 30g、（トマト類） 赤色トマト 果実 生 30g、＜調味料類＞ （調味ソース類） 魚醤油 ナンプラー 12g、＜牛乳及び乳製品＞ （クリーム類） クリーム 乳脂肪 15g",
+   "kcal": 40,
+   "protein": 4.1,
+   "fat": 2.3,
+   "carb": 1.3,
+   "fiber": 0.3,
+   "salt": 1.0
+  },
+  {
+   "id": "dish-pad-thai",
+   "name": "パッタイ",
+   "category": "麺類",
+   "keywords": [
+    "パッタイ",
+    "ぱったい",
+    "タイ風焼きそば"
+   ],
+   "servingGrams": 350,
+   "portions": [
+    {
+     "label": "1皿",
+     "grams": 350
+    }
+   ],
+   "recipe": "こめ ［うるち米製品］ ビーフン 70g、＜えび・かに類＞ （えび類） バナメイえび 養殖 生 40g、鶏卵 全卵 生 40g、（もやし類） だいずもやし 生 50g、らっかせい 大粒種 いり 10g、＜調味料類＞ （調味ソース類） 魚醤油 ナンプラー 12g、（植物油脂類） 調合油 10g",
+   "kcal": 146,
+   "protein": 6.6,
+   "fat": 6.0,
+   "carb": 17.2,
+   "fiber": 0.8,
+   "salt": 0.9
+  },
+  {
+   "id": "dish-pho",
+   "name": "フォー",
+   "category": "麺類",
+   "keywords": [
+    "フォー",
+    "ふぉー",
+    "ベトナム麺"
+   ],
+   "servingGrams": 600,
+   "portions": [
+    {
+     "label": "1杯",
+     "grams": 600
+    }
+   ],
+   "recipe": "こめ ［うるち米製品］ ビーフン 70g、＜畜肉類＞ うし ［輸入牛肉］ かた 赤肉 生 50g、（もやし類） だいずもやし 生 40g、（ねぎ類） 根深ねぎ 葉 軟白 生 10g、＜調味料類＞ （調味ソース類） 魚醤油 ナンプラー 15g",
+   "kcal": 55,
+   "protein": 3.0,
+   "fat": 0.7,
+   "carb": 9.7,
+   "fiber": 0.3,
+   "salt": 0.6
+  },
+  {
+   "id": "dish-nama-harumaki",
+   "name": "生春巻き（2本）",
+   "category": "洋食・ファストフード",
+   "keywords": [
+    "生春巻き",
+    "なまはるまき",
+    "ライスペーパー"
+   ],
+   "servingGrams": 160,
+   "portions": [
+    {
+     "label": "2本",
+     "grams": 160
+    }
+   ],
+   "recipe": "こめ ［うるち米製品］ ビーフン 25g、＜えび・かに類＞ （えび類） バナメイえび 養殖 生 40g、（レタス類） レタス 土耕栽培 結球葉 生 25g、きゅうり 果実 生 20g、＜調味料類＞ （トマト加工品類） チリソース 20g",
+   "kcal": 94,
+   "protein": 6.4,
+   "fat": 0.4,
+   "carb": 16.8,
+   "fiber": 0.7,
+   "salt": 0.5
+  },
+  {
+   "id": "dish-taco",
+   "name": "タコス（2個）",
+   "category": "洋食・ファストフード",
+   "keywords": [
+    "タコス",
+    "たこす"
+   ],
+   "servingGrams": 175,
+   "portions": [
+    {
+     "label": "2個",
+     "grams": 175
+    }
+   ],
+   "recipe": "とうもろこし コーンフレーク 40g、＜畜肉類＞ うし ［ひき肉］ 生 60g、（レタス類） レタス 土耕栽培 結球葉 生 25g、（トマト類） 赤色トマト 果実 生 30g、＜牛乳及び乳製品＞ （チーズ類） プロセスチーズ 20g",
+   "kcal": 214,
+   "protein": 10.4,
+   "fat": 10.6,
+   "carb": 20.6,
+   "fiber": 0.9,
+   "salt": 0.9
+  },
+  {
+   "id": "dish-tsukune",
+   "name": "つくね（2本）",
+   "category": "定食・和食",
+   "keywords": [
+    "つくね",
+    "鶏つくね"
+   ],
+   "servingGrams": 95,
+   "portions": [
+    {
+     "label": "2本",
+     "grams": 95
+    }
+   ],
+   "recipe": "＜鳥肉類＞ にわとり ［二次品目］ ひき肉 生 75g、（ねぎ類） 根深ねぎ 葉 軟白 生 8g、＜調味料類＞ （しょうゆ類） こいくちしょうゆ 8g、（砂糖類） 車糖 上白糖 4g",
+   "kcal": 161,
+   "protein": 14.6,
+   "fat": 9.5,
+   "carb": 5.5,
+   "fiber": 0.2,
+   "salt": 1.3
+  },
+  {
+   "id": "dish-tebasaki",
+   "name": "手羽先（3本）",
+   "category": "定食・和食",
+   "keywords": [
+    "手羽先",
+    "てばさき"
+   ],
+   "servingGrams": 122,
+   "portions": [
+    {
+     "label": "3本",
+     "grams": 122
+    }
+   ],
+   "recipe": "＜鳥肉類＞ にわとり ［若どり・主品目］ 手羽さき 皮つき 生 110g、＜調味料類＞ （しょうゆ類） こいくちしょうゆ 8g、（砂糖類） 車糖 上白糖 4g",
+   "kcal": 204,
+   "protein": 16.2,
+   "fat": 14.6,
+   "carb": 3.8,
+   "fiber": 0.0,
+   "salt": 1.1
+  },
+  {
+   "id": "dish-sunagimo",
+   "name": "砂肝焼き",
+   "category": "定食・和食",
+   "keywords": [
+    "砂肝",
+    "すなぎも",
+    "砂ぎも"
+   ],
+   "servingGrams": 86,
+   "portions": [
+    {
+     "label": "1皿",
+     "grams": 86
+    }
+   ],
+   "recipe": "＜鳥肉類＞ にわとり ［副品目］ すなぎも 生 85g、＜調味料類＞ （食塩類） 食塩 1g",
+   "kcal": 85,
+   "protein": 18.1,
+   "fat": 1.8,
+   "carb": 0.0,
+   "fiber": 0.0,
+   "salt": 1.3
+  },
+  {
+   "id": "dish-motsuni",
+   "name": "もつ煮",
+   "category": "定食・和食",
+   "keywords": [
+    "もつ煮",
+    "モツ煮",
+    "もつ煮込み"
+   ],
+   "servingGrams": 200,
+   "portions": [
+    {
+     "label": "1皿",
+     "grams": 200
+    }
+   ],
+   "recipe": "＜畜肉類＞ ぶた ［副生物］ 大腸 ゆで 90g、（だいこん類） だいこん 根 皮なし ゆで 50g、（にんじん類） にんじん 根 皮なし 生 20g、＜調味料類＞ （みそ類） 米みそ 淡色辛みそ 15g",
+   "kcal": 95,
+   "protein": 6.4,
+   "fat": 6.7,
+   "carb": 3.5,
+   "fiber": 1.1,
+   "salt": 1.0
+  },
+  {
+   "id": "dish-shishamo",
+   "name": "ししゃも（3尾）",
+   "category": "定食・和食",
+   "keywords": [
+    "ししゃも",
+    "シシャモ"
+   ],
+   "servingGrams": 60,
+   "portions": [
+    {
+     "label": "3尾",
+     "grams": 60
+    }
+   ],
+   "recipe": "＜魚類＞ （ししゃも類） からふとししゃも 生干し 焼き 60g",
+   "kcal": 170,
+   "protein": 18.2,
+   "fat": 11.3,
+   "carb": 0.6,
+   "fiber": 0.0,
+   "salt": 2.0
+  },
+  {
+   "id": "dish-aji-hiraki",
+   "name": "あじの開き",
+   "category": "定食・和食",
+   "keywords": [
+    "あじの開き",
+    "アジの開き",
+    "干物"
+   ],
+   "servingGrams": 80,
+   "portions": [
+    {
+     "label": "1枚",
+     "grams": 80
+    }
+   ],
+   "recipe": "＜魚類＞ （あじ類） まあじ 開き干し 焼き 80g",
+   "kcal": 194,
+   "protein": 24.6,
+   "fat": 12.3,
+   "carb": 0.1,
+   "fiber": 0.0,
+   "salt": 2.0
+  },
+  {
+   "id": "dish-hokke",
+   "name": "ほっけの開き",
+   "category": "定食・和食",
+   "keywords": [
+    "ほっけ",
+    "ホッケ"
+   ],
+   "servingGrams": 130,
+   "portions": [
+    {
+     "label": "1枚",
+     "grams": 130
+    }
+   ],
+   "recipe": "＜魚類＞ ほっけ 開き干し 焼き 130g",
+   "kcal": 179,
+   "protein": 23.1,
+   "fat": 10.9,
+   "carb": 0.2,
+   "fiber": 0.0,
+   "salt": 2.0
+  },
+  {
+   "id": "dish-sake-shioyaki",
+   "name": "鮭の塩焼き",
+   "category": "定食・和食",
+   "keywords": [
+    "鮭の塩焼き",
+    "焼き鮭",
+    "しゃけ"
+   ],
+   "servingGrams": 79,
+   "portions": [
+    {
+     "label": "1切れ",
+     "grams": 79
+    }
+   ],
+   "recipe": "＜魚類＞ （さけ・ます類） しろさけ 焼き 78g、＜調味料類＞ （食塩類） 食塩 1g",
+   "kcal": 158,
+   "protein": 28.7,
+   "fat": 5.0,
+   "carb": 0.1,
+   "fiber": 0.0,
+   "salt": 1.5
+  },
+  {
+   "id": "dish-kakiage",
+   "name": "かき揚げ",
+   "category": "定食・和食",
+   "keywords": [
+    "かき揚げ",
+    "かきあげ"
+   ],
+   "servingGrams": 82,
+   "portions": [
+    {
+     "label": "1個",
+     "grams": 82
+    }
+   ],
+   "recipe": "（たまねぎ類） たまねぎ りん茎 生 30g、（にんじん類） にんじん 根 皮なし 生 10g、＜えび・かに類＞ （えび類） バナメイえび 養殖 生 15g、こむぎ ［小麦粉］ 薄力粉 1等 15g、（植物油脂類） 調合油 12g",
+   "kcal": 224,
+   "protein": 5.6,
+   "fat": 15.1,
+   "carb": 18.1,
+   "fiber": 1.3,
+   "salt": 0.1
+  },
+  {
+   "id": "dish-tempura-set",
+   "name": "天ぷら盛り合わせ",
+   "category": "定食・和食",
+   "keywords": [
+    "天ぷら",
+    "てんぷら",
+    "天ぷら盛り合わせ"
+   ],
+   "servingGrams": 170,
+   "portions": [
+    {
+     "label": "1人前",
+     "grams": 170
+    }
+   ],
+   "recipe": "＜えび・かに類＞ （えび類） バナメイえび 養殖 天ぷら 60g、＜いも類＞ （さつまいも類） さつまいも 塊根 皮つき 天ぷら 40g、（なす類） なす 果実 天ぷら 30g、しいたけ 生しいたけ 菌床栽培 天ぷら 25g、＜調味料類＞ （しょうゆ類） こいくちしょうゆ 15g",
+   "kcal": 182,
+   "protein": 8.8,
+   "fat": 9.8,
+   "carb": 16.8,
+   "fiber": 2.0,
+   "salt": 1.4
+  },
+  {
+   "id": "dish-hamukatsu",
+   "name": "ハムカツ",
+   "category": "定食・和食",
+   "keywords": [
+    "ハムカツ",
+    "はむかつ"
+   ],
+   "servingGrams": 59,
+   "portions": [
+    {
+     "label": "1枚",
+     "grams": 59
+    }
+   ],
+   "recipe": "＜畜肉類＞ ぶた ［ハム類］ ロースハム ゆで 30g、こむぎ ［その他］ パン粉 乾燥 12g、（植物油脂類） 調合油 12g、鶏卵 全卵 生 5g",
+   "kcal": 382,
+   "protein": 14.1,
+   "fat": 30.5,
+   "carb": 14.6,
+   "fiber": 1.3,
+   "salt": 1.3
+  },
+  {
+   "id": "dish-natto-gohan",
+   "name": "納豆ごはん",
+   "category": "丼・ごはんもの",
+   "keywords": [
+    "納豆ごはん",
+    "納豆ご飯",
+    "なっとうごはん"
+   ],
+   "servingGrams": 230,
+   "portions": [
+    {
+     "label": "1杯",
+     "grams": 230
+    }
+   ],
+   "recipe": "こめ ［水稲めし］ 精白米 うるち米 180g、だいず ［納豆類］ 糸引き納豆 45g、＜調味料類＞ （しょうゆ類） こいくちしょうゆ 5g",
+   "kcal": 160,
+   "protein": 5.4,
+   "fat": 2.2,
+   "carb": 31.6,
+   "fiber": 3.0,
+   "salt": 0.3
+  },
+  {
+   "id": "dish-tkg",
+   "name": "卵かけごはん",
+   "category": "丼・ごはんもの",
+   "keywords": [
+    "卵かけごはん",
+    "TKG",
+    "たまごかけごはん"
+   ],
+   "servingGrams": 240,
+   "portions": [
+    {
+     "label": "1杯",
+     "grams": 240
+    }
+   ],
+   "recipe": "こめ ［水稲めし］ 精白米 うるち米 180g、鶏卵 全卵 生 55g、＜調味料類＞ （しょうゆ類） こいくちしょうゆ 5g",
+   "kcal": 151,
+   "protein": 4.8,
+   "fat": 2.6,
+   "carb": 28.1,
+   "fiber": 1.1,
+   "salt": 0.4
+  },
+  {
+   "id": "dish-takikomi",
+   "name": "炊き込みごはん",
+   "category": "丼・ごはんもの",
+   "keywords": [
+    "炊き込みごはん",
+    "五目ごはん",
+    "かやくごはん"
+   ],
+   "servingGrams": 209,
+   "portions": [
+    {
+     "label": "1杯",
+     "grams": 209
+    }
+   ],
+   "recipe": "こめ ［水稲めし］ 精白米 うるち米 170g、＜鳥肉類＞ にわとり ［若どり・主品目］ もも 皮なし 生 15g、（にんじん類） にんじん 根 皮なし 生 8g、しいたけ 生しいたけ 菌床栽培 生 8g、＜調味料類＞ （しょうゆ類） こいくちしょうゆ 8g",
+   "kcal": 140,
+   "protein": 3.8,
+   "fat": 0.6,
+   "carb": 31.1,
+   "fiber": 1.5,
+   "salt": 0.6
+  },
+  {
+   "id": "dish-sekihan",
+   "name": "赤飯",
+   "category": "丼・ごはんもの",
+   "keywords": [
+    "赤飯",
+    "せきはん",
+    "おこわ"
+   ],
+   "servingGrams": 160,
+   "portions": [
+    {
+     "label": "1杯",
+     "grams": 160
+    }
+   ],
+   "recipe": "こめ ［もち米製品］ 赤飯 160g",
+   "kcal": 186,
+   "protein": 4.3,
+   "fat": 0.6,
+   "carb": 41.9,
+   "fiber": 1.6,
+   "salt": 0.0
+  },
+  {
+   "id": "dish-kenchinjiru",
+   "name": "けんちん汁",
+   "category": "定食・和食",
+   "keywords": [
+    "けんちん汁",
+    "けんちんじる"
+   ],
+   "servingGrams": 200,
+   "portions": [
+    {
+     "label": "1杯",
+     "grams": 200
+    }
+   ],
+   "recipe": "だいず ［豆腐・油揚げ類］ 木綿豆腐 40g、（だいこん類） だいこん 根 皮なし ゆで 30g、（にんじん類） にんじん 根 皮なし 生 15g、（ごぼう類） ごぼう 根 ゆで 15g、（植物油脂類） ごま油 3g、＜調味料類＞ （しょうゆ類） こいくちしょうゆ 10g",
+   "kcal": 40,
+   "protein": 2.0,
+   "fat": 2.5,
+   "carb": 3.0,
+   "fiber": 1.1,
+   "salt": 0.7
+  },
+  {
+   "id": "dish-asari-misoshiru",
+   "name": "あさりの味噌汁",
+   "category": "定食・和食",
+   "keywords": [
+    "あさりの味噌汁",
+    "あさり汁",
+    "しじみ汁"
+   ],
+   "servingGrams": 180,
+   "portions": [
+    {
+     "label": "1杯",
+     "grams": 180
+    }
+   ],
+   "recipe": "＜貝類＞ あさり 生 30g、＜調味料類＞ （みそ類） 米みそ 淡色辛みそ 12g、（ねぎ類） 根深ねぎ 葉 軟白 生 5g",
+   "kcal": 18,
+   "protein": 1.8,
+   "fat": 0.5,
+   "carb": 1.8,
+   "fiber": 0.4,
+   "salt": 1.2
+  },
+  {
+   "id": "dish-yamakake",
+   "name": "まぐろ山かけ",
+   "category": "定食・和食",
+   "keywords": [
+    "山かけ",
+    "まぐろ山かけ",
+    "やまかけ"
+   ],
+   "servingGrams": 148,
+   "portions": [
+    {
+     "label": "1皿",
+     "grams": 148
+    }
+   ],
+   "recipe": "＜魚類＞ （まぐろ類） きはだ 生 70g、＜いも類＞ （やまのいも類） ながいも ながいも 塊根 生 70g、＜調味料類＞ （しょうゆ類） こいくちしょうゆ 8g",
+   "kcal": 83,
+   "protein": 12.9,
+   "fat": 0.6,
+   "carb": 7.0,
+   "fiber": 0.5,
+   "salt": 0.8
+  },
+  {
+   "id": "dish-shimesaba",
+   "name": "しめさば",
+   "category": "定食・和食",
+   "keywords": [
+    "しめさば",
+    "〆さば",
+    "しめ鯖"
+   ],
+   "servingGrams": 80,
+   "portions": [
+    {
+     "label": "1人前",
+     "grams": 80
+    }
+   ],
+   "recipe": "＜魚類＞ （さば類） 加工品 しめさば 80g",
+   "kcal": 292,
+   "protein": 18.6,
+   "fat": 26.9,
+   "carb": 1.7,
+   "fiber": 0.0,
+   "salt": 1.6
+  },
+  {
+   "id": "dish-tsukemono",
+   "name": "漬物盛り合わせ",
+   "category": "定食・和食",
+   "keywords": [
+    "漬物",
+    "つけもの",
+    "お新香"
+   ],
+   "servingGrams": 50,
+   "portions": [
+    {
+     "label": "1皿",
+     "grams": 50
+    }
+   ],
+   "recipe": "（だいこん類） 漬物 たくあん漬 塩押しだいこん漬 25g、きゅうり 漬物 塩漬 15g、はくさい 漬物 塩漬 10g",
+   "kcal": 30,
+   "protein": 0.9,
+   "fat": 0.2,
+   "carb": 7.2,
+   "fiber": 1.9,
+   "salt": 2.8
+  },
+  {
+   "id": "dish-pork-soute",
+   "name": "ポークソテー",
+   "category": "洋食・ファストフード",
+   "keywords": [
+    "ポークソテー",
+    "ポークステーキ"
+   ],
+   "servingGrams": 147,
+   "portions": [
+    {
+     "label": "1枚",
+     "grams": 147
+    }
+   ],
+   "recipe": "＜畜肉類＞ ぶた ［大型種肉］ ロース 脂身つき 生 130g、（バター類） 発酵バター 有塩バター 8g、＜調味料類＞ （しょうゆ類） こいくちしょうゆ 8g、＜調味料類＞ （食塩類） 食塩 1g",
+   "kcal": 262,
+   "protein": 17.5,
+   "fat": 21.3,
+   "carb": 0.8,
+   "fiber": 0.0,
+   "salt": 1.6
+  },
+  {
+   "id": "dish-chicken-soute",
+   "name": "チキンソテー",
+   "category": "洋食・ファストフード",
+   "keywords": [
+    "チキンソテー",
+    "チキンステーキ"
+   ],
+   "servingGrams": 157,
+   "portions": [
+    {
+     "label": "1枚",
+     "grams": 157
+    }
+   ],
+   "recipe": "＜鳥肉類＞ にわとり ［若どり・主品目］ もも 皮つき 生 150g、（植物油脂類） 調合油 6g、＜調味料類＞ （食塩類） 食塩 1g",
+   "kcal": 215,
+   "protein": 15.9,
+   "fat": 17.4,
+   "carb": 0.0,
+   "fiber": 0.0,
+   "salt": 0.8
+  },
+  {
+   "id": "dish-roast-beef",
+   "name": "ローストビーフ",
+   "category": "洋食・ファストフード",
+   "keywords": [
+    "ローストビーフ",
+    "ろーすとびーふ"
+   ],
+   "servingGrams": 98,
+   "portions": [
+    {
+     "label": "1人前",
+     "grams": 98
+    }
+   ],
+   "recipe": "＜畜肉類＞ うし ［加工品］ ローストビーフ 90g、＜調味料類＞ （しょうゆ類） こいくちしょうゆ 8g",
+   "kcal": 181,
+   "protein": 20.6,
+   "fat": 10.7,
+   "carb": 1.5,
+   "fiber": 0.0,
+   "salt": 1.9
+  },
+  {
+   "id": "dish-chicken-nanban",
+   "name": "チキン南蛮",
+   "category": "洋食・ファストフード",
+   "keywords": [
+    "チキン南蛮",
+    "ちきんなんばん"
+   ],
+   "servingGrams": 216,
+   "portions": [
+    {
+     "label": "1皿",
+     "grams": 216
+    }
+   ],
+   "recipe": "和風料理 その他 とりから揚げ 150g、＜調味料類＞ （ドレッシング類） 半固体状ドレッシング マヨネーズ 全卵型 25g、鶏卵 全卵 ゆで 25g、（砂糖類） 車糖 上白糖 6g、＜調味料類＞ （食酢類） 穀物酢 10g",
+   "kcal": 247,
+   "protein": 12.4,
+   "fat": 17.0,
+   "carb": 14.5,
+   "fiber": 1.2,
+   "salt": 1.5
+  },
+  {
+   "id": "dish-lasagna",
+   "name": "ラザニア",
+   "category": "麺類",
+   "keywords": [
+    "ラザニア",
+    "らざにあ"
+   ],
+   "servingGrams": 300,
+   "portions": [
+    {
+     "label": "1皿",
+     "grams": 300
+    }
+   ],
+   "recipe": "こむぎ ［マカロニ・スパゲッティ類］ マカロニ・スパゲッティ ゆで 120g、＜畜肉類＞ うし ［ひき肉］ 生 60g、（トマト類） 加工品 ホール 食塩無添加 60g、＜牛乳及び乳製品＞ （チーズ類） ナチュラルチーズ モッツァレラ 40g、＜牛乳及び乳製品＞ （クリーム類） クリーム 乳脂肪 20g",
+   "kcal": 177,
+   "protein": 8.5,
+   "fat": 10.1,
+   "carb": 14.8,
+   "fiber": 1.5,
+   "salt": 0.6
+  },
+  {
+   "id": "dish-risotto",
+   "name": "リゾット",
+   "category": "丼・ごはんもの",
+   "keywords": [
+    "リゾット",
+    "りぞっと"
+   ],
+   "servingGrams": 330,
+   "portions": [
+    {
+     "label": "1皿",
+     "grams": 330
+    }
+   ],
+   "recipe": "こめ ［水稲めし］ 精白米 うるち米 200g、＜牛乳及び乳製品＞ （液状乳類） 普通牛乳 50g、＜牛乳及び乳製品＞ （チーズ類） ナチュラルチーズ パルメザン 15g、マッシュルーム ブラウン種 生 30g、（バター類） 発酵バター 有塩バター 10g",
+   "kcal": 147,
+   "protein": 4.3,
+   "fat": 4.6,
+   "carb": 23.7,
+   "fiber": 1.1,
+   "salt": 0.2
+  },
+  {
+   "id": "dish-paella",
+   "name": "パエリア",
+   "category": "丼・ごはんもの",
+   "keywords": [
+    "パエリア",
+    "ぱえりあ"
+   ],
+   "servingGrams": 342,
+   "portions": [
+    {
+     "label": "1皿",
+     "grams": 342
+    }
+   ],
+   "recipe": "こめ ［水稲めし］ 精白米 うるち米 220g、＜えび・かに類＞ （えび類） バナメイえび 養殖 生 40g、＜貝類＞ あさり 生 40g、＜いか・たこ類＞ （いか類） するめいか 生 30g、（植物油脂類） オリーブ油 10g、＜調味料類＞ （食塩類） 食塩 1.5g",
+   "kcal": 146,
+   "protein": 6.1,
+   "fat": 3.3,
+   "carb": 24.0,
+   "fiber": 1.0,
+   "salt": 0.8
+  },
+  {
+   "id": "dish-keema-curry",
+   "name": "キーマカレー",
+   "category": "丼・ごはんもの",
+   "keywords": [
+    "キーマカレー",
+    "きーまかれー",
+    "ドライカレー"
+   ],
+   "servingGrams": 406,
+   "portions": [
+    {
+     "label": "1皿",
+     "grams": 406
+    }
+   ],
+   "recipe": "こめ ［水稲めし］ 精白米 うるち米 230g、＜畜肉類＞ うし ［ひき肉］ 生 80g、（たまねぎ類） たまねぎ りん茎 生 50g、＜香辛料類＞ カレー粉 6g、（植物油脂類） 調合油 10g、（トマト類） 加工品 ホール 食塩無添加 30g",
+   "kcal": 170,
+   "protein": 5.2,
+   "fat": 7.0,
+   "carb": 23.4,
+   "fiber": 1.7,
+   "salt": 0.0
+  },
+  {
+   "id": "dish-seafood-curry",
+   "name": "シーフードカレー",
+   "category": "丼・ごはんもの",
+   "keywords": [
+    "シーフードカレー",
+    "海鮮カレー"
+   ],
+   "servingGrams": 475,
+   "portions": [
+    {
+     "label": "1皿",
+     "grams": 475
+    }
+   ],
+   "recipe": "こめ ［水稲めし］ 精白米 うるち米 250g、洋風料理 カレー類 ビーフカレー 170g、＜えび・かに類＞ （えび類） バナメイえび 養殖 生 30g、＜いか・たこ類＞ （いか類） するめいか 生 25g",
+   "kcal": 134,
+   "protein": 4.4,
+   "fat": 3.5,
+   "carb": 22.5,
+   "fiber": 1.1,
+   "salt": 0.7
+  },
+  {
+   "id": "dish-loco-moco",
+   "name": "ロコモコ",
+   "category": "丼・ごはんもの",
+   "keywords": [
+    "ロコモコ",
+    "ろこもこ"
+   ],
+   "servingGrams": 430,
+   "portions": [
+    {
+     "label": "1皿",
+     "grams": 430
+    }
+   ],
+   "recipe": "こめ ［水稲めし］ 精白米 うるち米 230g、洋風料理 ハンバーグステーキ類 合いびきハンバーグ 130g、鶏卵 全卵 生 55g、＜調味料類＞ （ウスターソース類） 中濃ソース 15g",
+   "kcal": 166,
+   "protein": 7.0,
+   "fat": 5.2,
+   "carb": 24.0,
+   "fiber": 1.2,
+   "salt": 0.5
+  },
+  {
+   "id": "dish-quiche",
+   "name": "キッシュ",
+   "category": "洋食・ファストフード",
+   "keywords": [
+    "キッシュ",
+    "きっしゅ"
+   ],
+   "servingGrams": 135,
+   "portions": [
+    {
+     "label": "1切れ",
+     "grams": 135
+    }
+   ],
+   "recipe": "＜ケーキ・ペストリー類＞ パイ パイ皮 40g、鶏卵 全卵 生 40g、＜牛乳及び乳製品＞ （クリーム類） クリーム 乳脂肪 25g、＜畜肉類＞ ぶた ［ベーコン類］ ばらベーコン ゆで 15g、ほうれんそう 葉 通年平均 ゆで 15g",
+   "kcal": 256,
+   "protein": 8.1,
+   "fat": 20.3,
+   "carb": 12.7,
+   "fiber": 0.8,
+   "salt": 0.5
+  },
+  {
+   "id": "dish-ratatouille",
+   "name": "ラタトゥイユ",
+   "category": "洋食・ファストフード",
+   "keywords": [
+    "ラタトゥイユ",
+    "らたとぅいゆ"
+   ],
+   "servingGrams": 200,
+   "portions": [
+    {
+     "label": "1皿",
+     "grams": 200
+    }
+   ],
+   "recipe": "（なす類） なす 果実 生 50g、ズッキーニ 果実 生 40g、（ピーマン類） 青ピーマン 果実 生 30g、（たまねぎ類） たまねぎ りん茎 生 30g、（トマト類） 加工品 ホール 食塩無添加 40g、（植物油脂類） オリーブ油 10g",
+   "kcal": 65,
+   "protein": 1.0,
+   "fat": 5.1,
+   "carb": 4.7,
+   "fiber": 1.6,
+   "salt": 0.0
+  },
+  {
+   "id": "dish-onion-gratin-soup",
+   "name": "オニオングラタンスープ",
+   "category": "洋食・ファストフード",
+   "keywords": [
+    "オニオングラタンスープ",
+    "オニオンスープ"
+   ],
+   "servingGrams": 250,
+   "portions": [
+    {
+     "label": "1杯",
+     "grams": 250
+    }
+   ],
+   "recipe": "（たまねぎ類） たまねぎ りん茎 生 80g、こむぎ ［パン類］ フランスパン 20g、＜牛乳及び乳製品＞ （チーズ類） プロセスチーズ 20g、（バター類） 発酵バター 有塩バター 6g、＜調味料類＞ （だし類） 固形ブイヨン 3g",
+   "kcal": 79,
+   "protein": 3.0,
+   "fat": 4.2,
+   "carb": 8.0,
+   "fiber": 0.7,
+   "salt": 0.9
+  },
+  {
+   "id": "dish-hash-potato",
+   "name": "ハッシュドポテト",
+   "category": "洋食・ファストフード",
+   "keywords": [
+    "ハッシュドポテト",
+    "ハッシュポテト"
+   ],
+   "servingGrams": 60,
+   "portions": [
+    {
+     "label": "1個",
+     "grams": 60
+    }
+   ],
+   "recipe": "＜いも類＞ じゃがいも 塊茎 皮なし フライドポテト （市販冷凍食品を揚げたもの） 60g",
+   "kcal": 229,
+   "protein": 2.9,
+   "fat": 10.6,
+   "carb": 32.4,
+   "fiber": 3.1,
+   "salt": 0.0
+  },
+  {
+   "id": "dish-egg-muffin",
+   "name": "エッグマフィン",
+   "category": "洋食・ファストフード",
+   "keywords": [
+    "エッグマフィン",
+    "マックマフィン"
+   ],
+   "servingGrams": 145,
+   "portions": [
+    {
+     "label": "1個",
+     "grams": 145
+    }
+   ],
+   "recipe": "こむぎ ［パン類］ イングリッシュマフィン 60g、鶏卵 全卵 生 50g、＜畜肉類＞ ぶた ［ハム類］ ロースハム ゆで 20g、＜牛乳及び乳製品＞ （チーズ類） プロセスチーズ 15g",
+   "kcal": 206,
+   "protein": 12.6,
+   "fat": 10.0,
+   "carb": 17.4,
+   "fiber": 0.5,
+   "salt": 1.2
+  },
+  {
+   "id": "dish-double-cheeseburger",
+   "name": "ダブルチーズバーガー",
+   "category": "洋食・ファストフード",
+   "keywords": [
+    "ダブルチーズバーガー",
+    "ビッグマック"
+   ],
+   "servingGrams": 199,
+   "portions": [
+    {
+     "label": "1個",
+     "grams": 199
+    }
+   ],
+   "recipe": "こむぎ ［パン類］ バンズ 55g、＜畜肉類＞ うし ［ひき肉］ 生 90g、＜牛乳及び乳製品＞ （チーズ類） プロセスチーズ 36g、（たまねぎ類） たまねぎ りん茎 生 8g、＜調味料類＞ （トマト加工品類） トマトケチャップ 10g",
+   "kcal": 253,
+   "protein": 14.8,
+   "fat": 15.6,
+   "carb": 16.1,
+   "fiber": 1.3,
+   "salt": 1.1
   }
  ]
 }
