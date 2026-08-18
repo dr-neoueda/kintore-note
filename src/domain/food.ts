@@ -13,6 +13,11 @@ export interface Food {
   readonly name: string
   /** よく使う分量。量を入れるときのボタンになる。 */
   readonly portions?: readonly FoodPortion[]
+  /**
+   * 名前に出てこない引き方。
+   * 成分表は「チャーハン」だが利用者は「炒飯」と打つ、といった差を埋める。
+   */
+  readonly searchTerms?: readonly string[]
   /** 食品群（穀類・肉類など）。検索の手がかりにする。 */
   readonly group: string
   /** nutrition が何 g 分の値か。成分表は100g、マイ食品は任意。 */
@@ -174,7 +179,9 @@ export function matchesKeyword(food: Food, keyword: string): boolean {
   const terms = toSearchTerms(normalizeFoodKeyword(keyword))
   if (terms.length === 0) return false
 
-  const haystack = normalizeFoodKeyword(`${food.name}${food.group}`)
+  const haystack = normalizeFoodKeyword(
+    `${food.name}${food.group}${(food.searchTerms ?? []).join('')}`,
+  )
   return terms.every((alternatives) =>
     alternatives.some((alternative) => haystack.includes(alternative)),
   )

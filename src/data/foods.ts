@@ -32,7 +32,9 @@ function toFood(raw: RawFood): Food {
   return {
     id: raw.id,
     name: raw.name,
-    ...(common === undefined ? {} : { portions: common.portions }),
+    ...(common === undefined
+      ? {}
+      : { portions: common.portions, searchTerms: common.keywords }),
     group: raw.group,
     basisGrams: COMPOSITION_BASIS_GRAMS,
     nutrition: {
