@@ -101,3 +101,19 @@ export async function listFrequentFoods(limit: number): Promise<
     .sort((a, b) => b.count - a.count)
     .slice(0, limit)
 }
+
+/**
+ * その食品を前回どれだけ食べたか（g）。記録が無ければ null。
+ *
+ * 毎朝ソイプロテインを20g飲むような食品で、既定の100gから毎回打ち直すのは手間になる。
+ * 前回と同じ量から始められるようにする。
+ */
+export async function findLastGramsByFoodId(foodId: string): Promise<number | null> {
+  const entries = await db.meals.toArray()
+
+  const latest = entries
+    .filter((entry) => entry.foodId === foodId)
+    .sort((a, b) => b.recordedAt.localeCompare(a.recordedAt))[0]
+
+  return latest?.grams ?? null
+}

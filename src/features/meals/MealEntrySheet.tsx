@@ -13,6 +13,11 @@ interface MealEntrySheetProps {
   readonly isOpen: boolean
   readonly food: Food
   readonly initialGrams: number
+  /**
+   * initialGrams が前回の記録から来ているか。
+   * 既定値のときだけ、個数で数える食品を1つぶんから始める。
+   */
+  readonly hasRememberedGrams: boolean
   readonly isEditing: boolean
   readonly onClose: () => void
   readonly onSubmit: (grams: number, nutrition: Nutrition) => Promise<void>
@@ -40,6 +45,7 @@ export function MealEntrySheet({
   isOpen,
   food,
   initialGrams,
+  hasRememberedGrams,
   isEditing,
   onClose,
   onSubmit,
@@ -55,11 +61,12 @@ export function MealEntrySheet({
       : String(grams)
 
   /**
-   * 新しく足すときは1つぶんから始める。
-   * 既定の100gを個数に直すと「1.1本」のような半端から始まってしまう。
+   * 前に食べた量が分かっていれば、そこから始める。
+   * 分からないまま既定の100gを個数に直すと「1.1本」のような半端になるので、
+   * その場合だけ1つぶんにする。
    */
   const initialAmountText = (): string =>
-    !isEditing && defaultUnitMode === 'count'
+    !isEditing && !hasRememberedGrams && defaultUnitMode === 'count'
       ? '1'
       : toAmountText(initialGrams, defaultUnitMode)
 

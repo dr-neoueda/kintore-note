@@ -221,6 +221,7 @@ export function MealTemplateEditorPage() {
               ? DEFAULT_GRAMS
               : (items[itemTarget.index]?.grams ?? DEFAULT_GRAMS)
           }
+          hasRememberedGrams={itemTarget.index !== null}
           isEditing={itemTarget.index !== null}
           onClose={() => setItemTarget(null)}
           onSubmit={submitItem}
