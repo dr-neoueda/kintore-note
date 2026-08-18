@@ -232,6 +232,29 @@ describe('名前と部位だけで種目を作る', () => {
     expect(created?.restSec).toBe(120)
   })
 
+  test('自分で足した三頭の種目は、名前から羽状筋にする', async () => {
+    // Arrange & Act: 腕の既定は二頭に合わせた平行筋（10〜15回）
+    const id = await createExercise({
+      name: 'トライセプスエクステンション',
+      muscleGroup: 'arms',
+    })
+
+    // Assert: 三頭は羽状筋なので8〜12回にする
+    const created = await getExercise(id)
+    expect(created?.muscleArchitecture).toBe('pennate')
+    expect(created?.target).toEqual({ repsMin: 8, repsMax: 12, sets: 3 })
+  })
+
+  test('自分で足した二頭の種目は平行筋のままにする', async () => {
+    // Arrange & Act
+    const id = await createExercise({ name: 'プリーチャーカール', muscleGroup: 'arms' })
+
+    // Assert
+    const created = await getExercise(id)
+    expect(created?.muscleArchitecture).toBe('parallel')
+    expect(created?.target).toEqual({ repsMin: 10, repsMax: 15, sets: 3 })
+  })
+
   test('作った種目は一覧に残り、以後も選べる', async () => {
     // Arrange
     await createExercise({ name: '自作種目', muscleGroup: 'back' })

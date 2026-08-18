@@ -123,3 +123,41 @@ describe('ARCHITECTURE_BY_SEED_EXERCISE', () => {
     expect(ARCHITECTURE_BY_SEED_EXERCISE['ダンベルシュラッグ']).toBe('parallel')
   })
 })
+
+describe('自分で足した種目の筋構造', () => {
+  test('三頭の種目は羽状筋にする', () => {
+    // Arrange & Act & Assert: 部位の既定（腕＝二頭に合わせた平行筋）に落とさない
+    expect(resolveArchitecture('トライセプスエクステンション', 'arms')).toBe('pennate')
+    expect(resolveArchitecture('三頭筋プレス', 'arms')).toBe('pennate')
+    expect(resolveArchitecture('ナローベンチプレス', 'arms')).toBe('pennate')
+  })
+
+  test('二頭の種目は平行筋のままにする', () => {
+    expect(resolveArchitecture('プリーチャーカール', 'arms')).toBe('parallel')
+    expect(resolveArchitecture('二頭筋トレ', 'arms')).toBe('parallel')
+  })
+
+  test('三頭と二頭の語が両方あれば三頭を採る', () => {
+    // Arrange & Act & Assert: 効かせる先が三頭の種目名になっている
+    expect(resolveArchitecture('トライセプスキックバックカール', 'arms')).toBe('pennate')
+  })
+
+  test('脚は四頭とハムで分ける', () => {
+    expect(resolveArchitecture('ブルガリアンスクワット改', 'legs')).toBe('pennate')
+    expect(resolveArchitecture('レッグカール', 'legs')).toBe('parallel')
+  })
+
+  test('初期種目の分類は名前の語より優先する', () => {
+    // Arrange & Act & Assert: ダンベルプルオーバーは胸ではなく広背筋ねらいで平行筋
+    expect(resolveArchitecture('ダンベルプルオーバー', 'chest')).toBe('parallel')
+  })
+
+  test('当たる語が無ければ部位の既定にする', () => {
+    expect(resolveArchitecture('よくわからない種目', 'arms')).toBe('parallel')
+    expect(resolveArchitecture('よくわからない種目', 'chest')).toBe('pennate')
+  })
+
+  test('前後の空白は無視する', () => {
+    expect(resolveArchitecture('  トライセプスキックバック  ', 'arms')).toBe('pennate')
+  })
+})

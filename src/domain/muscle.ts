@@ -124,15 +124,81 @@ export const ARCHITECTURE_BY_SEED_EXERCISE: Readonly<Record<string, MuscleArchit
 }
 
 /**
+ * 自分で追加した種目を、名前に含まれる語から分類する。
+ *
+ * 部位の既定だけに頼ると、腕は「二頭に合わせて平行筋」なので、
+ * 自分で足した三頭の種目まで平行筋（高めの回数）になってしまう。
+ * 同じ部位に両方の構造が混在する腕・脚・背中で特に効く。
+ *
+ * 上から順に見て、最初に当たったものを採る。
+ * 「トライセプスキックバック」のように両方の語を含む名前があるため、
+ * 並び順が判定の優先順になる。
+ */
+const ARCHITECTURE_KEYWORDS: readonly (readonly [string, MuscleArchitecture])[] = [
+  // 上腕三頭筋（羽状筋）
+  ['三頭', 'pennate'],
+  ['トライセプス', 'pennate'],
+  ['フレンチプレス', 'pennate'],
+  ['キックバック', 'pennate'],
+  ['スカルクラッシャー', 'pennate'],
+  ['プレスダウン', 'pennate'],
+  ['ディップス', 'pennate'],
+  ['ナロー', 'pennate'],
+  // 上腕二頭筋・腕橈骨筋（紡錘状筋）
+  ['二頭', 'parallel'],
+  ['ビセップス', 'parallel'],
+  ['カール', 'parallel'],
+  // 三角筋（多羽状筋）
+  ['三角筋', 'pennate'],
+  ['レイズ', 'pennate'],
+  ['ショルダープレス', 'pennate'],
+  // 僧帽筋・広背筋（線維が長い）
+  ['シュラッグ', 'parallel'],
+  ['広背', 'parallel'],
+  ['ラット', 'parallel'],
+  ['プルダウン', 'parallel'],
+  ['プルオーバー', 'parallel'],
+  ['ロウ', 'parallel'],
+  ['懸垂', 'parallel'],
+  // 大腿四頭筋・下腿三頭筋（羽状筋）
+  ['スクワット', 'pennate'],
+  ['ランジ', 'pennate'],
+  ['レッグプレス', 'pennate'],
+  ['レッグエクステンション', 'pennate'],
+  ['カーフ', 'pennate'],
+  // ハムストリングス（線維が長い）
+  ['ハムストリング', 'parallel'],
+  ['レッグカール', 'parallel'],
+  ['ルーマニアン', 'parallel'],
+  // 腹直筋・腹斜筋（平行筋）
+  ['腹', 'parallel'],
+  ['クランチ', 'parallel'],
+  ['プランク', 'parallel'],
+  ['シットアップ', 'parallel'],
+  ['レッグレイズ', 'parallel'],
+]
+
+/** 名前に含まれる語から筋構造を推定する。当たらなければ null。 */
+function inferArchitectureFromName(name: string): MuscleArchitecture | null {
+  const found = ARCHITECTURE_KEYWORDS.find(([keyword]) => name.includes(keyword))
+  return found?.[1] ?? null
+}
+
+/**
  * 種目名から筋構造を決める。
- * 既知の種目は個別の分類を使い、それ以外は部位の既定にする。
+ *
+ * 初期種目は個別の分類を使い、自分で足した種目は名前の語から推定する。
+ * どちらにも当たらなければ部位の既定にする。
  */
 export function resolveArchitecture(
   exerciseName: string,
   muscleGroup: MuscleGroup,
 ): MuscleArchitecture {
+  const name = exerciseName.trim()
+
   return (
-    ARCHITECTURE_BY_SEED_EXERCISE[exerciseName.trim()] ??
+    ARCHITECTURE_BY_SEED_EXERCISE[name] ??
+    inferArchitectureFromName(name) ??
     DEFAULT_ARCHITECTURE_BY_MUSCLE_GROUP[muscleGroup]
   )
 }
