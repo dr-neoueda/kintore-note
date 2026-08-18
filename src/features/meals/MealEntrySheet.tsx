@@ -60,15 +60,22 @@ export function MealEntrySheet({
       ? String(gramsToCount(grams, countUnit))
       : String(grams)
 
+  /** その食品の代表的な1つ分。「1皿」「1本」など、分量の先頭を使う。 */
+  const firstPortionGrams = food.portions?.[0]?.grams ?? null
+
   /**
    * 前に食べた量が分かっていれば、そこから始める。
-   * 分からないまま既定の100gを個数に直すと「1.1本」のような半端になるので、
-   * その場合だけ1つぶんにする。
+   *
+   * 分からないときは、既定の100gではなく代表的な1つ分から始める。
+   * ラーメンを100gから、炒飯を100gから直すのは手間で、
+   * 100gを個数に直すと「1.1本」のような半端にもなる。
    */
-  const initialAmountText = (): string =>
-    !isEditing && !hasRememberedGrams && defaultUnitMode === 'count'
-      ? '1'
-      : toAmountText(initialGrams, defaultUnitMode)
+  const initialAmountText = (): string => {
+    if (isEditing || hasRememberedGrams) return toAmountText(initialGrams, defaultUnitMode)
+    if (defaultUnitMode === 'count') return '1'
+    if (firstPortionGrams !== null) return String(firstPortionGrams)
+    return toAmountText(initialGrams, defaultUnitMode)
+  }
 
   const [unitMode, setUnitMode] = useState<UnitMode>(defaultUnitMode)
   const [amountText, setAmountText] = useState(initialAmountText)

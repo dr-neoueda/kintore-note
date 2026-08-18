@@ -57,12 +57,12 @@ test.describe('個数で入力する', () => {
     await expect(page.getByRole('main')).toContainText('16 g')
   })
 
-  test('ごはんは今まで通り g で入れる', async ({ page }) => {
+  test('ごはんは g のまま、茶碗1杯から始まる', async ({ page }) => {
     // Arrange & Act: 茶碗で量るものを「3個」とは数えない
     await openEntry(page, 'ごはん', 'ごはん（白米・炊いた）')
 
-    // Assert
-    await expect(page.getByRole('spinbutton', { name: '量' })).toHaveValue('100')
+    // Assert: 既定の100gではなく、分量の先頭（茶碗軽く1杯）から始まる
+    await expect(page.getByRole('spinbutton', { name: '量' })).toHaveValue('150')
     await expect(page.getByTestId('amount-grams')).toHaveCount(0)
     await expect(page.getByRole('button', { name: /単位を切り替える/ })).toHaveCount(0)
   })
