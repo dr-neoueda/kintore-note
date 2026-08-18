@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { waitForPersisted } from './helpers/persistence'
 
 /**
  * 体組成を測っていない日は、直近の記録を当てはめる。
@@ -86,7 +87,8 @@ test.describe('測っていない日の体組成', () => {
     await recordBodyOn(page, 2, '70', '1600')
     await recordBananaToday(page)
 
-    // Act
+    // Act: 書き込みが確定してからグラフへ移る
+    await waitForPersisted(page, 'meals', 1)
     await page.goto('/meals/charts')
 
     // Assert: 今日は測っていないが、収支の対象になる

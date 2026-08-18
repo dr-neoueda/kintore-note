@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { waitForPersisted } from './helpers/persistence'
 
 /** 体組成の推移と、摂取・消費の収支からの分析。 */
 
@@ -119,6 +120,7 @@ test.describe('体組成のグラフ', () => {
     await page.getByLabel('食品名で探す').fill('バナナ')
     await page.getByRole('dialog').getByRole('button', { name: 'バナナを選ぶ' }).click()
     await page.getByRole('button', { name: '記録する' }).click()
+    await waitForPersisted(page, 'meals', 1)
 
     // Act
     await openBodyCharts(page)
@@ -173,7 +175,8 @@ test.describe('エネルギー収支の分析', () => {
     await page.getByRole('dialog').getByRole('button', { name: 'バナナを選ぶ' }).click()
     await page.getByRole('button', { name: '記録する' }).click()
 
-    // Act
+    // Act: 書き込みが確定してからグラフへ移る
+    await waitForPersisted(page, 'meals', 1)
     await page.goto('/meals/charts')
 
     // Assert: 84 − 1600 = −1516 kcal ≒ 体脂肪 −0.21kg
@@ -189,6 +192,7 @@ test.describe('エネルギー収支の分析', () => {
     await page.getByLabel('食品名で探す').fill('バナナ')
     await page.getByRole('dialog').getByRole('button', { name: 'バナナを選ぶ' }).click()
     await page.getByRole('button', { name: '記録する' }).click()
+    await waitForPersisted(page, 'meals', 1)
 
     // Act
     await page.goto('/meals/charts')
@@ -204,6 +208,7 @@ test.describe('エネルギー収支の分析', () => {
     await page.getByLabel('食品名で探す').fill('バナナ')
     await page.getByRole('dialog').getByRole('button', { name: 'バナナを選ぶ' }).click()
     await page.getByRole('button', { name: '記録する' }).click()
+    await waitForPersisted(page, 'meals', 1)
 
     // Act
     await page.goto('/meals/charts')
