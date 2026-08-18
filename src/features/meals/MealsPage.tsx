@@ -7,6 +7,7 @@ import { getSettings } from '@/data/repositories/settingsRepository'
 import {
   addMealEntry,
   deleteMealEntry,
+  findLastGramsByFoodId,
   listMealEntriesByDate,
   updateMealEntry,
 } from '@/data/repositories/mealRepository'
@@ -36,11 +37,16 @@ import styles from './MealsPage.module.css'
 
 /** 記録の追加・編集で開いているシートの対象。 */
 interface EntryTarget {
+  /** シートを開くときに入れておく量（g）。 */
+  readonly initialGrams: number
+  /** その量が前回の記録から来ているか。既定値なら false。 */
+  readonly hasRememberedGrams: boolean
   readonly mealType: MealType
   readonly food: Food
   readonly entry: MealEntry | null
 }
 
+/** 前に食べたことが無い食品の既定量。 */
 const DEFAULT_GRAMS = 100
 
 export function MealsPage() {
@@ -97,9 +103,23 @@ export function MealsPage() {
     setPickerMealType(mealType)
   }
 
-  const handleSelectFood = (food: Food) => {
+  /**
+   * 前に食べたことがあれば、その量から始める。
+   * 毎朝20g飲むものを毎回100gから打ち直すのは手間になる。
+   *
+   * 量はシートを開く前に決める。開いたあとに届けても、
+   * 入力欄は開いた時点の値で初期化されたあとで、反映されない。
+   */
+  const handleSelectFood = async (food: Food) => {
     setPickerMealType(null)
-    setEntryTarget({ mealType: pendingMealType, food, entry: null })
+    const lastGrams = await findLastGramsByFoodId(food.id)
+    setEntryTarget({
+      mealType: pendingMealType,
+      food,
+      entry: null,
+      initialGrams: lastGrams ?? DEFAULT_GRAMS,
+      hasRememberedGrams: lastGrams !== null,
+    })
   }
 
   /** 記録済みの1件を開く。元の食品が消えていても、記録した値で編集できるようにする。 */
@@ -112,7 +132,13 @@ export function MealsPage() {
       nutrition: entry.nutrition,
       isCustom: false,
     }
-    setEntryTarget({ mealType: entry.mealType, food, entry })
+    setEntryTarget({
+      mealType: entry.mealType,
+      food,
+      entry,
+      initialGrams: entry.grams,
+      hasRememberedGrams: true,
+    })
   }
 
   const submitEntry = async (grams: number, nutrition: Nutrition) => {
@@ -201,8 +227,9 @@ export function MealsPage() {
             className={styles.todayButton}
             onClick={() => setDateKey(null)}
             disabled={date === todayKey}
+            aria-label={date === todayKey ? '今日' : '今日に戻る'}
           >
-            今日
+            {date === todayKey ? '今日' : formatDateLabel(date)}
           </button>
           <button
             type="button"
@@ -272,7 +299,7 @@ export function MealsPage() {
       <FoodPickerSheet
         isOpen={pickerMealType !== null}
         onClose={() => setPickerMealType(null)}
-        onSelect={handleSelectFood}
+        onSelect={(food) => void handleSelectFood(food)}
         onRequestCreate={(initialName) => setCreatingName(initialName)}
         templates={templates ?? []}
         onSelectTemplate={(template) => {
@@ -285,7 +312,8 @@ export function MealsPage() {
         <MealEntrySheet
           isOpen
           food={entryTarget.food}
-          initialGrams={entryTarget.entry?.grams ?? DEFAULT_GRAMS}
+          initialGrams={entryTarget.initialGrams}
+          hasRememberedGrams={entryTarget.hasRememberedGrams}
           isEditing={entryTarget.entry !== null}
           onClose={() => setEntryTarget(null)}
           onSubmit={submitEntry}
@@ -297,7 +325,15 @@ export function MealsPage() {
         isOpen={creatingName !== null}
         initialName={creatingName ?? ''}
         onClose={() => setCreatingName(null)}
-        onCreated={(food) => setEntryTarget({ mealType: pendingMealType, food, entry: null })}
+        onCreated={(food) =>
+          setEntryTarget({
+            mealType: pendingMealType,
+            food,
+            entry: null,
+            initialGrams: DEFAULT_GRAMS,
+            hasRememberedGrams: false,
+          })
+        }
       />
     </>
   )

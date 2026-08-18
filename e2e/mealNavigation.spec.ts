@@ -219,7 +219,7 @@ test.describe('前の日をなぞる', () => {
     await expect(page.getByRole('main')).toContainText('バナナ')
 
     // Act
-    await page.getByRole('button', { name: '今日' }).click()
+    await page.getByRole('button', { name: '今日に戻る' }).click()
     await expect(page.getByRole('button', { name: '前の日と同じにする' })).toBeVisible()
     await page.getByRole('button', { name: '前の日と同じにする' }).click()
 

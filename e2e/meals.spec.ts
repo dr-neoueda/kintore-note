@@ -128,7 +128,7 @@ test.describe('食事の記録', () => {
     await expect(page.getByTestId('total-kcal')).toHaveText('0')
 
     // Act
-    await page.getByRole('button', { name: '今日' }).click()
+    await page.getByRole('button', { name: '今日に戻る' }).click()
 
     // Assert
     await expect(page.getByRole('main')).toContainText('バナナ')
