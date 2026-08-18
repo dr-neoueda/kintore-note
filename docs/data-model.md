@@ -11,7 +11,7 @@
 | `src/data/foodComposition.json` | 2,538 | 日本食品標準成分表（八訂）増補2023年（文部科学省）|
 | `src/data/storeFoods.json` | 169 | Open Food Facts（ODbL）・業務スーパー |
 | `src/domain/derivedFoods.ts` | 1 | 成分表に無い調理法の見積もり（元の食品番号 + 変化率）|
-| `src/data/dishes.json` | 50 | 外食の料理。成分表の食材から積み上げて見積もる（scripts/buildDishes.py）|
+| `src/data/dishes.json` | 121 | 外食の料理。成分表の食材から積み上げて見積もる（scripts/buildDishes.py）|
 
 どれも読み取り専用で、バックアップには含めない（アプリに入っているため）。
 記録する側は、記録した時点の栄養価を焼き付けて持つ。

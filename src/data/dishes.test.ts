@@ -7,7 +7,7 @@ describe('料理', () => {
   test('外食の定番を読み込める', async () => {
     const dishes = await loadDishes()
 
-    expect(dishes.length).toBeGreaterThan(40)
+    expect(dishes.length).toBeGreaterThan(100)
   })
 
   test('料理として分かる食品群にする', async () => {
@@ -52,11 +52,11 @@ describe('料理', () => {
     // Arrange & Act: 桁を間違えると気づけないので、上下の幅で見張る
     const dishes = await loadDishes()
 
-    // Assert: 味噌汁40kcal 〜 カツカレー1100kcal の幅に入る
+    // Assert: サラダ29kcal 〜 カツカレー1100kcal の幅に入る
     for (const dish of dishes) {
       const serving = dish.portions?.[0]?.grams ?? 0
       const kcal = (dish.nutrition.kcal * serving) / 100
-      expect(kcal).toBeGreaterThan(30)
+      expect(kcal).toBeGreaterThan(20)
       expect(kcal).toBeLessThan(1500)
     }
   })
@@ -90,12 +90,27 @@ describe('料理名で引く', () => {
     expect(searchFoods(dishes, 'ラーメン').length).toBeGreaterThan(0)
   })
 
-  test('「牛丼」「カツ丼」「寿司」で引ける', async () => {
+  test('外食の定番が一通り引ける', async () => {
     const dishes = await loadDishes()
 
-    for (const keyword of ['牛丼', 'カツ丼', '寿司', 'ハンバーガー', 'カレー']) {
-      expect(searchFoods(dishes, keyword).length).toBeGreaterThan(0)
+    const keywords = [
+      '牛丼', 'カツ丼', '寿司', 'ハンバーガー', 'カレー',
+      '担々麺', 'ちゃんぽん', 'うな丼', 'ビビンバ', '焼き鳥',
+      'おでん', 'すき焼き', '回鍋肉', 'オムレツ', 'メロンパン',
+      'ちらし寿司', 'ガパオ', 'エビチリ', 'ポテトサラダ', '刺身',
+    ]
+    for (const keyword of keywords) {
+      expect(searchFoods(dishes, keyword), keyword).not.toHaveLength(0)
     }
+  })
+
+  test('同じ料理が二重に入っていない', async () => {
+    // Arrange & Act: 検索結果に同じものが並ぶと選びにくい
+    const dishes = await loadDishes()
+
+    // Assert
+    expect(new Set(dishes.map((dish) => dish.id)).size).toBe(dishes.length)
+    expect(new Set(dishes.map((dish) => dish.name)).size).toBe(dishes.length)
   })
 
   test('言い換えでも引ける', async () => {
