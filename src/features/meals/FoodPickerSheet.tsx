@@ -9,6 +9,7 @@ import {
   type PackagedFood,
 } from '@/data/openFoodFacts'
 import { findOrCreateCustomFood, toFood } from '@/data/repositories/customFoodRepository'
+import { DISH_GROUP } from '@/data/dishes'
 import { STORE_FOOD_GROUP } from '@/data/storeFoods'
 import { listFrequentFoods } from '@/data/repositories/mealRepository'
 import { searchCommonFoods, type CommonFood } from '@/domain/commonFoods'
@@ -362,7 +363,9 @@ interface FoodRowProps {
 
 function FoodRow({ food, onSelect }: FoodRowProps) {
   const isStoreFood = food.group === STORE_FOOD_GROUP
-  const state = food.isCustom || isStoreFood ? null : extractCookingState(food.name)
+  const isDish = food.group === DISH_GROUP
+  const state =
+    food.isCustom || isStoreFood || isDish ? null : extractCookingState(food.name)
 
   return (
     <button type="button" className={styles.item} onClick={() => onSelect(food)}>
@@ -372,6 +375,7 @@ function FoodRow({ food, onSelect }: FoodRowProps) {
       <span className={styles.itemMeta}>
         {food.isCustom && <span className={styles.customBadge}>マイ食品</span>}
         {isStoreFood && <span className={styles.customBadge}>{STORE_FOOD_GROUP}</span>}
+        {isDish && <span className={styles.customBadge}>目安</span>}
         {state !== null && <span className={styles.stateBadge}>{state}</span>}
         {food.nutrition.kcal} kcal / {food.basisGrams}g
       </span>

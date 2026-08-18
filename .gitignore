@@ -31,3 +31,4 @@ screenshots
 
 # vite-plugin-pwa の開発用出力
 dev-dist
+__pycache__/
